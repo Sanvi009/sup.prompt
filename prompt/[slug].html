@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Prompt Detail</title>
@@ -87,43 +86,6 @@
         .prompt-card .copy-btn:hover { background: #4338ca; }
         .prompt-card .copy-btn.copied { background: #10b981; }
 
-        .related {
-            margin-top: 40px;
-        }
-        .related h2 {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 16px;
-        }
-        .related-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-        }
-        @media (max-width: 600px) { .related-grid { grid-template-columns: 1fr 1fr; } }
-        @media (max-width: 400px) { .related-grid { grid-template-columns: 1fr; } }
-        .related-card {
-            background: white;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            overflow: hidden;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .related-card:hover { transform: translateY(-2px); }
-        .related-card img {
-            width: 100%;
-            height: 120px;
-            object-fit: cover;
-            background: #f1f5f9;
-        }
-        .related-card .info {
-            padding: 12px 14px;
-        }
-        .related-card .info .title {
-            font-weight: 500;
-            font-size: 14px;
-        }
         .loading {
             text-align: center;
             padding: 40px;
@@ -138,11 +100,7 @@
     </div>
 
     <script>
-        // ============================================================
-        //  SUPABASE SETUP
-        // ============================================================
         let sb = null;
-
         async function initSupabase() {
             const res = await fetch('/api/supabase-config');
             const data = await res.json();
@@ -150,17 +108,13 @@
             loadPrompt();
         }
 
-        // ============================================================
-        //  LOAD PROMPT + RELATED
-        // ============================================================
         async function loadPrompt() {
             const slug = window.location.pathname.split('/').pop();
             const container = document.getElementById('content');
 
-            // Fetch prompt
             const { data: prompt, error } = await sb
                 .from('prompts')
-                .select('*, categories!inner(*)')
+                .select('*')
                 .eq('slug', slug)
                 .single();
 
@@ -169,28 +123,19 @@
                 return;
             }
 
-            const catIds = prompt.category_ids || [];
-            const catNames = (prompt.categories || []).map(c => c.name).join(', ');
-
-            // Render main prompt
             container.innerHTML = `
                 <div class="prompt-card">
                     <img src="${prompt.image_main}" 
                          onerror="this.src='https://via.placeholder.com/800/94a3b8/ffffff?text=?'" 
                          alt="${prompt.title}" />
                     <h1>${prompt.title}</h1>
-                    <div class="meta">${catNames} • ${new Date(prompt.created_at).toLocaleDateString()}</div>
+                    <div class="meta">${new Date(prompt.created_at).toLocaleDateString()}</div>
                     ${prompt.description ? `<div class="description">${prompt.description}</div>` : ''}
                     <div class="prompt-text" id="promptText">${prompt.prompt_text}</div>
                     <button class="copy-btn" id="copyBtn">📋 Copy Prompt</button>
                 </div>
-                <div class="related" id="relatedSection">
-                    <h2>📂 Related Prompts</h2>
-                    <div class="related-grid" id="relatedGrid">Loading...</div>
-                </div>
             `;
 
-            // Copy button
             document.getElementById('copyBtn').addEventListener('click', () => {
                 const text = document.getElementById('promptText').textContent;
                 navigator.clipboard.writeText(text).then(() => {
@@ -203,35 +148,6 @@
                     }, 2000);
                 });
             });
-
-            // Load related prompts (random 6 from same category)
-            if (catIds.length > 0) {
-                const { data: related, error: relError } = await sb
-                    .from('prompts')
-                    .select('*')
-                    .contains('category_ids', catIds)
-                    .neq('id', prompt.id)
-                    .limit(20);
-
-                if (!relError && related && related.length > 0) {
-                    const shuffled = related.sort(() => Math.random() - 0.5).slice(0, 6);
-                    const grid = document.getElementById('relatedGrid');
-                    grid.innerHTML = shuffled.map(p => `
-                        <div class="related-card" onclick="window.location.href='/prompt/${p.slug}'">
-                            <img src="${p.image_main}" 
-                                 onerror="this.src='https://via.placeholder.com/400/94a3b8/ffffff?text=?'" 
-                                 alt="${p.title}" />
-                            <div class="info">
-                                <div class="title">${p.title}</div>
-                            </div>
-                        </div>
-                    `).join('');
-                } else {
-                    document.getElementById('relatedGrid').innerHTML = 'No related prompts found.';
-                }
-            } else {
-                document.getElementById('relatedGrid').innerHTML = 'No categories available.';
-            }
         }
 
         document.addEventListener('DOMContentLoaded', initSupabase);
