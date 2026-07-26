@@ -67,21 +67,18 @@
             background: white;
         }
 
-        /* ===== MASONRY GRID ===== */
+        /* ===== MASONRY GRID (Auto-fill columns) ===== */
         .container {
-            max-width: 1280px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 32px 24px;
         }
 
         .grid {
-            column-count: 4;
+            column-count: auto;
+            column-width: 260px; /* Minimum width per card */
             column-gap: 20px;
         }
-
-        @media (max-width: 1024px) { .grid { column-count: 3; } }
-        @media (max-width: 768px) { .grid { column-count: 2; } }
-        @media (max-width: 480px) { .grid { column-count: 1; } }
 
         /* ===== CARD (Image Only + Overlay) ===== */
         .card {
@@ -113,9 +110,9 @@
             bottom: 0;
             left: 0;
             right: 0;
-            padding: 20px 20px 18px;
-            background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%);
-            color: white;
+            padding: 16px 20px 18px;
+            background: linear-gradient(to top, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0) 100%);
+            color: #111827; /* BLACK text */
             font-size: 14px;
             font-weight: 400;
             line-height: 1.4;
@@ -128,7 +125,8 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 90%;
+            max-width: 100%;
+            font-weight: 500;
         }
 
         /* ===== LOADER ===== */
@@ -164,9 +162,9 @@
             header { padding: 14px 20px; flex-direction: column; align-items: stretch; }
             header .controls { max-width: 100%; justify-content: stretch; }
             header .controls input { max-width: 100%; }
-            .grid { column-count: 2; column-gap: 12px; }
+            .grid { column-width: 180px; column-gap: 12px; }
             .card { margin-bottom: 12px; border-radius: 12px; }
-            .card .overlay { padding: 14px 14px 12px; font-size: 13px; }
+            .card .overlay { padding: 12px 14px 14px; font-size: 13px; }
             .container { padding: 20px 12px; }
         }
     </style>
@@ -255,7 +253,7 @@
                 card.className = 'card';
                 card.onclick = () => window.location.href = `/prompt/${p.slug}`;
 
-                // Get first ~50 chars of prompt text for overlay
+                // Get first ~50 chars of prompt text for overlay (NO QUOTES)
                 const snippet = p.prompt_text.length > 50 
                     ? p.prompt_text.substring(0, 50) + '...' 
                     : p.prompt_text;
@@ -266,7 +264,7 @@
                          onerror="this.src='https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=400&h=300&fit=crop&auto=format'" 
                          alt="${p.title}" />
                     <div class="overlay">
-                        <div class="snippet">"${snippet}"</div>
+                        <div class="snippet">${snippet}</div>
                     </div>
                 `;
                 grid.appendChild(card);
