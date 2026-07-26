@@ -239,8 +239,6 @@
             const submitBtn = document.getElementById('submitBtn');
             const errorMsg = document.getElementById('errorMsg');
 
-           
-
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
@@ -270,12 +268,15 @@
 
                     if (data.success) {
                         // Set cookie with 24-hour expiry
+                        // FIX: Changed path from '/admin.auth/' to '/' so it works on all subdirectories
                         const date = new Date();
                         date.setTime(date.getTime() + (24 * 60 * 60 * 1000));
-                        document.cookie = `admin_auth=true; expires=${date.toUTCString()}; path=/admin.auth; SameSite=Lax`;
+                        document.cookie = `admin_auth=true; expires=${date.toUTCString()}; path=/; SameSite=Strict`;
 
-                        // Redirect to dashboard
-                        window.location.href = '/admin.auth/dashboard/';
+                        // FIX: Added a 500ms delay so the browser fully commits the cookie before navigating
+                        setTimeout(() => {
+                            window.location.href = '/admin.auth/dashboard/';
+                        }, 500);
                     } else {
                         showError(data.error || 'Invalid credentials');
                         setLoadingState(false);
