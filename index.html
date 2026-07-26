@@ -67,7 +67,7 @@
             background: white;
         }
 
-        /* ===== BULLETPROOF INSTAGRAM GRID ===== */
+        /* ===== INSTAGRAM GRID ===== */
         .container {
             max-width: 1280px;
             margin: 0 auto;
@@ -76,16 +76,15 @@
 
         .grid {
             display: grid;
-            /* Force 4 exact columns with NO flexibility */
             grid-template-columns: repeat(4, 1fr);
             gap: 16px;
         }
 
-        /* ===== CARD (Strict Square) ===== */
+        /* ===== CARD (Image Only - No Text, No Padding) ===== */
         .card {
             position: relative;
             width: 100%;
-            padding-bottom: 100%; /* Creates a perfect square */
+            padding-bottom: 100%; /* Perfect square */
             border-radius: 12px;
             overflow: hidden;
             cursor: pointer;
@@ -105,32 +104,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover; /* Forces image to fill square without distortion */
+            object-fit: cover;
             display: block;
-        }
-
-        /* ===== PROMPT OVERLAY TEXT ===== */
-        .card .overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 16px 18px 18px;
-            background: linear-gradient(to top, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 100%);
-            color: #111827;
-            font-size: 14px;
-            font-weight: 500;
-            line-height: 1.4;
-            pointer-events: none;
-            z-index: 2;
-        }
-
-        .card .overlay .snippet {
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
 
         /* ===== RESPONSIVE ===== */
@@ -266,18 +241,11 @@
                 card.className = 'card';
                 card.onclick = () => window.location.href = `/prompt/${p.slug}`;
 
-                const snippet = p.prompt_text.length > 50 
-                    ? p.prompt_text.substring(0, 50) + '...' 
-                    : p.prompt_text;
-
                 card.innerHTML = `
                     <img src="${p.image_main}" 
                          loading="lazy" 
                          onerror="this.src='https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=400&h=400&fit=crop&auto=format'" 
                          alt="${p.title}" />
-                    <div class="overlay">
-                        <div class="snippet">${snippet}</div>
-                    </div>
                 `;
                 grid.appendChild(card);
             });
