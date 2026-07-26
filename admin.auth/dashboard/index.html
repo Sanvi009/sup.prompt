@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <!-- Supabase JS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* RESET & BASE */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            background: white;
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e2e8f0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .navbar h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        .navbar .btn-logout {
+            padding: 8px 20px;
+            background: #e53e3e;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+        .navbar .btn-logout:hover {
+            background: #c53030;
+        }
+
+        /* CONTAINER */
+        .container {
+            max-width: 1200px;
+            margin: 32px auto;
+            padding: 0 20px;
+        }
+
+        /* SECTION CARDS */
+        .section-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 32px;
+        }
+        .section-card h3 {
+            margin-bottom: 20px;
+            color: #2d3748;
+            font-size: 18px;
+        }
+
+        /* FORM STYLES */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .form-grid .full-width {
+            grid-column: 1 / -1;
+        }
+        .form-group {
+            margin-bottom: 0;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #4a5568;
+            font-size: 14px;
+        }
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .form-group input[type="file"] {
+            padding: 6px;
+        }
+
+        /* CATEGORY INPUT GROUP */
+        .category-group {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+        .category-group select {
+            flex: 1;
+        }
+        .category-group input {
+            flex: 1;
+        }
+        .btn-add-cat {
+            padding: 10px 16px;
+            background: #48bb78;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        .btn-add-cat:hover {
+            background: #38a169;
+        }
+
+        /* BUTTONS */
+        .btn-primary {
+            padding: 12px 32px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn-primary:hover {
+            background: #5a67d8;
+        }
+        .btn-secondary {
+            padding: 8px 16px;
+            background: #edf2f7;
+            color: #2d3748;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+        .btn-edit {
+            background: #3182ce;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 6px;
+        }
+        .btn-delete {
+            background: #e53e3e;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* TABLE */
+        .table-wrapper {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table th,
+        table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        table th {
+            background: #f7fafc;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 14px;
+        }
+        table tr:hover {
+            background: #f7fafc;
+        }
+        .table-thumb {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+        .table-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        /* MODAL */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            padding: 32px;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-content h3 {
+            margin-bottom: 20px;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        .modal-actions .btn-cancel {
+            padding: 10px 24px;
+            background: #e2e8f0;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .modal-actions .btn-confirm {
+            padding: 10px 24px;
+            background: #e53e3e;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            .category-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .navbar {
+                padding: 12px 16px;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <h2>📊 Admin Dashboard</h2>
+        <button class="btn-logout" id="logoutBtn">Logout</button>
+    </nav>
+
+    <!-- MAIN CONTAINER -->
+    <div class="container">
+
+        <!-- ADD PROMPT SECTION -->
+        <div class="section-card">
+            <h3>➕ Add New Prompt</h3>
+            <form id="addPromptForm">
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label for="title">Title</label>
+                        <input type="text" id="title" required>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="description">Description</label>
+                        <textarea id="description" rows="2"></textarea>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="promptText">Prompt Text</label>
+                        <textarea id="promptText" rows="4" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="mainImage">Main Image</label>
+                        <input type="file" id="mainImage" accept="image/*" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="optionalImage">Optional Image</label>
+                        <input type="file" id="optionalImage" accept="image/*">
+                    </div>
+                    <div class="form-group category-group full-width">
+                        <select id="categorySelect" multiple size="3">
+                            <!-- Populated by JS -->
+                        </select>
+                        <input type="text" id="newCategoryInput" placeholder="New category name...">
+                        <button type="button" class="btn-add-cat" id="addCategoryBtn">+ Add</button>
+                    </div>
+                    <div class="form-group full-width">
+                        <button type="submit" class="btn-primary">Publish Prompt</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- ALL PROMPTS SECTION -->
+        <div class="section-card">
+            <h3>📋 All Prompts</h3>
+            <div class="table-wrapper">
+                <table id="promptsTable">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Title</th>
+                            <th>Categories</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="promptsTableBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="loadingPrompts" style="text-align:center;padding:20px;color:#999;">Loading prompts...</div>
+        </div>
+    </div>
+
+    <!-- DELETE CONFIRMATION MODAL -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal-content">
+            <h3>⚠️ Confirm Delete</h3>
+            <p>Are you sure you want to delete this prompt? This action cannot be undone.</p>
+            <div class="modal-actions">
+                <button class="btn-cancel" id="cancelDeleteBtn">Cancel</button>
+                <button class="btn-confirm" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT MODAL -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-content">
+            <h3>✏️ Edit Prompt</h3>
+            <form id="editForm">
+                <input type="hidden" id="editPromptId">
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label for="editTitle">Title</label>
+                        <input type="text" id="editTitle" required>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="editDescription">Description</label>
+                        <textarea id="editDescription" rows="2"></textarea>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="editPromptText">Prompt Text</label>
+                        <textarea id="editPromptText" rows="4" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Main Image (leave blank to keep current)</label>
+                        <input type="file" id="editMainImage" accept="image/*">
+                    </div>
+                    <div class="form-group">
+                        <label>Optional Image (leave blank to keep current)</label>
+                        <input type="file" id="editOptionalImage" accept="image/*">
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Categories</label>
+                        <select id="editCategorySelect" multiple size="3">
+                            <!-- Populated by JS -->
+                        </select>
+                    </div>
+                    <div class="form-group full-width" style="display:flex;gap:12px;justify-content:flex-end;">
+                        <button type="button" class="btn-cancel" id="cancelEditBtn">Cancel</button>
+                        <button type="submit" class="btn-primary">Update Prompt</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ===================== SETUP =====================
+        const supabase = supabase.createClient(
+            'YOUR_SUPABASE_URL',        // Replace with your URL
+            'YOUR_SUPABASE_ANON_KEY'    // Replace with your Anon Key
+        );
+        const BUCKET_NAME = 'prompt_images';
+
+        // ===================== AUTH CHECK =====================
+        // Check for admin_auth cookie
+        function getCookie(name) {
+            const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+            return match ? match[2] : null;
+        }
+
+        if (!getCookie('admin_auth')) {
+            window.location.href = '/admin.auth/';
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            document.cookie = 'admin_auth=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            window.location.href = '/admin.auth/';
+        });
+
+        // ===================== LOAD CATEGORIES =====================
+        async function loadCategories(selectElementId) {
+            const { data, error } = await supabase.from('categories').select('*').order('name');
+            if (error) return;
+            const select = document.getElementById(selectElementId);
+            select.innerHTML = '';
+            data.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat.id;
+                opt.textContent = cat.name;
+                select.appendChild(opt);
+            });
+        }
+
+        // ===================== ADD NEW CATEGORY =====================
+        document.getElementById('addCategoryBtn').addEventListener('click', async () => {
+            const input = document.getElementById('newCategoryInput');
+            const name = input.value.trim();
+            if (!name) return;
+            const { error } = await supabase.from('categories').insert({ name });
+            if (error) {
+                alert('Error adding category: ' + error.message);
+                return;
+            }
+            input.value = '';
+            await loadCategories('categorySelect');
+            await loadCategories('editCategorySelect');
+        });
+
+        // ===================== UPLOAD IMAGE =====================
+        async function uploadImage(file, promptId, type) {
+            if (!file) return null;
+            const ext = file.name.split('.').pop();
+            const path = `${promptId}/${type}.${ext}`;
+            const { data, error } = await supabase.storage
+                .from(BUCKET_NAME)
+                .upload(path, file, { upsert: true });
+            if (error) {
+                alert('Upload error: ' + error.message);
+                return null;
+            }
+            const { data: urlData } = supabase.storage
+                .from(BUCKET_NAME)
+                .getPublicUrl(path);
+            return urlData.publicUrl;
+        }
+
+        // ===================== GENERATE SLUG =====================
+        function generateSlug(title) {
+            let slug = title
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/^-+|-+$/g, '');
+            // Add random suffix if needed (handled on server)
+            return slug;
+        }
+
+        // ===================== ADD PROMPT =====================
+        document.getElementById('addPromptForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = document.querySelector('#addPromptForm .btn-primary');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Publishing...';
+
+            const title = document.getElementById('title').value.trim();
+            const description = document.getElementById('description').value.trim();
+            const promptText = document.getElementById('promptText').value.trim();
+            const mainFile = document.getElementById('mainImage').files[0];
+            const optionalFile = document.getElementById('optionalImage').files[0];
+            const selectedOptions = document.getElementById('categorySelect').selectedOptions;
+            const categoryIds = Array.from(selectedOptions).map(opt => opt.value);
+
+            if (!title || !promptText || !mainFile) {
+                alert('Please fill in Title, Prompt Text, and Main Image.');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Publish Prompt';
+                return;
+            }
+
+            // Generate slug
+            let slug = generateSlug(title);
+            // Check if slug exists, append random ID if needed
+            const { data: existing } = await supabase
+                .from('prompts')
+                .select('slug')
+                .eq('slug', slug)
+                .maybeSingle();
+            if (existing) {
+                slug += '-' + Math.random().toString(36).substring(2, 6);
+            }
+
+            // Insert prompt first to get ID
+            const { data: newPrompt, error: insertError } = await supabase
+                .from('prompts')
+                .insert({
+                    slug,
+                    title,
+                    description,
+                    prompt_text: promptText,
+                    category_ids: categoryIds,
+                    image_main: '',
+                    image_optional: ''
+                })
+                .select()
+                .single();
+
+            if (insertError) {
+                alert('Error saving prompt: ' + insertError.message);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Publish Prompt';
+                return;
+            }
+
+            const promptId = newPrompt.id;
+
+            // Upload images
+            const mainUrl = await uploadImage(mainFile, promptId, 'main');
+            let optionalUrl = null;
+            if (optionalFile) {
+                optionalUrl = await uploadImage(optionalFile, promptId, 'optional');
+            }
+
+            // Update prompt with image URLs
+            const { error: updateError } = await supabase
+                .from('prompts')
+                .update({
+                    image_main: mainUrl,
+                    image_optional: optionalUrl
+                })
+                .eq('id', promptId);
+
+            if (updateError) {
+                alert('Prompt saved but image update failed: ' + updateError.message);
+            }
+
+            // Reset form
+            document.getElementById('addPromptForm').reset();
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Publish Prompt';
+            loadPrompts();
+        });
+
+        // ===================== LOAD PROMPTS =====================
+        async function loadPrompts() {
+            const tbody = document.getElementById('promptsTableBody');
+            const loading = document.getElementById('loadingPrompts');
+            loading.style.display = 'block';
+            tbody.innerHTML = '';
+
+            const { data: prompts, error } = await supabase
+                .from('prompts')
+                .select('*, categories!inner(*)')
+                .order('created_at', { ascending: false });
+
+            loading.style.display = 'none';
+            if (error) {
+                tbody.innerHTML = `<tr><td colspan="4">Error loading prompts: ${error.message}</td></tr>`;
+                return;
+            }
+
+            if (!prompts || prompts.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#999;">No prompts yet.</td></tr>`;
+                return;
+            }
+
+            // Get category names map
+            const { data: allCats } = await supabase.from('categories').select('id,name');
+            const catMap = {};
+            allCats.forEach(c => catMap[c.id] = c.name);
+
+            prompts.forEach(p => {
+                const tr = document.createElement('tr');
+                const catNames = (p.category_ids || [])
+                    .map(id => catMap[id] || 'Unknown')
+                    .join(', ');
+
+                tr.innerHTML = `
+                    <td><img src="${p.image_main}" class="table-thumb" alt="${p.title}" onerror="this.src='https://via.placeholder.com/50?text=No+Img'"></td>
+                    <td><strong>${p.title}</strong></td>
+                    <td>${catNames}</td>
+                    <td class="table-actions">
+                        <button class="btn-edit" data-id="${p.id}">Edit</button>
+                        <button class="btn-delete" data-id="${p.id}">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Attach event listeners to edit/delete buttons
+            document.querySelectorAll('.btn-edit').forEach(btn => {
+                btn.addEventListener('click', () => openEditModal(btn.dataset.id));
+            });
+            document.querySelectorAll('.btn-delete').forEach(btn => {
+                btn.addEventListener('click', () => openDeleteModal(btn.dataset.id));
+            });
+        }
+
+        // ===================== DELETE MODAL =====================
+        let deleteTargetId = null;
+        const deleteModal = document.getElementById('deleteModal');
+
+        function openDeleteModal(id) {
+            deleteTargetId = id;
+            deleteModal.classList.add('active');
+        }
+
+        document.getElementById('cancelDeleteBtn').addEventListener('click', () => {
+            deleteModal.classList.remove('active');
+            deleteTargetId = null;
+        });
+
+        document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+            if (!deleteTargetId) return;
+            const { error } = await supabase.from('prompts').delete().eq('id', deleteTargetId);
+            if (error) {
+                alert('Error deleting: ' + error.message);
+            } else {
+                deleteModal.classList.remove('active');
+                deleteTargetId = null;
+                loadPrompts();
+            }
+        });
+
+        // ===================== EDIT MODAL =====================
+        const editModal = document.getElementById('editModal');
+
+        async function openEditModal(id) {
+            const { data: prompt, error } = await supabase
+                .from('prompts')
+                .select('*')
+                .eq('id', id)
+                .single();
+            if (error) {
+                alert('Error loading prompt: ' + error.message);
+                return;
+            }
+
+            document.getElementById('editPromptId').value = prompt.id;
+            document.getElementById('editTitle').value = prompt.title;
+            document.getElementById('editDescription').value = prompt.description || '';
+            document.getElementById('editPromptText').value = prompt.prompt_text;
+
+            // Load categories and select existing ones
+            await loadCategories('editCategorySelect');
+            const select = document.getElementById('editCategorySelect');
+            const catIds = prompt.category_ids || [];
+            Array.from(select.options).forEach(opt => {
+                opt.selected = catIds.includes(opt.value);
+            });
+
+            editModal.classList.add('active');
+        }
+
+        document.getElementById('cancelEditBtn').addEventListener('click', () => {
+            editModal.classList.remove('active');
+        });
+
+        document.getElementById('editForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('editPromptId').value;
+            const title = document.getElementById('editTitle').value.trim();
+            const description = document.getElementById('editDescription').value.trim();
+            const promptText = document.getElementById('editPromptText').value.trim();
+            const selectedOptions = document.getElementById('editCategorySelect').selectedOptions;
+            const categoryIds = Array.from(selectedOptions).map(opt => opt.value);
+            const mainFile = document.getElementById('editMainImage').files[0];
+            const optionalFile = document.getElementById('editOptionalImage').files[0];
+
+            const updates = {
+                title,
+                description,
+                prompt_text: promptText,
+                category_ids: categoryIds,
+                updated_at: new Date()
+            };
+
+            // Upload new images if provided
+            if (mainFile) {
+                const url = await uploadImage(mainFile, id, 'main');
+                if (url) updates.image_main = url;
+            }
+            if (optionalFile) {
+                const url = await uploadImage(optionalFile, id, 'optional');
+                if (url) updates.image_optional = url;
+            }
+
+            const { error } = await supabase.from('prompts').update(updates).eq('id', id);
+            if (error) {
+                alert('Error updating: ' + error.message);
+            } else {
+                editModal.classList.remove('active');
+                loadPrompts();
+            }
+        });
+
+        // ===================== INIT =====================
+        loadCategories('categorySelect');
+        loadCategories('editCategorySelect');
+        loadPrompts();
+
+        // Close modals on overlay click
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.classList.remove('active');
+            });
+        });
+
+        // Enter key for new category
+        document.getElementById('newCategoryInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('addCategoryBtn').click();
+            }
+        });
+    </script>
+</body>
+</html>
