@@ -239,19 +239,7 @@
             const submitBtn = document.getElementById('submitBtn');
             const errorMsg = document.getElementById('errorMsg');
 
-            // Check if already logged in
-            const checkAuth = async () => {
-                try {
-                    const res = await fetch('/api/admin/check-auth');
-                    const data = await res.json();
-                    if (data.authenticated) {
-                        window.location.href = '/admin.auth/dashboard/';
-                    }
-                } catch (err) {
-                    // Not authenticated, show login
-                }
-            };
-            checkAuth();
+           
 
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
