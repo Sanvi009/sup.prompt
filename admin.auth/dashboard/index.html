@@ -50,11 +50,11 @@
 
     <script>
         // ============================================================
-        //  🔴 DOUBLE-CHECK THESE ARE CORRECT
+        //  🔥 RENAMED TO 'sb' TO AVOID COLLISION
         // ============================================================
-        const supabase = supabase.createClient(
-            'https://YOUR_PROJECT.supabase.co',  // Must start with https://
-            'YOUR_ANON_KEY'
+        const sb = supabase.createClient(
+            'https://YOUR_PROJECT.supabase.co',  // <-- REPLACE
+            'YOUR_ANON_KEY'                      // <-- REPLACE
         );
         const BUCKET_NAME = 'prompt_images';
 
@@ -87,7 +87,7 @@
             });
 
             // ============================================================
-            //  SAVE PROMPT (WITH FULL ERROR HANDLING)
+            //  SAVE PROMPT
             // ============================================================
             saveBtn.addEventListener('click', async function() {
                 console.log("✅ Save button clicked");
@@ -103,12 +103,12 @@
                 }
 
                 try {
-                    // 1. Generate slug
+                    // Generate slug
                     const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
-                    // 2. Insert prompt
-                    console.log("Attempting to insert...");
-                    const { data, error } = await supabase
+                    // Insert prompt
+                    console.log("Inserting...");
+                    const { data, error } = await sb
                         .from('prompts')
                         .insert({
                             title: title,
@@ -119,28 +119,28 @@
                         .select();
 
                     if (error) {
-                        console.error("🔥 Supabase error:", error);
-                        errorBox.textContent = '❌ ' + error.message + ' (Check console for details)';
+                        console.error("🔥 Error:", error);
+                        errorBox.textContent = '❌ ' + error.message;
                         return;
                     }
 
-                    console.log("✅ Insert successful:", data);
+                    console.log("✅ Saved:", data);
                     errorBox.textContent = '✅ Saved! ID: ' + data[0].id;
 
-                    // 3. Upload image if provided
+                    // Upload image if provided
                     if (file) {
                         const ext = file.name.split('.').pop();
                         const path = data[0].id + '/main.' + ext;
-                        const { error: uploadError } = await supabase.storage
+                        const { error: uploadError } = await sb.storage
                             .from(BUCKET_NAME)
                             .upload(path, file, { upsert: true });
 
                         if (uploadError) {
                             console.error("Upload error:", uploadError);
-                            errorBox.textContent = '⚠️ Prompt saved but image failed: ' + uploadError.message;
+                            errorBox.textContent = '⚠️ Saved but image failed: ' + uploadError.message;
                         } else {
-                            const { data: urlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(path);
-                            await supabase.from('prompts').update({ image_main: urlData.publicUrl }).eq('id', data[0].id);
+                            const { data: urlData } = sb.storage.from(BUCKET_NAME).getPublicUrl(path);
+                            await sb.from('prompts').update({ image_main: urlData.publicUrl }).eq('id', data[0].id);
                             console.log("✅ Image uploaded");
                             errorBox.textContent = '✅ Saved with image!';
                         }
@@ -167,7 +167,7 @@
             async function loadPrompts() {
                 console.log("Loading prompts...");
                 list.innerHTML = 'Loading...';
-                const { data, error } = await supabase.from('prompts').select('*').order('created_at', { ascending: false });
+                const { data, error } = await sb.from('prompts').select('*').order('created_at', { ascending: false });
                 if (error) {
                     console.error("Load error:", error);
                     list.innerHTML = '❌ Error: ' + error.message;
