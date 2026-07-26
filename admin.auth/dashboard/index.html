@@ -4,86 +4,681 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin Dashboard</title>
+    
+    <!-- Google Font: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        /* ===== RESET & BASE ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Inter', sans-serif;
-            background: #f3f4f6;
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #f1f5f9;
             color: #111827;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ===== ADMIN LAYOUT ===== */
+        .admin-wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: 260px;
+            background: white;
+            border-right: 1px solid #e2e8f0;
+            padding: 24px 16px;
+            flex-shrink: 0;
             height: 100vh;
+            position: sticky;
+            top: 0;
+            overflow-y: auto;
+        }
+
+        .sidebar .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 8px 24px 8px;
+            border-bottom: 1px solid #f1f5f9;
+            margin-bottom: 24px;
+        }
+
+        .sidebar .brand .icon {
+            width: 36px;
+            height: 36px;
+            background: #4f46e5;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-        .dashboard-placeholder {
-            text-align: center;
-            background: white;
-            padding: 48px 40px;
-            border-radius: 16px;
-            border: 1px solid #e5e7eb;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
-            max-width: 500px;
-        }
-        .dashboard-placeholder h1 {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-        .dashboard-placeholder p {
-            color: #6b7280;
-            margin-bottom: 24px;
-        }
-        .dashboard-placeholder .btn-logout {
-            padding: 10px 24px;
-            background: #ef4444;
             color: white;
+            font-size: 18px;
+        }
+
+        .sidebar .brand h1 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #111827;
+            letter-spacing: -0.025em;
+        }
+
+        .sidebar .nav {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .sidebar .nav a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .sidebar .nav a:hover {
+            background: #f1f5f9;
+            color: #111827;
+        }
+
+        .sidebar .nav a.active {
+            background: #eef2ff;
+            color: #4f46e5;
+            font-weight: 600;
+        }
+
+        .sidebar .nav a .emoji {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .sidebar .nav .divider {
+            height: 1px;
+            background: #f1f5f9;
+            margin: 8px 0;
+        }
+
+        .sidebar .logout-btn {
+            margin-top: 24px;
+            padding: 10px 12px;
+            width: 100%;
+            background: #fef2f2;
+            color: #dc2626;
             border: none;
             border-radius: 8px;
+            font-size: 14px;
             font-weight: 500;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
             transition: background 0.2s;
         }
-        .dashboard-placeholder .btn-logout:hover {
-            background: #dc2626;
+
+        .sidebar .logout-btn:hover {
+            background: #fee2e2;
         }
-        .dashboard-placeholder .badge {
-            display: inline-block;
-            padding: 4px 12px;
-            background: #d1fae5;
-            color: #065f46;
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content {
+            flex: 1;
+            padding: 32px;
+            max-width: calc(100% - 260px);
+        }
+
+        .main-content .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .main-content .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #111827;
+            letter-spacing: -0.025em;
+        }
+
+        .main-content .header .subtitle {
+            color: #64748b;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .main-content .header .last-updated {
+            font-size: 13px;
+            color: #94a3b8;
+            background: white;
+            padding: 6px 14px;
             border-radius: 20px;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* ===== STATS GRID ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px 24px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        .stat-card .label {
             font-size: 13px;
             font-weight: 500;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stat-card .label .icon {
+            font-size: 16px;
+        }
+
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #111827;
+            margin-top: 6px;
+        }
+
+        .stat-card .change {
+            font-size: 13px;
+            margin-top: 4px;
+            color: #64748b;
+        }
+
+        .stat-card .change.positive {
+            color: #10b981;
+        }
+
+        .stat-card .change.negative {
+            color: #ef4444;
+        }
+
+        /* ===== ENGAGEMENT ROW ===== */
+        .engagement-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .engagement-card {
+            background: white;
+            padding: 20px 24px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        }
+
+        .engagement-card .label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .engagement-card .value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #111827;
+            margin-top: 4px;
+        }
+
+        .engagement-card .sub {
+            font-size: 14px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        /* ===== TOP PROMPTS ROW ===== */
+        .top-prompts {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .top-prompt-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            padding: 20px 24px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        }
+
+        .top-prompt-card .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .top-prompt-card .header h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .top-prompt-card .header .badge {
+            font-size: 12px;
+            font-weight: 500;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: #eef2ff;
+            color: #4f46e5;
+        }
+
+        .top-prompt-card .prompt-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .top-prompt-card .prompt-info img {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: #f1f5f9;
+        }
+
+        .top-prompt-card .prompt-info .details {
+            flex: 1;
+        }
+
+        .top-prompt-card .prompt-info .details .title {
+            font-weight: 600;
+            font-size: 15px;
+            color: #111827;
+        }
+
+        .top-prompt-card .prompt-info .details .meta {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        .top-prompt-card .prompt-info .details .count {
+            font-size: 20px;
+            font-weight: 700;
+            color: #4f46e5;
+            margin-top: 2px;
+        }
+
+        .top-prompt-card .prompt-info .details .count-label {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .top-prompt-card.empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            font-size: 14px;
+            min-height: 80px;
+        }
+
+        /* ===== LOADING ===== */
+        .loading-state {
+            text-align: center;
+            padding: 60px 24px;
+            color: #64748b;
+        }
+
+        .loading-state .spinner {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #4f46e5;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
             margin-bottom: 16px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ===== ERROR ===== */
+        .error-state {
+            text-align: center;
+            padding: 60px 24px;
+            color: #dc2626;
+        }
+
+        .error-state .icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1024px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .admin-wrapper {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                padding: 16px;
+            }
+            .main-content {
+                max-width: 100%;
+                padding: 16px;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .engagement-row {
+                grid-template-columns: 1fr;
+            }
+            .top-prompts {
+                grid-template-columns: 1fr;
+            }
+            .main-content .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .stat-card .value {
+                font-size: 24px;
+            }
+            .main-content .header h1 {
+                font-size: 22px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="dashboard-placeholder">
-        <div class="badge">✅ Authenticated</div>
-        <h1>Admin Dashboard</h1>
-        <p>You've successfully logged in!<br />Full dashboard coming soon.</p>
-        <button class="btn-logout" id="logoutBtn">Sign Out</button>
+
+    <div class="admin-wrapper">
+
+        <!-- ===== SIDEBAR ===== -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="icon">🛡️</div>
+                <h1>Admin Panel</h1>
+            </div>
+
+            <nav class="nav">
+                <a href="/admin.auth/dashboard/" class="active">
+                    <span class="emoji">📊</span> Dashboard
+                </a>
+                <a href="/admin.auth/users/">
+                    <span class="emoji">👥</span> Users
+                </a>
+                <a href="/admin.auth/prompts/">
+                    <span class="emoji">📝</span> Prompts
+                </a>
+                <a href="/admin.auth/add/">
+                    <span class="emoji">➕</span> Add Prompt
+                </a>
+                
+                <div class="divider"></div>
+                
+                <a href="/admin.auth/reports.u/">
+                    <span class="emoji">🚨</span> User Reports
+                </a>
+                <a href="/admin.auth/reports.p/">
+                    <span class="emoji">⚠️</span> Prompt Reports
+                </a>
+                <a href="/admin.auth/premium/">
+                    <span class="emoji">⭐</span> Premium
+                </a>
+
+                <button class="logout-btn" id="logoutBtn">
+                    <span class="emoji">🚪</span> Sign Out
+                </button>
+            </nav>
+        </aside>
+
+        <!-- ===== MAIN CONTENT ===== -->
+        <main class="main-content">
+            
+            <div class="header">
+                <div>
+                    <h1>Dashboard</h1>
+                    <div class="subtitle">Overview of your prompt library platform</div>
+                </div>
+                <div class="last-updated" id="lastUpdated">Loading...</div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="label"><span class="icon">👤</span> Total Users</div>
+                    <div class="value" id="totalUsers">—</div>
+                    <div class="change" id="newUsersToday">0 new today</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label"><span class="icon">📄</span> Total Prompts</div>
+                    <div class="value" id="totalPrompts">—</div>
+                    <div class="change" id="newPromptsToday">0 new today</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label"><span class="icon">❤️</span> Total Likes</div>
+                    <div class="value" id="totalLikes">—</div>
+                    <div class="change" id="activeUsers">0 active (7d)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label"><span class="icon">💾</span> Total Saves</div>
+                    <div class="value" id="totalSaves">—</div>
+                    <div class="change" id="engagementRatio">0 engagement ratio</div>
+                </div>
+            </div>
+
+            <!-- Engagement Row -->
+            <div class="engagement-row">
+                <div class="engagement-card">
+                    <div class="label">📈 Engagement Ratio</div>
+                    <div class="value" id="engagementRatioBig">—</div>
+                    <div class="sub">Total interactions per prompt</div>
+                </div>
+                <div class="engagement-card">
+                    <div class="label">🔥 Active Users (7 Days)</div>
+                    <div class="value" id="activeUsersBig">—</div>
+                    <div class="sub">Users who liked, saved, or commented</div>
+                </div>
+            </div>
+
+            <!-- Top Prompts -->
+            <div class="top-prompts">
+                <div class="top-prompt-card" id="mostLikedCard">
+                    <div class="header">
+                        <h3>❤️ Most Liked Prompt</h3>
+                        <span class="badge">Top</span>
+                    </div>
+                    <div id="mostLikedContent">
+                        <div class="loading-state" style="padding:20px;">
+                            <div class="spinner" style="width:20px;height:20px;"></div>
+                            <div style="font-size:13px;">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="top-prompt-card" id="mostSavedCard">
+                    <div class="header">
+                        <h3>💾 Most Saved Prompt</h3>
+                        <span class="badge">Top</span>
+                    </div>
+                    <div id="mostSavedContent">
+                        <div class="loading-state" style="padding:20px;">
+                            <div class="spinner" style="width:20px;height:20px;"></div>
+                            <div style="font-size:13px;">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
     </div>
 
     <script>
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            // Clear cookie
-            document.cookie = 'admin_auth=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/admin.auth/;';
-            window.location.href = '/admin.auth/';
-        });
+        document.addEventListener('DOMContentLoaded', function() {
+            // ===== AUTH CHECK =====
+            function getCookie(name) {
+                const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+                return match ? match[2] : null;
+            }
 
-        // Check auth on load
-        function getCookie(name) {
-            const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-            return match ? match[2] : null;
-        }
-        if (!getCookie('admin_auth')) {
-            window.location.href = '/admin.auth/';
-        }
+            if (!getCookie('admin_auth')) {
+                window.location.href = '/admin.auth/';
+                return;
+            }
+
+            // ===== LOGOUT =====
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                document.cookie = 'admin_auth=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/admin.auth/;';
+                window.location.href = '/admin.auth/';
+            });
+
+            // ===== LOAD DASHBOARD DATA =====
+            async function loadDashboardData() {
+                try {
+                    const res = await fetch('/api/admin/dashboard');
+                    
+                    if (res.status === 401) {
+                        window.location.href = '/admin.auth/';
+                        return;
+                    }
+
+                    if (!res.ok) {
+                        throw new Error('Failed to fetch dashboard data');
+                    }
+
+                    const data = await res.json();
+
+                    // Update last updated time
+                    document.getElementById('lastUpdated').textContent = 
+                        `Last updated: ${new Date().toLocaleTimeString()}`;
+
+                    // Update stats
+                    document.getElementById('totalUsers').textContent = data.totalUsers || 0;
+                    document.getElementById('totalPrompts').textContent = data.totalPrompts || 0;
+                    document.getElementById('totalLikes').textContent = data.totalLikes || 0;
+                    document.getElementById('totalSaves').textContent = data.totalSaves || 0;
+                    document.getElementById('newUsersToday').textContent = `${data.newUsersToday || 0} new today`;
+                    document.getElementById('newPromptsToday').textContent = `${data.newPromptsToday || 0} new today`;
+                    document.getElementById('activeUsers').textContent = `${data.activeUsers7Days || 0} active (7d)`;
+                    document.getElementById('engagementRatio').textContent = `${data.engagementRatio || 0} engagement ratio`;
+
+                    // Update engagement row
+                    document.getElementById('engagementRatioBig').textContent = data.engagementRatio || '0';
+                    document.getElementById('activeUsersBig').textContent = data.activeUsers7Days || '0';
+
+                    // Update most liked prompt
+                    renderTopPrompt('mostLikedContent', data.mostLikedPrompt, 'likes');
+                    
+                    // Update most saved prompt
+                    renderTopPrompt('mostSavedContent', data.mostSavedPrompt, 'saves');
+
+                } catch (error) {
+                    console.error('Dashboard error:', error);
+                    document.getElementById('statsGrid').innerHTML = `
+                        <div class="error-state" style="grid-column:1/-1;">
+                            <div class="icon">⚠️</div>
+                            <h3>Error loading dashboard</h3>
+                            <p style="color:#64748b;font-size:14px;">${error.message}</p>
+                            <button onclick="location.reload()" style="margin-top:12px;padding:8px 20px;background:#4f46e5;color:white;border:none;border-radius:6px;cursor:pointer;">Retry</button>
+                        </div>
+                    `;
+                }
+            }
+
+            function renderTopPrompt(containerId, prompt, type) {
+                const container = document.getElementById(containerId);
+                
+                if (!prompt) {
+                    container.innerHTML = `
+                        <div class="empty">
+                            <p style="color:#94a3b8;font-size:14px;">No prompts yet</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const count = type === 'likes' 
+                    ? prompt.likes?.[0]?.count || 0 
+                    : prompt.saves?.[0]?.count || 0;
+
+                const label = type === 'likes' ? 'Likes' : 'Saves';
+
+                container.innerHTML = `
+                    <div class="prompt-info">
+                        <img src="${prompt.image_main || 'https://via.placeholder.com/60/4f46e5/ffffff?text=?'}" 
+                             alt="${prompt.title}"
+                             onerror="this.src='https://via.placeholder.com/60/4f46e5/ffffff?text=?'" />
+                        <div class="details">
+                            <div class="title">${prompt.title || 'Untitled'}</div>
+                            <div class="meta">ID: ${prompt.prompt_id || '—'}</div>
+                            <div class="count">${count} <span class="count-label">${label}</span></div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // ===== INIT =====
+            loadDashboardData();
+
+            // Auto-refresh every 60 seconds
+            setInterval(loadDashboardData, 60000);
+        });
     </script>
+
 </body>
 </html>
