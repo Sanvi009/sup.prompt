@@ -89,6 +89,51 @@ export default async function handler(req, res) {
     }
   }
 
+
+  // ===== POST /api/admin/prompts =====
+if (method === 'POST' && parts.length === 3) {
+  try {
+    const { title, description, prompt_text, category_ids, image_main, image_optional } = req.body;
+
+    // Insert the prompt (trigger auto-generates prompt_id)
+    const { data: newPrompt, error } = await supabase
+      .from('prompts')
+      .insert({
+        title,
+        description,
+        prompt_text,
+        image_main: image_main || '',
+        image_optional: image_optional || '',
+        is_published: true,
+        is_boosted: false,
+        slug: title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // Link categories
+    if (category_ids && category_ids.length > 0) {
+      const categoryRows = category_ids.map(catId => ({
+        prompt_id: newPrompt.id,
+        category_id: catId
+      }));
+      const { error: catError } = await supabase
+        .from('prompt_categories')
+        .insert(categoryRows);
+      if (catError) throw catError;
+    }
+
+    return res.status(200).json(newPrompt);
+
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+}
+
+  
+
   // ===== PATCH /api/admin/prompts/:promptId =====
   if (method === 'PATCH' && parts.length === 4) {
     const promptId = parts[3];
