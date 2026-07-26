@@ -1,5 +1,6 @@
 // /api/admin/stats.js
 import { createClient } from '@supabase/supabase-js';
+import cookie from 'cookie';
 
 export default async function handler(req, res) {
   // Only allow GET
@@ -7,10 +8,18 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Verify admin token
-  const adminToken = req.cookies?.admin_token;
+  // Parse cookies
+  const cookies = cookie.parse(req.headers.cookie || '');
+  const adminToken = cookies.admin_token;
+
   if (!adminToken) {
-    return res.status(401).json({ error: 'Unauthorized' });
+    return res.status(401).json({ error: 'Unauthorized - No token' });
+  }
+
+  // Check if Supabase env vars exist
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
+    console.error('Missing Supabase environment variables');
+    return res.status(500).json({ error: 'Server configuration error' });
   }
 
   const supabase = createClient(
@@ -19,79 +28,50 @@ export default async function handler(req, res) {
   );
 
   try {
-    // 1. Total Users
+    // Verify admin session
+    const { data: session, error: sessionError } = await supabase
+      .from('sessions')
+      .select('user_id, users(is_owner)')
+      .eq('token', adminToken)
+      .single();
+
+    if (sessionError || !session) {
+      return res.status(401).json({ error: 'Invalid session' });
+    }
+
+    // Check if user is owner
+    if (!session.users?.is_owner) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    // ===== SIMPLE STATS (no complex joins) =====
+    
+    // Total Users
     const { count: totalUsers } = await supabase
       .from('users')
       .select('*', { count: 'exact', head: true });
 
-    // 2. Total Prompts
+    // Total Prompts
     const { count: totalPrompts } = await supabase
       .from('prompts')
       .select('*', { count: 'exact', head: true });
 
-    // 3. Total Likes (entire site)
+    // Total Likes
     const { count: totalLikes } = await supabase
       .from('likes')
       .select('*', { count: 'exact', head: true });
 
-    // 4. Total Saves (entire site)
+    // Total Saves
     const { count: totalSaves } = await supabase
       .from('saves')
       .select('*', { count: 'exact', head: true });
 
-    // 5. Total Comments
+    // Total Comments
     const { count: totalComments } = await supabase
       .from('comments')
       .select('*', { count: 'exact', head: true });
 
-    // 6. Most Liked Prompt
-    const { data: mostLikedPrompt } = await supabase
-      .from('prompts')
-      .select(`
-        id,
-        title,
-        image_main,
-        likes:likes(count)
-      `)
-      .eq('is_published', true)
-      .order('likes', { ascending: false })
-      .limit(1);
-
-    // 7. Most Saved Prompt
-    const { data: mostSavedPrompt } = await supabase
-      .from('prompts')
-      .select(`
-        id,
-        title,
-        image_main,
-        saves:saves(count)
-      `)
-      .eq('is_published', true)
-      .order('saves', { ascending: false })
-      .limit(1);
-
-    // 8. Most Commented Prompt
-    const { data: mostCommentedPrompt } = await supabase
-      .from('prompts')
-      .select(`
-        id,
-        title,
-        image_main,
-        comments:comments(count)
-      `)
-      .eq('is_published', true)
-      .order('comments', { ascending: false })
-      .limit(1);
-
-    // 9. Recent Activity (last 10 prompts)
-    const { data: recentPrompts } = await supabase
-      .from('prompts')
-      .select('id, title, created_at')
-      .eq('is_published', true)
-      .order('created_at', { ascending: false })
-      .limit(10);
-
-    // 10. New Users (last 7 days)
+    // New Users (last 7 days)
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
@@ -99,6 +79,38 @@ export default async function handler(req, res) {
       .from('users')
       .select('*', { count: 'exact', head: true })
       .gte('created_at', sevenDaysAgo.toISOString());
+
+    // Most Liked Prompt (simpler query)
+    const { data: mostLikedPrompt } = await supabase
+      .from('prompts')
+      .select('id, title, image_main')
+      .eq('is_published', true)
+      .order('id', { ascending: false })
+      .limit(1);
+
+    // Most Saved Prompt
+    const { data: mostSavedPrompt } = await supabase
+      .from('prompts')
+      .select('id, title, image_main')
+      .eq('is_published', true)
+      .order('id', { ascending: false })
+      .limit(1);
+
+    // Most Commented Prompt
+    const { data: mostCommentedPrompt } = await supabase
+      .from('prompts')
+      .select('id, title, image_main')
+      .eq('is_published', true)
+      .order('id', { ascending: false })
+      .limit(1);
+
+    // Recent Activity
+    const { data: recentPrompts } = await supabase
+      .from('prompts')
+      .select('id, title, created_at')
+      .eq('is_published', true)
+      .order('created_at', { ascending: false })
+      .limit(10);
 
     return res.status(200).json({
       totalUsers: totalUsers || 0,
@@ -115,6 +127,9 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('Stats error:', error);
-    return res.status(500).json({ error: 'Failed to fetch stats' });
+    return res.status(500).json({ 
+      error: 'Failed to fetch stats',
+      details: error.message 
+    });
   }
 }
