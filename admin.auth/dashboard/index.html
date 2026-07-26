@@ -1,23 +1,123 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Test</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard</title>
+    <script>
+        // Security check
+        function getCookie(name) {
+            const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+            return match ? match[2] : null;
+        }
+        if (!getCookie('admin_auth')) {
+            window.location.href = '/admin.auth/';
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: sans-serif; padding: 40px; background: #f1f5f9; }
+        .box { background: white; padding: 24px; border-radius: 12px; max-width: 600px; margin: 0 auto; }
+        button { padding: 12px 24px; background: #4f46e5; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
+        button:hover { background: #4338ca; }
+        #list { margin-top: 24px; }
+        .item { background: white; padding: 16px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; }
+    </style>
 </head>
 <body>
-    <h1>Hello Rafi</h1>
-    <button id="testBtn">Click Me</button>
-    <p id="output">Waiting...</p>
+    <div class="box">
+        <h1>Hello Rafi 👋</h1>
+        <button id="addBtn">➕ Add New</button>
+        <div id="list"></div>
+    </div>
+
+    <!-- MODAL -->
+    <div id="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
+        <div style="background:white; padding:32px; border-radius:12px; max-width:500px; width:90%;">
+            <h2>Add Prompt</h2>
+            <input id="title" placeholder="Title" style="width:100%; padding:10px; margin:8px 0;" />
+            <button id="saveBtn">Save</button>
+            <button id="closeBtn">Cancel</button>
+        </div>
+    </div>
 
     <script>
-        console.log("✅ Script loaded");
-        
-        const btn = document.getElementById('testBtn');
-        console.log("Button found:", btn);
+        // ============================================================
+        //  SUPABASE SETUP
+        // ============================================================
+        const supabase = supabase.createClient(
+            'YOUR_SUPABASE_URL',  // <-- REPLACE
+            'YOUR_SUPABASE_ANON_KEY' // <-- REPLACE
+        );
+        const BUCKET_NAME = 'prompt_images';
 
-        btn.addEventListener('click', function() {
-            console.log("✅ Button clicked!");
-            document.getElementById('output').textContent = "It works!";
-            alert("Button works!");
+        // ============================================================
+        //  WAIT FOR DOM
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("✅ DOM fully loaded");
+
+            const addBtn = document.getElementById('addBtn');
+            const modal = document.getElementById('modal');
+            const closeBtn = document.getElementById('closeBtn');
+            const saveBtn = document.getElementById('saveBtn');
+            const titleInput = document.getElementById('title');
+            const list = document.getElementById('list');
+
+            console.log("Add button found:", addBtn);
+
+            // OPEN MODAL
+            addBtn.addEventListener('click', function() {
+                console.log("✅ Add button clicked");
+                modal.style.display = 'flex';
+            });
+
+            // CLOSE MODAL
+            closeBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+
+            // SAVE
+            saveBtn.addEventListener('click', async function() {
+                console.log("✅ Save clicked");
+                const title = titleInput.value.trim();
+                if (!title) return alert("Title required");
+
+                const { data, error } = await supabase
+                    .from('prompts')
+                    .insert({ title, prompt_text: 'test', image_main: 'https://via.placeholder.com/100' })
+                    .select();
+
+                if (error) {
+                    alert("Error: " + error.message);
+                } else {
+                    alert("Saved! ID: " + data[0].id);
+                    modal.style.display = 'none';
+                    loadPrompts();
+                }
+            });
+
+            // LOAD PROMPTS
+            async function loadPrompts() {
+                list.innerHTML = 'Loading...';
+                const { data, error } = await supabase.from('prompts').select('*').order('created_at', { ascending: false });
+                if (error) {
+                    list.innerHTML = 'Error: ' + error.message;
+                    return;
+                }
+                if (!data || data.length === 0) {
+                    list.innerHTML = 'No prompts yet.';
+                    return;
+                }
+                list.innerHTML = data.map(p => `
+                    <div class="item">
+                        <span>${p.title}</span>
+                        <span>${new Date(p.created_at).toLocaleDateString()}</span>
+                    </div>
+                `).join('');
+            }
+
+            loadPrompts();
         });
     </script>
 </body>
