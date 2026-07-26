@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f3f4f6;
+            color: #111827;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .dashboard-placeholder {
+            text-align: center;
+            background: white;
+            padding: 48px 40px;
+            border-radius: 16px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+            max-width: 500px;
+        }
+        .dashboard-placeholder h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .dashboard-placeholder p {
+            color: #6b7280;
+            margin-bottom: 24px;
+        }
+        .dashboard-placeholder .btn-logout {
+            padding: 10px 24px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .dashboard-placeholder .btn-logout:hover {
+            background: #dc2626;
+        }
+        .dashboard-placeholder .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #d1fae5;
+            color: #065f46;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-placeholder">
+        <div class="badge">✅ Authenticated</div>
+        <h1>Admin Dashboard</h1>
+        <p>You've successfully logged in!<br />Full dashboard coming soon.</p>
+        <button class="btn-logout" id="logoutBtn">Sign Out</button>
+    </div>
+
+    <script>
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            // Clear cookie
+            document.cookie = 'admin_auth=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/admin.auth/;';
+            window.location.href = '/admin.auth/';
+        });
+
+        // Check auth on load
+        function getCookie(name) {
+            const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+            return match ? match[2] : null;
+        }
+        if (!getCookie('admin_auth')) {
+            window.location.href = '/admin.auth/';
+        }
+    </script>
+</body>
+</html>
