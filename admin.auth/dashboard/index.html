@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard - Prompt Library</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #f1f5f9;
+            color: #111827;
+            -webkit-font-smoothing: antialiased;
+        }
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* ===== TOP NAV ===== */
+        .top-nav {
+            background: white;
+            border-radius: 16px;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+        .top-nav .brand {
+            font-size: 20px;
+            font-weight: 700;
+            color: #111827;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .top-nav .brand .icon {
+            background: #4f46e5;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        .top-nav .nav-links {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .top-nav .nav-links a {
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            color: #64748b;
+            transition: all 0.2s;
+        }
+        .top-nav .nav-links a:hover {
+            background: #f1f5f9;
+            color: #111827;
+        }
+        .top-nav .nav-links a.active {
+            background: #4f46e5;
+            color: white;
+        }
+        .top-nav .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .top-nav .user-info .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .top-nav .user-info .btn-logout {
+            padding: 8px 16px;
+            background: #fee2e2;
+            color: #dc2626;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .top-nav .user-info .btn-logout:hover {
+            background: #fecaca;
+        }
+
+        /* ===== STATS GRID ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+        .stat-card .label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #111827;
+            margin-top: 4px;
+        }
+        .stat-card .sub {
+            font-size: 14px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+        .stat-card .icon {
+            font-size: 24px;
+            float: right;
+            opacity: 0.5;
+        }
+
+        /* ===== TOP PROMPTS ===== */
+        .prompts-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .prompt-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+        .prompt-card .prompt-image {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 12px;
+            background: #f1f5f9;
+        }
+        .prompt-card .prompt-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 12px;
+            color: #111827;
+        }
+        .prompt-card .prompt-meta {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+        .prompt-card .prompt-stats {
+            display: flex;
+            gap: 16px;
+            margin-top: 8px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .prompt-card .prompt-stats span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* ===== RECENT ACTIVITY ===== */
+        .activity-section {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+        .activity-section h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #111827;
+        }
+        .activity-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        .activity-item .activity-title {
+            flex: 1;
+            font-weight: 500;
+        }
+        .activity-item .activity-date {
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        /* ===== LOADING ===== */
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #64748b;
+        }
+        .loading .spinner {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #4f46e5;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin-bottom: 12px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1024px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .prompts-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .prompts-grid { grid-template-columns: 1fr; }
+            .top-nav { flex-direction: column; gap: 12px; align-items: stretch; }
+            .top-nav .nav-links { justify-content: center; }
+        }
+        @media (max-width: 480px) {
+            .admin-container { padding: 12px; }
+            .stat-card .value { font-size: 24px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- ===== TOP NAV ===== -->
+        <div class="top-nav">
+            <div class="brand">
+                <div class="icon">⚡</div>
+                <span>Admin Panel</span>
+            </div>
+            <div class="nav-links">
+                <a href="/admin.auth/dashboard/" class="active">Dashboard</a>
+                <a href="/admin.auth/users/">Users</a>
+                <a href="/admin.auth/prompts/">Prompts</a>
+                <a href="/admin.auth/add/">Add Prompt</a>
+                <a href="/admin.auth/reports/users/">User Reports</a>
+                <a href="/admin.auth/reports/prompts/">Prompt Reports</a>
+                <a href="/admin.auth/premium/">Premium</a>
+            </div>
+            <div class="user-info">
+                <span id="adminName">Admin</span>
+                <button class="btn-logout" id="logoutBtn">Sign Out</button>
+            </div>
+        </div>
+
+        <!-- ===== STATS ===== -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="icon">👤</div>
+                <div class="label">Total Users</div>
+                <div class="value" id="totalUsers">—</div>
+                <div class="sub">Registered accounts</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon">📝</div>
+                <div class="label">Total Prompts</div>
+                <div class="value" id="totalPrompts">—</div>
+                <div class="sub">In library</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon">❤️</div>
+                <div class="label">Total Likes</div>
+                <div class="value" id="totalLikes">—</div>
+                <div class="sub">Across all prompts</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon">💾</div>
+                <div class="label">Total Saves</div>
+                <div class="value" id="totalSaves">—</div>
+                <div class="sub">Across all prompts</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon">💬</div>
+                <div class="label">Total Comments</div>
+                <div class="value" id="totalComments">—</div>
+                <div class="sub">Across all prompts</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon">📈</div>
+                <div class="label">New Users (7 days)</div>
+                <div class="value" id="newUsers">—</div>
+                <div class="sub">Last 7 days</div>
+            </div>
+        </div>
+
+        <!-- ===== TOP PROMPTS ===== -->
+        <div class="prompts-grid" id="topPrompts">
+            <div class="prompt-card">
+                <div class="label" style="font-size:13px;font-weight:500;color:#64748b;text-transform:uppercase;">❤️ Most Liked</div>
+                <img class="prompt-image" id="mostLikedImage" src="" onerror="this.src='https://via.placeholder.com/400'" />
+                <div class="prompt-title" id="mostLikedTitle">Loading...</div>
+                <div class="prompt-stats">
+                    <span>❤️ <span id="mostLikedCount">0</span></span>
+                </div>
+            </div>
+            <div class="prompt-card">
+                <div class="label" style="font-size:13px;font-weight:500;color:#64748b;text-transform:uppercase;">💾 Most Saved</div>
+                <img class="prompt-image" id="mostSavedImage" src="" onerror="this.src='https://via.placeholder.com/400'" />
+                <div class="prompt-title" id="mostSavedTitle">Loading...</div>
+                <div class="prompt-stats">
+                    <span>💾 <span id="mostSavedCount">0</span></span>
+                </div>
+            </div>
+            <div class="prompt-card">
+                <div class="label" style="font-size:13px;font-weight:500;color:#64748b;text-transform:uppercase;">💬 Most Commented</div>
+                <img class="prompt-image" id="mostCommentedImage" src="" onerror="this.src='https://via.placeholder.com/400'" />
+                <div class="prompt-title" id="mostCommentedTitle">Loading...</div>
+                <div class="prompt-stats">
+                    <span>💬 <span id="mostCommentedCount">0</span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== RECENT ACTIVITY ===== -->
+        <div class="activity-section">
+            <h2>📋 Recent Activity</h2>
+            <div id="activityList">
+                <div class="loading">Loading recent activity...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== LOGOUT =====
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            document.cookie = 'admin_token=; Path=/; Max-Age=0';
+            window.location.href = '/admin.auth/';
+        });
+
+        // ===== FETCH STATS =====
+        async function loadDashboard() {
+            try {
+                const res = await fetch('/api/admin/stats');
+                if (!res.ok) {
+                    if (res.status === 401) {
+                        window.location.href = '/admin.auth/';
+                        return;
+                    }
+                    throw new Error('Failed to load stats');
+                }
+
+                const data = await res.json();
+
+                // Update stats
+                document.getElementById('totalUsers').textContent = data.totalUsers || 0;
+                document.getElementById('totalPrompts').textContent = data.totalPrompts || 0;
+                document.getElementById('totalLikes').textContent = data.totalLikes || 0;
+                document.getElementById('totalSaves').textContent = data.totalSaves || 0;
+                document.getElementById('totalComments').textContent = data.totalComments || 0;
+                document.getElementById('newUsers').textContent = data.newUsersLast7Days || 0;
+
+                // Update most liked
+                if (data.mostLikedPrompt) {
+                    document.getElementById('mostLikedImage').src = data.mostLikedPrompt.image_main;
+                    document.getElementById('mostLikedTitle').textContent = data.mostLikedPrompt.title;
+                    document.getElementById('mostLikedCount').textContent = data.mostLikedPrompt.likes?.[0]?.count || 0;
+                } else {
+                    document.getElementById('mostLikedTitle').textContent = 'No prompts yet';
+                }
+
+                // Update most saved
+                if (data.mostSavedPrompt) {
+                    document.getElementById('mostSavedImage').src = data.mostSavedPrompt.image_main;
+                    document.getElementById('mostSavedTitle').textContent = data.mostSavedPrompt.title;
+                    document.getElementById('mostSavedCount').textContent = data.mostSavedPrompt.saves?.[0]?.count || 0;
+                } else {
+                    document.getElementById('mostSavedTitle').textContent = 'No prompts yet';
+                }
+
+                // Update most commented
+                if (data.mostCommentedPrompt) {
+                    document.getElementById('mostCommentedImage').src = data.mostCommentedPrompt.image_main;
+                    document.getElementById('mostCommentedTitle').textContent = data.mostCommentedPrompt.title;
+                    document.getElementById('mostCommentedCount').textContent = data.mostCommentedPrompt.comments?.[0]?.count || 0;
+                } else {
+                    document.getElementById('mostCommentedTitle').textContent = 'No prompts yet';
+                }
+
+                // Update recent activity
+                const activityList = document.getElementById('activityList');
+                if (data.recentPrompts && data.recentPrompts.length > 0) {
+                    activityList.innerHTML = data.recentPrompts.map(p => `
+                        <div class="activity-item">
+                            <div class="activity-title">📝 ${p.title}</div>
+                            <div class="activity-date">${new Date(p.created_at).toLocaleDateString()}</div>
+                        </div>
+                    `).join('');
+                } else {
+                    activityList.innerHTML = '<div class="activity-item" style="color:#64748b;">No recent activity</div>';
+                }
+
+            } catch (error) {
+                console.error('Dashboard error:', error);
+                document.getElementById('statsGrid').innerHTML = `
+                    <div style="grid-column:1/-1;text-align:center;padding:40px;color:#dc2626;">
+                        ❌ Failed to load dashboard data
+                    </div>
+                `;
+            }
+        }
+
+        // ===== INIT =====
+        document.addEventListener('DOMContentLoaded', loadDashboard);
+    </script>
+</body>
+</html>
