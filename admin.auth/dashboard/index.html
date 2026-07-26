@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <title>Admin Dashboard</title>
     <script>
+        // SECURITY: Redirect if no cookie
         function getCookie(name) {
             const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
             return match ? match[2] : null;
@@ -50,19 +51,37 @@
 
     <script>
         // ============================================================
-        //  🔥 RENAMED TO 'sb' TO AVOID COLLISION
+        //  SECURELY FETCH SUPABASE CONFIG FROM SERVER
         // ============================================================
-        const sb = supabase.createClient(
-            'https://YOUR_PROJECT.supabase.co',  // <-- REPLACE
-            'YOUR_ANON_KEY'                      // <-- REPLACE
-        );
+        let sb = null;
         const BUCKET_NAME = 'prompt_images';
 
+        async function initSupabase() {
+            try {
+                const res = await fetch('/api/supabase-config');
+                const data = await res.json();
+                
+                if (!data.url || !data.anonKey) {
+                    throw new Error('Missing Supabase configuration');
+                }
+
+                // Initialize Supabase client
+                sb = supabase.createClient(data.url, data.anonKey);
+                console.log("✅ Supabase initialized from secure API");
+                
+                // Start the app
+                initApp();
+            } catch (error) {
+                console.error("Failed to initialize Supabase:", error);
+                document.getElementById('list').innerHTML = '❌ Error: ' + error.message;
+            }
+        }
+
         // ============================================================
-        //  DOM READY
+        //  APP LOGIC (Runs after Supabase is initialized)
         // ============================================================
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log("✅ DOM loaded");
+        function initApp() {
+            console.log("✅ App starting...");
 
             const addBtn = document.getElementById('addBtn');
             const modal = document.getElementById('modal');
@@ -187,7 +206,12 @@
             }
 
             loadPrompts();
-        });
+        }
+
+        // ============================================================
+        //  START
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', initSupabase);
     </script>
 </body>
 </html>
