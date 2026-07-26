@@ -2,10 +2,8 @@
 <html>
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin Dashboard</title>
     <script>
-        // Security check
         function getCookie(name) {
             const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
             return match ? match[2] : null;
@@ -17,59 +15,70 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { font-family: sans-serif; padding: 40px; background: #f1f5f9; }
-        .box { background: white; padding: 24px; border-radius: 12px; max-width: 600px; margin: 0 auto; }
-        button { padding: 12px 24px; background: #4f46e5; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
-        button:hover { background: #4338ca; }
-        #list { margin-top: 24px; }
+        .container { max-width: 700px; margin: 0 auto; }
+        .box { background: white; padding: 24px; border-radius: 12px; margin-bottom: 20px; }
+        button { padding: 12px 24px; background: #4f46e5; color: white; border: none; border-radius: 8px; cursor: pointer; }
         .item { background: white; padding: 16px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; }
+        #modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
+        #modal div { background: white; padding: 32px; border-radius: 12px; max-width: 500px; width: 90%; }
+        input, textarea { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 6px; }
     </style>
 </head>
 <body>
-    <div class="box">
-        <h1>Hello Rafi 👋</h1>
-        <button id="addBtn">➕ Add New</button>
-        <div id="list"></div>
+    <div class="container">
+        <div class="box">
+            <h1>Hello Rafi 👋</h1>
+            <button id="addBtn">➕ Add New Prompt</button>
+        </div>
+        <div id="list">Loading prompts...</div>
     </div>
 
     <!-- MODAL -->
-    <div id="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
-        <div style="background:white; padding:32px; border-radius:12px; max-width:500px; width:90%;">
-            <h2>Add Prompt</h2>
-            <input id="title" placeholder="Title" style="width:100%; padding:10px; margin:8px 0;" />
-            <button id="saveBtn">Save</button>
-            <button id="closeBtn">Cancel</button>
+    <div id="modal">
+        <div>
+            <h2>Add New Prompt</h2>
+            <input id="title" placeholder="Title" />
+            <textarea id="promptText" placeholder="Prompt Text" rows="3"></textarea>
+            <input id="mainImage" type="file" accept="image/*" />
+            <div style="margin-top:16px; display:flex; gap:12px;">
+                <button id="saveBtn">Save</button>
+                <button id="closeBtn" style="background:#64748b;">Cancel</button>
+            </div>
+            <div id="status" style="margin-top:12px; font-size:14px; color:#64748b;"></div>
         </div>
     </div>
 
     <script>
         // ============================================================
-        //  SUPABASE SETUP
+        //  🔴 REPLACE THESE WITH YOUR REAL VALUES
         // ============================================================
         const supabase = supabase.createClient(
-            'YOUR_SUPABASE_URL',  // <-- REPLACE
-            'YOUR_SUPABASE_ANON_KEY' // <-- REPLACE
+            'https://YOUR_PROJECT.supabase.co',  // <-- Your Supabase URL
+            'YOUR_ANON_KEY'                      // <-- Your Supabase Anon Key
         );
         const BUCKET_NAME = 'prompt_images';
 
         // ============================================================
-        //  WAIT FOR DOM
+        //  DOM READY
         // ============================================================
         document.addEventListener('DOMContentLoaded', function() {
-            console.log("✅ DOM fully loaded");
+            console.log("✅ DOM loaded");
 
             const addBtn = document.getElementById('addBtn');
             const modal = document.getElementById('modal');
             const closeBtn = document.getElementById('closeBtn');
             const saveBtn = document.getElementById('saveBtn');
             const titleInput = document.getElementById('title');
+            const promptInput = document.getElementById('promptText');
+            const mainImageInput = document.getElementById('mainImage');
+            const status = document.getElementById('status');
             const list = document.getElementById('list');
-
-            console.log("Add button found:", addBtn);
 
             // OPEN MODAL
             addBtn.addEventListener('click', function() {
                 console.log("✅ Add button clicked");
                 modal.style.display = 'flex';
+                status.textContent = '';
             });
 
             // CLOSE MODAL
@@ -77,32 +86,90 @@
                 modal.style.display = 'none';
             });
 
-            // SAVE
+            // ============================================================
+            //  SAVE PROMPT
+            // ============================================================
             saveBtn.addEventListener('click', async function() {
-                console.log("✅ Save clicked");
+                console.log("✅ Save button clicked");
+                status.textContent = 'Saving...';
+
                 const title = titleInput.value.trim();
-                if (!title) return alert("Title required");
+                const promptText = promptInput.value.trim();
+                const file = mainImageInput.files[0];
 
-                const { data, error } = await supabase
-                    .from('prompts')
-                    .insert({ title, prompt_text: 'test', image_main: 'https://via.placeholder.com/100' })
-                    .select();
+                if (!title || !promptText) {
+                    status.textContent = '❌ Title and Prompt Text are required.';
+                    return;
+                }
 
-                if (error) {
-                    alert("Error: " + error.message);
-                } else {
-                    alert("Saved! ID: " + data[0].id);
-                    modal.style.display = 'none';
-                    loadPrompts();
+                try {
+                    // 1. Insert prompt (without image first)
+                    console.log("Inserting prompt...");
+                    const { data: newPrompt, error: insertError } = await supabase
+                        .from('prompts')
+                        .insert({
+                            title: title,
+                            prompt_text: promptText,
+                            image_main: 'https://via.placeholder.com/100',
+                            slug: title.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+                        })
+                        .select()
+                        .single();
+
+                    if (insertError) {
+                        console.error("Insert error:", insertError);
+                        status.textContent = '❌ ' + insertError.message;
+                        return;
+                    }
+
+                    console.log("✅ Insert successful:", newPrompt);
+                    status.textContent = '✅ Saved! ID: ' + newPrompt.id;
+
+                    // 2. Upload image if provided
+                    if (file) {
+                        status.textContent = 'Uploading image...';
+                        const ext = file.name.split('.').pop();
+                        const path = newPrompt.id + '/main.' + ext;
+                        const { error: uploadError } = await supabase.storage
+                            .from(BUCKET_NAME)
+                            .upload(path, file, { upsert: true });
+
+                        if (uploadError) {
+                            console.error("Upload error:", uploadError);
+                            status.textContent = '⚠️ Prompt saved but image failed: ' + uploadError.message;
+                        } else {
+                            const { data: urlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(path);
+                            await supabase.from('prompts').update({ image_main: urlData.publicUrl }).eq('id', newPrompt.id);
+                            console.log("✅ Image uploaded");
+                            status.textContent = '✅ Saved with image!';
+                        }
+                    }
+
+                    // Reset and reload
+                    titleInput.value = '';
+                    promptInput.value = '';
+                    mainImageInput.value = '';
+                    setTimeout(() => {
+                        modal.style.display = 'none';
+                        loadPrompts();
+                    }, 1000);
+
+                } catch (err) {
+                    console.error("Unexpected error:", err);
+                    status.textContent = '❌ ' + err.message;
                 }
             });
 
-            // LOAD PROMPTS
+            // ============================================================
+            //  LOAD PROMPTS
+            // ============================================================
             async function loadPrompts() {
+                console.log("Loading prompts...");
                 list.innerHTML = 'Loading...';
                 const { data, error } = await supabase.from('prompts').select('*').order('created_at', { ascending: false });
                 if (error) {
-                    list.innerHTML = 'Error: ' + error.message;
+                    console.error("Load error:", error);
+                    list.innerHTML = '❌ Error: ' + error.message;
                     return;
                 }
                 if (!data || data.length === 0) {
@@ -111,10 +178,11 @@
                 }
                 list.innerHTML = data.map(p => `
                     <div class="item">
-                        <span>${p.title}</span>
+                        <span><strong>${p.title}</strong></span>
                         <span>${new Date(p.created_at).toLocaleDateString()}</span>
                     </div>
                 `).join('');
+                console.log("Loaded", data.length, "prompts");
             }
 
             loadPrompts();
