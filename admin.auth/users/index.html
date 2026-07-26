@@ -18,7 +18,7 @@
         }
         .admin-wrapper { display: flex; min-height: 100vh; }
         
-        /* Sidebar - same as dashboard */
+        /* Sidebar */
         .sidebar {
             width: 260px;
             background: white;
@@ -96,7 +96,6 @@
         .header .subtitle { color: #64748b; font-size: 14px; margin-top: 4px; }
         .header .actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 
-        /* Controls */
         .search-input {
             padding: 10px 16px;
             border: 1px solid #e2e8f0;
@@ -190,7 +189,6 @@
         .btn-delete:hover { background: #fee2e2; }
         .btn-ban.active { background: #dc2626; color: white; }
 
-        /* Stats in table */
         .stat-number { font-weight: 600; color: #111827; }
         .stat-label { color: #64748b; font-size: 12px; }
 
@@ -703,7 +701,8 @@
                         closeBanModal();
                         loadUsers(true);
                     } else {
-                        alert('Failed to ban user');
+                        const data = await res.json();
+                        alert('Failed to ban user: ' + (data.error || 'Unknown error'));
                     }
                 } catch (error) {
                     alert('Error: ' + error.message);
@@ -730,7 +729,8 @@
                         closeDeleteModal();
                         loadUsers(true);
                     } else {
-                        alert('Failed to delete user');
+                        const data = await res.json();
+                        alert('Failed to delete user: ' + (data.error || 'Unknown error'));
                     }
                 } catch (error) {
                     alert('Error: ' + error.message);
@@ -749,6 +749,7 @@
                 `;
                 try {
                     const res = await fetch(`/api/admin/users/${userId}/likes`);
+                    if (!res.ok) throw new Error('Failed to load likes');
                     const data = await res.json();
                     if (data.likes && data.likes.length > 0) {
                         document.getElementById('likesList').innerHTML = data.likes.map(like => `
@@ -783,13 +784,14 @@
             window.removeLike = async function(likeId, userId) {
                 if (!confirm('Remove this like?')) return;
                 try {
-                    const res = await fetch(`/api/admin/users/${userId}/likes/${likeId}`, {
+                    const res = await fetch(`/api/admin/users/${userId}/likes?likeId=${likeId}`, {
                         method: 'DELETE'
                     });
                     if (res.ok) {
                         openLikesModal(userId); // Refresh
                     } else {
-                        alert('Failed to remove like');
+                        const data = await res.json();
+                        alert('Failed to remove like: ' + (data.error || 'Unknown error'));
                     }
                 } catch (error) {
                     alert('Error: ' + error.message);
@@ -808,6 +810,7 @@
                 `;
                 try {
                     const res = await fetch(`/api/admin/users/${userId}/saves`);
+                    if (!res.ok) throw new Error('Failed to load saves');
                     const data = await res.json();
                     if (data.saves && data.saves.length > 0) {
                         document.getElementById('savesList').innerHTML = data.saves.map(save => `
@@ -842,13 +845,14 @@
             window.removeSave = async function(saveId, userId) {
                 if (!confirm('Remove this save?')) return;
                 try {
-                    const res = await fetch(`/api/admin/users/${userId}/saves/${saveId}`, {
+                    const res = await fetch(`/api/admin/users/${userId}/saves?saveId=${saveId}`, {
                         method: 'DELETE'
                     });
                     if (res.ok) {
                         openSavesModal(userId); // Refresh
                     } else {
-                        alert('Failed to remove save');
+                        const data = await res.json();
+                        alert('Failed to remove save: ' + (data.error || 'Unknown error'));
                     }
                 } catch (error) {
                     alert('Error: ' + error.message);
@@ -867,6 +871,7 @@
                 `;
                 try {
                     const res = await fetch(`/api/admin/users/${userId}/comments`);
+                    if (!res.ok) throw new Error('Failed to load comments');
                     const data = await res.json();
                     if (data.comments && data.comments.length > 0) {
                         document.getElementById('commentsList').innerHTML = data.comments.map(comment => `
@@ -907,7 +912,7 @@
             };
             window.hideComment = async function(commentId, userId) {
                 try {
-                    const res = await fetch(`/api/admin/users/${userId}/comments/${commentId}`, {
+                    const res = await fetch(`/api/admin/users/${userId}/comments?commentId=${commentId}`, {
                         method: 'PATCH',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ is_hidden: true })
@@ -915,7 +920,8 @@
                     if (res.ok) {
                         openCommentsModal(userId); // Refresh
                     } else {
-                        alert('Failed to hide comment');
+                        const data = await res.json();
+                        alert('Failed to hide comment: ' + (data.error || 'Unknown error'));
                     }
                 } catch (error) {
                     alert('Error: ' + error.message);
@@ -924,13 +930,14 @@
             window.deleteComment = async function(commentId, userId) {
                 if (!confirm('Delete this comment permanently?')) return;
                 try {
-                    const res = await fetch(`/api/admin/users/${userId}/comments/${commentId}`, {
+                    const res = await fetch(`/api/admin/users/${userId}/comments?commentId=${commentId}`, {
                         method: 'DELETE'
                     });
                     if (res.ok) {
                         openCommentsModal(userId); // Refresh
                     } else {
-                        alert('Failed to delete comment');
+                        const data = await res.json();
+                        alert('Failed to delete comment: ' + (data.error || 'Unknown error'));
                     }
                 } catch (error) {
                     alert('Error: ' + error.message);
