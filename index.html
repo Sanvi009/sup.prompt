@@ -200,8 +200,6 @@
             initApp();
         }
         const STATE = {
-            prompts: [],
-            filtered: [],
             page: 0,
             pageSize: 12,
             loading: false,
@@ -244,21 +242,27 @@
             if (STATE.loading || !STATE.hasMore) return;
             STATE.loading = true;
             loader.style.display = 'block';
+
             let query = sb
                 .from('prompts')
-                .select('*, categories(*)')  // 🔥 FIX: changed !inner to (*)
+                .select('*, categories!left(id, name)')  // 🔥 THE FIX
                 .order('created_at', { ascending: false })
                 .range(STATE.page * STATE.pageSize, (STATE.page + 1) * STATE.pageSize - 1);
+
             if (STATE.category !== 'all') {
                 query = query.contains('category_ids', [STATE.category]);
             }
+
             const { data, error } = await query;
             STATE.loading = false;
             loader.style.display = 'none';
+
             if (error) {
-                console.error(error);
+                console.error('🔥 Supabase Error:', error);
+                grid.innerHTML = `<div class="empty"><div class="icon">⚠️</div>Error: ${error.message}</div>`;
                 return;
             }
+
             if (data.length === 0) {
                 STATE.hasMore = false;
                 if (STATE.page === 0) {
@@ -266,6 +270,7 @@
                 }
                 return;
             }
+
             let results = data;
             if (STATE.search.trim()) {
                 const q = STATE.search.toLowerCase();
@@ -275,11 +280,13 @@
                     p.prompt_text.toLowerCase().includes(q)
                 );
             }
+
             if (results.length === 0 && STATE.page === 0) {
                 grid.innerHTML = `<div class="empty"><div class="icon">🔍</div>No results found.</div>`;
                 STATE.hasMore = false;
                 return;
             }
+
             results.forEach(p => {
                 const catNames = (p.categories || []).map(c => c.name).join(', ');
                 const card = document.createElement('div');
@@ -297,6 +304,7 @@
                 `;
                 grid.appendChild(card);
             });
+
             STATE.page++;
             STATE.hasMore = data.length === STATE.pageSize;
         }
