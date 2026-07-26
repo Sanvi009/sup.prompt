@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prompt Reports</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f1f5f9;
+            color: #111827;
+        }
+        .admin-wrapper { display: flex; min-height: 100vh; }
+        
+        .sidebar {
+            width: 260px;
+            background: white;
+            border-right: 1px solid #e2e8f0;
+            padding: 24px 16px;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            overflow-y: auto;
+        }
+        .sidebar .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 8px 24px 8px;
+            border-bottom: 1px solid #f1f5f9;
+            margin-bottom: 24px;
+        }
+        .sidebar .brand .icon {
+            width: 36px;
+            height: 36px;
+            background: #4f46e5;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+        }
+        .sidebar .brand h1 { font-size: 18px; font-weight: 700; color: #111827; }
+        .sidebar .nav { display: flex; flex-direction: column; gap: 4px; }
+        .sidebar .nav a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .sidebar .nav a:hover { background: #f1f5f9; color: #111827; }
+        .sidebar .nav a.active { background: #eef2ff; color: #4f46e5; font-weight: 600; }
+        .sidebar .nav a .emoji { font-size: 18px; width: 24px; text-align: center; }
+        .sidebar .logout-btn {
+            margin-top: 24px;
+            padding: 10px 12px;
+            width: 100%;
+            background: #fef2f2;
+            color: #dc2626;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .sidebar .logout-btn:hover { background: #fee2e2; }
+
+        .main-content { flex: 1; padding: 32px; max-width: calc(100% - 260px); }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .header h1 { font-size: 28px; font-weight: 700; color: #111827; }
+        .header .subtitle { color: #64748b; font-size: 14px; margin-top: 4px; }
+        .header .actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .filter-select {
+            padding: 10px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            background: white;
+            cursor: pointer;
+        }
+
+        .reports-table-container {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        }
+        .reports-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .reports-table th {
+            background: #f8fafc;
+            text-align: left;
+            padding: 14px 16px;
+            font-weight: 600;
+            color: #475569;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .reports-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+        .reports-table tr:last-child td { border-bottom: none; }
+        .reports-table tr:hover { background: #fafbfc; }
+
+        .prompt-chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .prompt-chip img {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            object-fit: cover;
+            background: #f1f5f9;
+        }
+        .prompt-chip .title { font-weight: 500; }
+        .prompt-chip .id { color: #64748b; font-size: 13px; }
+
+        .user-chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .user-chip img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #f1f5f9;
+        }
+        .user-chip .name { font-weight: 500; }
+        .user-chip .username { color: #64748b; font-size: 13px; }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .badge-unresolved { background: #fee2e2; color: #dc2626; }
+        .badge-resolved { background: #d1fae5; color: #065f46; }
+
+        .actions-cell { display: flex; gap: 6px; flex-wrap: wrap; }
+        .actions-cell button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-resolve { background: #d1fae5; color: #065f46; }
+        .btn-resolve:hover { background: #a7f3d0; }
+        .btn-delete { background: #fef2f2; color: #dc2626; }
+        .btn-delete:hover { background: #fee2e2; }
+
+        .loading-state { text-align: center; padding: 60px 24px; color: #64748b; }
+        .loading-state .spinner {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #4f46e5;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin-bottom: 16px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 768px) {
+            .admin-wrapper { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; position: relative; padding: 16px; }
+            .main-content { max-width: 100%; padding: 16px; }
+            .header { flex-direction: column; align-items: stretch; }
+            .header .actions { flex-direction: column; }
+            .filter-select { width: 100%; }
+            .actions-cell { flex-direction: column; }
+            .actions-cell button { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-wrapper">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="icon">🛡️</div>
+                <h1>Admin Panel</h1>
+            </div>
+            <nav class="nav">
+                <a href="/admin.auth/dashboard/"><span class="emoji">📊</span> Dashboard</a>
+                <a href="/admin.auth/users/"><span class="emoji">👥</span> Users</a>
+                <a href="/admin.auth/prompts/"><span class="emoji">📝</span> Prompts</a>
+                <a href="/admin.auth/add/"><span class="emoji">➕</span> Add Prompt</a>
+                <div class="divider"></div>
+                <a href="/admin.auth/reports.u/"><span class="emoji">🚨</span> User Reports</a>
+                <a href="/admin.auth/reports.p/" class="active"><span class="emoji">⚠️</span> Prompt Reports</a>
+                <a href="/admin.auth/premium/"><span class="emoji">⭐</span> Premium</a>
+                <button class="logout-btn" id="logoutBtn"><span class="emoji">🚪</span> Sign Out</button>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div class="header">
+                <div>
+                    <h1>Prompt Reports</h1>
+                    <div class="subtitle">Review and manage prompt reports</div>
+                </div>
+                <div class="actions">
+                    <select class="filter-select" id="filterSelect">
+                        <option value="unresolved">Unresolved</option>
+                        <option value="resolved">Resolved</option>
+                        <option value="all">All</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="reports-table-container">
+                <div id="reportsContent">
+                    <div class="loading-state">
+                        <div class="spinner"></div>
+                        <div>Loading reports...</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            function getCookie(name) {
+                const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+                return match ? match[2] : null;
+            }
+            if (!getCookie('admin_auth')) {
+                window.location.href = '/admin.auth/';
+                return;
+            }
+
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                document.cookie = 'admin_auth=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/admin.auth/;';
+                window.location.href = '/admin.auth/';
+            });
+
+            let currentFilter = 'unresolved';
+            let page = 0;
+            const limit = 20;
+            let isLoading = false;
+            let hasMore = true;
+
+            const content = document.getElementById('reportsContent');
+            const filterSelect = document.getElementById('filterSelect');
+
+            async function loadReports(reset = false) {
+                if (isLoading) return;
+                if (!reset && !hasMore) return;
+
+                isLoading = true;
+                if (reset) {
+                    page = 0;
+                    hasMore = true;
+                    content.innerHTML = `<div class="loading-state"><div class="spinner"></div><div>Loading reports...</div></div>`;
+                }
+
+                try {
+                    const params = new URLSearchParams({
+                        filter: currentFilter,
+                        limit: limit,
+                        offset: page * limit
+                    });
+
+                    const res = await fetch(`/api/admin/reports-prompts?${params}`);
+                    if (res.status === 401) { window.location.href = '/admin.auth/'; return; }
+                    if (!res.ok) throw new Error('Failed to load reports');
+
+                    const data = await res.json();
+
+                    if (reset) {
+                        content.innerHTML = buildTable(data.reports);
+                    } else {
+                        content.innerHTML += buildRows(data.reports);
+                    }
+
+                    hasMore = data.hasMore;
+                    page++;
+                    isLoading = false;
+                    attachEvents();
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    if (reset) {
+                        content.innerHTML = `<div style="text-align:center;padding:40px;color:#dc2626;"><h3>Error loading reports</h3><p style="color:#64748b;">${error.message}</p></div>`;
+                    }
+                    isLoading = false;
+                }
+            }
+
+            function buildTable(reports) {
+                if (!reports || reports.length === 0) {
+                    return `<div style="text-align:center;padding:60px;color:#64748b;"><h3>No reports found</h3></div>`;
+                }
+                return `
+                    <table class="reports-table">
+                        <thead>
+                            <tr>
+                                <th>Reported Prompt</th>
+                                <th>Reported By</th>
+                                <th>Reason</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>${buildRows(reports)}</tbody>
+                    </table>
+                `;
+            }
+
+            function buildRows(reports) {
+                return reports.map(r => `
+                    <tr data-id="${r.id}">
+                        <td>
+                            <div class="prompt-chip">
+                                <img src="${r.prompt?.image_main || 'https://via.placeholder.com/32/4f46e5/ffffff?text=?'}" onerror="this.src='https://via.placeholder.com/32/4f46e5/ffffff?text=?'" />
+                                <div>
+                                    <div class="title">${r.prompt?.title || 'Unknown Prompt'}</div>
+                                    <div class="id">ID: ${r.prompt?.prompt_id || '—'}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="user-chip">
+                                <img src="${r.reporter?.profile_pic || 'https://via.placeholder.com/32'}" onerror="this.src='https://via.placeholder.com/32'" />
+                                <div>
+                                    <div class="name">${r.reporter?.nickname || r.reporter?.username || 'Unknown'}</div>
+                                    <div class="username">@${r.reporter?.username || 'unknown'}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${r.reason || 'No reason provided'}</td>
+                        <td>${new Date(r.created_at).toLocaleDateString()}</td>
+                        <td>
+                            <span class="badge ${r.is_resolved ? 'badge-resolved' : 'badge-unresolved'}">
+                                ${r.is_resolved ? 'Resolved' : 'Unresolved'}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="actions-cell">
+                                ${!r.is_resolved ? `<button class="btn-resolve" onclick="resolveReport('${r.id}')">✅ Resolve</button>` : ''}
+                                <button class="btn-delete" onclick="deleteReport('${r.id}')">🗑️ Delete</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            function attachEvents() {}
+
+            // Filter
+            filterSelect.addEventListener('change', () => {
+                currentFilter = filterSelect.value;
+                loadReports(true);
+            });
+
+            // Infinite scroll
+            let scrollTimeout;
+            window.addEventListener('scroll', () => {
+                clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(() => {
+                    const scrollY = window.scrollY;
+                    const windowHeight = window.innerHeight;
+                    const docHeight = document.documentElement.scrollHeight;
+                    if (scrollY + windowHeight >= docHeight - 400) loadReports();
+                }, 100);
+            });
+
+            // ===== ACTIONS =====
+            window.resolveReport = async function(id) {
+                try {
+                    const res = await fetch(`/api/admin/reports-prompts/${id}/resolve`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ is_resolved: true })
+                    });
+                    if (res.ok) loadReports(true);
+                    else alert('Failed to resolve report.');
+                } catch (e) { alert('Error: ' + e.message); }
+            };
+
+            window.deleteReport = async function(id) {
+                if (!confirm('Delete this report permanently?')) return;
+                try {
+                    const res = await fetch(`/api/admin/reports-prompts/${id}`, {
+                        method: 'DELETE'
+                    });
+                    if (res.ok) loadReports(true);
+                    else alert('Failed to delete report.');
+                } catch (e) { alert('Error: ' + e.message); }
+            };
+
+            // INIT
+            loadReports(true);
+        });
+    </script>
+</body>
+</html>
