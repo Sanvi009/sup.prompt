@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "cookie": "^0.6.0"
+  }
+}
