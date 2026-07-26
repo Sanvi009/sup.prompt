@@ -150,7 +150,39 @@
         const errorMsg = document.getElementById('errorMsg');
         const successMsg = document.getElementById('successMsg');
 
+
+        // Replace the loadDashboard function with this:
+async function loadDashboard() {
+    try {
+        const res = await fetch('/api/admin/stats');
+        
+        if (!res.ok) {
+            // Don't redirect on error - just show error message
+            document.getElementById('statsGrid').innerHTML = `
+                <div style="grid-column:1/-1;text-align:center;padding:40px;color:#dc2626;">
+                    ❌ API Error: ${res.status} - ${res.statusText}
+                </div>
+            `;
+            return;
+        }
+
+        const data = await res.json();
+        // ... update UI with data
+    } catch (error) {
+        console.error('Dashboard error:', error);
+        document.getElementById('statsGrid').innerHTML = `
+            <div style="grid-column:1/-1;text-align:center;padding:40px;color:#dc2626;">
+                ❌ ${error.message}
+            </div>
+        `;
+    }
+}
+
         // ===== CHECK IF ALREADY LOGGED IN =====
+
+        
+
+        
         async function checkAdminAuth() {
             try {
                 const res = await fetch('/api/admin/auth');
