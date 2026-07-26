@@ -2,12 +2,7 @@
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/admin.auth/dashboard/(.*)", "destination": "/admin.auth/dashboard/index.html" },
-    { "source": "/admin.auth/(.*)", "destination": "/admin.auth/index.html" }
-  ]
-},
-{
-  "rewrites": [
-    { "source": "/prompt/:slug", "destination": "/prompt/[slug].html" },
-    { "source": "/api/(.*)", "destination": "/api/$1" }
+    { "source": "/admin.auth/(.*)", "destination": "/admin.auth/index.html" },
+    { "source": "/prompt/:slug", "destination": "/prompt/[slug].html" }
   ]
 }
