@@ -12,84 +12,110 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Inter', -apple-system, sans-serif;
-            background: #f8fafc;
-            color: #0f172a;
+            background: #f3f4f6;
+            color: #111827;
             -webkit-font-smoothing: antialiased;
         }
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
-            padding: 40px 24px;
+            padding: 48px 24px;
         }
         .back {
-            display: inline-block;
-            margin-bottom: 24px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 32px;
             color: #4f46e5;
             text-decoration: none;
             font-weight: 500;
-            font-size: 14px;
+            font-size: 15px;
+            transition: color 0.2s;
         }
-        .back:hover { text-decoration: underline; }
+        .back:hover { color: #4338ca; }
         .prompt-card {
             background: white;
-            border-radius: 20px;
-            border: 1px solid #e2e8f0;
-            padding: 32px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+            border-radius: 24px;
+            border: 1px solid #e5e7eb;
+            padding: 40px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
         }
         .prompt-card img {
             width: 100%;
-            max-height: 500px;
+            max-height: 480px;
             object-fit: cover;
-            border-radius: 12px;
-            margin-bottom: 24px;
-            background: #f1f5f9;
+            border-radius: 16px;
+            margin-bottom: 32px;
+            background: #f3f4f6;
         }
         .prompt-card h1 {
-            font-size: 28px;
+            font-size: 32px;
             font-weight: 700;
+            color: #111827;
+            letter-spacing: -0.025em;
             margin-bottom: 8px;
         }
         .prompt-card .meta {
-            color: #64748b;
-            font-size: 14px;
-            margin-bottom: 16px;
+            color: #6b7280;
+            font-size: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
+        .prompt-card .meta .dot { color: #d1d5db; }
         .prompt-card .description {
-            font-size: 16px;
-            color: #334155;
-            margin-bottom: 16px;
-            line-height: 1.6;
+            font-size: 17px;
+            color: #374151;
+            margin-bottom: 24px;
+            line-height: 1.7;
         }
         .prompt-card .prompt-text {
-            background: #f1f5f9;
-            padding: 20px;
-            border-radius: 12px;
-            font-family: monospace;
-            font-size: 15px;
+            background: #f9fafb;
+            padding: 24px 28px;
+            border-radius: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 16px;
             white-space: pre-wrap;
-            line-height: 1.6;
-            margin-bottom: 20px;
-            border: 1px solid #e2e8f0;
+            line-height: 1.7;
+            margin-bottom: 28px;
+            border: 1px solid #e5e7eb;
+            color: #1f2937;
+        }
+        .prompt-card .actions {
+            display: flex;
+            gap: 12px;
         }
         .prompt-card .copy-btn {
-            padding: 10px 24px;
+            padding: 14px 32px;
             background: #4f46e5;
             color: white;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 15px;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        .prompt-card .copy-btn:hover { background: #4338ca; }
+        .prompt-card .copy-btn:hover {
+            background: #4338ca;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(79,70,229,0.3);
+        }
         .prompt-card .copy-btn.copied { background: #10b981; }
+        .prompt-card .copy-btn.copied:hover { background: #059669; }
 
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #64748b;
+        .loading { text-align: center; padding: 60px; color: #6b7280; }
+        @media (max-width: 640px) {
+            .container { padding: 24px 16px; }
+            .prompt-card { padding: 24px; }
+            .prompt-card h1 { font-size: 26px; }
+            .prompt-card .prompt-text { padding: 16px 20px; font-size: 15px; }
+            .prompt-card .actions { flex-direction: column; }
+            .prompt-card .copy-btn { justify-content: center; }
         }
     </style>
 </head>
@@ -126,13 +152,19 @@
             container.innerHTML = `
                 <div class="prompt-card">
                     <img src="${prompt.image_main}" 
-                         onerror="this.src='https://via.placeholder.com/800/94a3b8/ffffff?text=?'" 
+                         onerror="this.src='https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=800&h=450&fit=crop&auto=format'" 
                          alt="${prompt.title}" />
                     <h1>${prompt.title}</h1>
-                    <div class="meta">${new Date(prompt.created_at).toLocaleDateString()}</div>
+                    <div class="meta">
+                        <span>📅 ${new Date(prompt.created_at).toLocaleDateString()}</span>
+                        <span class="dot">·</span>
+                        <span>✨ AI Prompt</span>
+                    </div>
                     ${prompt.description ? `<div class="description">${prompt.description}</div>` : ''}
                     <div class="prompt-text" id="promptText">${prompt.prompt_text}</div>
-                    <button class="copy-btn" id="copyBtn">📋 Copy Prompt</button>
+                    <div class="actions">
+                        <button class="copy-btn" id="copyBtn">📋 Copy Prompt</button>
+                    </div>
                 </div>
             `;
 
