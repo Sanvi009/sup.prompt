@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f1f5f9;
+            color: #111827;
+        }
+        .admin-wrapper { display: flex; min-height: 100vh; }
+        
+        /* Sidebar - same as dashboard */
+        .sidebar {
+            width: 260px;
+            background: white;
+            border-right: 1px solid #e2e8f0;
+            padding: 24px 16px;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            overflow-y: auto;
+        }
+        .sidebar .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 8px 24px 8px;
+            border-bottom: 1px solid #f1f5f9;
+            margin-bottom: 24px;
+        }
+        .sidebar .brand .icon {
+            width: 36px;
+            height: 36px;
+            background: #4f46e5;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+        }
+        .sidebar .brand h1 { font-size: 18px; font-weight: 700; color: #111827; }
+        .sidebar .nav { display: flex; flex-direction: column; gap: 4px; }
+        .sidebar .nav a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .sidebar .nav a:hover { background: #f1f5f9; color: #111827; }
+        .sidebar .nav a.active { background: #eef2ff; color: #4f46e5; font-weight: 600; }
+        .sidebar .nav a .emoji { font-size: 18px; width: 24px; text-align: center; }
+        .sidebar .logout-btn {
+            margin-top: 24px;
+            padding: 10px 12px;
+            width: 100%;
+            background: #fef2f2;
+            color: #dc2626;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .sidebar .logout-btn:hover { background: #fee2e2; }
+
+        /* Main content */
+        .main-content { flex: 1; padding: 32px; max-width: calc(100% - 260px); }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .header h1 { font-size: 28px; font-weight: 700; color: #111827; }
+        .header .subtitle { color: #64748b; font-size: 14px; margin-top: 4px; }
+        .header .actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+
+        /* Controls */
+        .search-input {
+            padding: 10px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            background: white;
+            min-width: 200px;
+        }
+        .search-input:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+        
+        .filter-select {
+            padding: 10px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            background: white;
+            cursor: pointer;
+        }
+
+        /* User table */
+        .user-table-container {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        }
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .user-table th {
+            background: #f8fafc;
+            text-align: left;
+            padding: 14px 16px;
+            font-weight: 600;
+            color: #475569;
+            border-bottom: 1px solid #e2e8f0;
+            white-space: nowrap;
+        }
+        .user-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+        .user-table tr:last-child td { border-bottom: none; }
+        .user-table tr:hover { background: #fafbfc; }
+
+        .user-info { display: flex; align-items: center; gap: 12px; }
+        .user-info img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #f1f5f9;
+        }
+        .user-info .name { font-weight: 600; color: #111827; }
+        .user-info .username { color: #64748b; font-size: 13px; }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .badge-premium { background: #fef3c7; color: #d97706; }
+        .badge-owner { background: #dbeafe; color: #2563eb; }
+        .badge-admin { background: #fce7f3; color: #db2777; }
+        .badge-banned { background: #fee2e2; color: #dc2626; }
+        .badge-user { background: #f1f5f9; color: #475569; }
+
+        .actions-cell { display: flex; gap: 6px; flex-wrap: wrap; }
+        .actions-cell button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-view { background: #eef2ff; color: #4f46e5; }
+        .btn-view:hover { background: #e0e7ff; }
+        .btn-ban { background: #fef2f2; color: #dc2626; }
+        .btn-ban:hover { background: #fee2e2; }
+        .btn-delete { background: #fef2f2; color: #dc2626; }
+        .btn-delete:hover { background: #fee2e2; }
+        .btn-ban.active { background: #dc2626; color: white; }
+
+        /* Stats in table */
+        .stat-number { font-weight: 600; color: #111827; }
+        .stat-label { color: #64748b; font-size: 12px; }
+
+        /* Loading */
+        .loading-state { text-align: center; padding: 60px 24px; color: #64748b; }
+        .loading-state .spinner {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #4f46e5;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin-bottom: 16px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15,23,42,0.4);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 560px;
+            width: 92%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+        .modal .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        .modal .header h2 { font-size: 22px; font-weight: 700; color: #111827; }
+        .modal .header .close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #64748b;
+        }
+        .modal .body { margin-bottom: 24px; }
+        .modal .body textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 80px;
+        }
+        .modal .actions { display: flex; gap: 12px; justify-content: flex-end; }
+        .modal .actions .btn-cancel {
+            padding: 10px 20px;
+            background: #f1f5f9;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .modal .actions .btn-confirm {
+            padding: 10px 20px;
+            background: #dc2626;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .modal .actions .btn-confirm:hover { background: #b91c1c; }
+
+        /* Item list in modals */
+        .item-list { max-height: 400px; overflow-y: auto; }
+        .item-list .item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .item-list .item:last-child { border-bottom: none; }
+        .item-list .item .info { display: flex; align-items: center; gap: 12px; }
+        .item-list .item .info img { width: 36px; height: 36px; border-radius: 6px; object-fit: cover; }
+        .item-list .item .info .title { font-weight: 500; font-size: 14px; }
+        .item-list .item .info .meta { font-size: 12px; color: #64748b; }
+        .item-list .item .remove-btn {
+            padding: 4px 12px;
+            background: #fef2f2;
+            color: #dc2626;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .item-list .item .remove-btn:hover { background: #fee2e2; }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-content { max-width: 100%; padding: 16px; }
+            .user-table { font-size: 13px; }
+            .user-table td, .user-table th { padding: 10px 12px; }
+        }
+        @media (max-width: 768px) {
+            .admin-wrapper { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; position: relative; padding: 16px; }
+            .header { flex-direction: column; align-items: stretch; }
+            .header .actions { flex-direction: column; }
+            .search-input { min-width: 100%; }
+            .filter-select { width: 100%; }
+            .actions-cell { flex-direction: column; }
+            .actions-cell button { width: 100%; }
+            .user-info { flex-direction: column; align-items: flex-start; gap: 4px; }
+            .user-info img { width: 32px; height: 32px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="admin-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="icon">🛡️</div>
+                <h1>Admin Panel</h1>
+            </div>
+            <nav class="nav">
+                <a href="/admin.auth/dashboard/"><span class="emoji">📊</span> Dashboard</a>
+                <a href="/admin.auth/users/" class="active"><span class="emoji">👥</span> Users</a>
+                <a href="/admin.auth/prompts/"><span class="emoji">📝</span> Prompts</a>
+                <a href="/admin.auth/add/"><span class="emoji">➕</span> Add Prompt</a>
+                <div class="divider"></div>
+                <a href="/admin.auth/reports.u/"><span class="emoji">🚨</span> User Reports</a>
+                <a href="/admin.auth/reports.p/"><span class="emoji">⚠️</span> Prompt Reports</a>
+                <a href="/admin.auth/premium/"><span class="emoji">⭐</span> Premium</a>
+                <button class="logout-btn" id="logoutBtn"><span class="emoji">🚪</span> Sign Out</button>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="header">
+                <div>
+                    <h1>User Management</h1>
+                    <div class="subtitle">Manage all platform users</div>
+                </div>
+                <div class="actions">
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search users..." />
+                    <select class="filter-select" id="filterSelect">
+                        <option value="newest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="most_liked">Most Liked</option>
+                        <option value="most_saved">Most Saved</option>
+                        <option value="most_commented">Most Commented</option>
+                        <option value="banned">Banned Users</option>
+                        <option value="premium">Premium Users</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="user-table-container">
+                <div id="userTableContent">
+                    <div class="loading-state">
+                        <div class="spinner"></div>
+                        <div>Loading users...</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Ban Modal -->
+    <div class="modal-overlay" id="banModal">
+        <div class="modal">
+            <div class="header">
+                <h2>Ban User</h2>
+                <button class="close" onclick="closeBanModal()">✕</button>
+            </div>
+            <div class="body">
+                <p style="color:#64748b;font-size:14px;margin-bottom:12px;">
+                    This user will see this note when they try to log in.
+                </p>
+                <textarea id="banNote" placeholder="Enter reason for ban..."></textarea>
+            </div>
+            <div class="actions">
+                <button class="btn-cancel" onclick="closeBanModal()">Cancel</button>
+                <button class="btn-confirm" id="confirmBanBtn">Ban User</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal">
+            <div class="header">
+                <h2>Delete User?</h2>
+                <button class="close" onclick="closeDeleteModal()">✕</button>
+            </div>
+            <div class="body">
+                <p style="color:#dc2626;font-weight:500;margin-bottom:8px;">⚠️ This action cannot be undone!</p>
+                <p style="color:#64748b;font-size:14px;">
+                    All user data (likes, saves, comments, profile, etc.) will be permanently removed from the database.
+                </p>
+            </div>
+            <div class="actions">
+                <button class="btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+                <button class="btn-confirm" id="confirmDeleteBtn">Delete Permanently</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Likes Modal -->
+    <div class="modal-overlay" id="likesModal">
+        <div class="modal">
+            <div class="header">
+                <h2>User's Liked Prompts</h2>
+                <button class="close" onclick="closeLikesModal()">✕</button>
+            </div>
+            <div class="body">
+                <div id="likesList" class="item-list">
+                    <div class="loading-state" style="padding:20px;">
+                        <div class="spinner" style="width:20px;height:20px;"></div>
+                        <div style="font-size:13px;">Loading...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Saves Modal -->
+    <div class="modal-overlay" id="savesModal">
+        <div class="modal">
+            <div class="header">
+                <h2>User's Saved Prompts</h2>
+                <button class="close" onclick="closeSavesModal()">✕</button>
+            </div>
+            <div class="body">
+                <div id="savesList" class="item-list">
+                    <div class="loading-state" style="padding:20px;">
+                        <div class="spinner" style="width:20px;height:20px;"></div>
+                        <div style="font-size:13px;">Loading...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comments Modal -->
+    <div class="modal-overlay" id="commentsModal">
+        <div class="modal">
+            <div class="header">
+                <h2>User's Comments</h2>
+                <button class="close" onclick="closeCommentsModal()">✕</button>
+            </div>
+            <div class="body">
+                <div id="commentsList" class="item-list">
+                    <div class="loading-state" style="padding:20px;">
+                        <div class="spinner" style="width:20px;height:20px;"></div>
+                        <div style="font-size:13px;">Loading...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auth check
+            function getCookie(name) {
+                const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+                return match ? match[2] : null;
+            }
+            if (!getCookie('admin_auth')) {
+                window.location.href = '/admin.auth/';
+                return;
+            }
+
+            // Logout
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                document.cookie = 'admin_auth=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/admin.auth/;';
+                window.location.href = '/admin.auth/';
+            });
+
+            // State
+            let currentUserId = null;
+            let currentFilter = 'newest';
+            let currentSearch = '';
+            let page = 0;
+            const limit = 20;
+            let isLoading = false;
+            let hasMore = true;
+
+            // Elements
+            const tableContent = document.getElementById('userTableContent');
+            const searchInput = document.getElementById('searchInput');
+            const filterSelect = document.getElementById('filterSelect');
+
+            // Load users
+            async function loadUsers(reset = false) {
+                if (isLoading) return;
+                if (!reset && !hasMore) return;
+
+                isLoading = true;
+                if (reset) {
+                    page = 0;
+                    hasMore = true;
+                    tableContent.innerHTML = `
+                        <div class="loading-state">
+                            <div class="spinner"></div>
+                            <div>Loading users...</div>
+                        </div>
+                    `;
+                }
+
+                try {
+                    const params = new URLSearchParams({
+                        filter: currentFilter,
+                        search: currentSearch,
+                        limit: limit,
+                        offset: page * limit
+                    });
+
+                    const res = await fetch(`/api/admin/users?${params}`);
+                    if (res.status === 401) {
+                        window.location.href = '/admin.auth/';
+                        return;
+                    }
+                    if (!res.ok) throw new Error('Failed to load users');
+
+                    const data = await res.json();
+
+                    if (reset) {
+                        tableContent.innerHTML = buildUserTable(data.users);
+                    } else {
+                        tableContent.innerHTML += buildUserTableRows(data.users);
+                    }
+
+                    hasMore = data.hasMore;
+                    page++;
+                    isLoading = false;
+
+                    // Attach event listeners
+                    attachUserEvents();
+
+                } catch (error) {
+                    console.error('Error loading users:', error);
+                    if (reset) {
+                        tableContent.innerHTML = `
+                            <div style="text-align:center;padding:40px;color:#dc2626;">
+                                <div style="font-size:48px;margin-bottom:12px;">⚠️</div>
+                                <h3>Error loading users</h3>
+                                <p style="color:#64748b;font-size:14px;">${error.message}</p>
+                                <button onclick="location.reload()" style="margin-top:12px;padding:8px 20px;background:#4f46e5;color:white;border:none;border-radius:6px;cursor:pointer;">Retry</button>
+                            </div>
+                        `;
+                    }
+                    isLoading = false;
+                }
+            }
+
+            function buildUserTable(users) {
+                if (!users || users.length === 0) {
+                    return `
+                        <div style="text-align:center;padding:60px 24px;color:#64748b;">
+                            <div style="font-size:48px;margin-bottom:12px;">👤</div>
+                            <h3>No users found</h3>
+                            <p style="font-size:14px;">Try adjusting your search or filters</p>
+                        </div>
+                    `;
+                }
+                return `
+                    <table class="user-table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Followers</th>
+                                <th>Following</th>
+                                <th>Saves</th>
+                                <th>Likes</th>
+                                <th>Comments</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${buildUserTableRows(users)}
+                        </tbody>
+                    </table>
+                `;
+            }
+
+            function buildUserTableRows(users) {
+                return users.map(user => {
+                    const roleBadge = user.role === 'premium' ? 'badge-premium' :
+                        user.role === 'owner' ? 'badge-owner' :
+                        user.role === 'admin' ? 'badge-admin' : 'badge-user';
+                    
+                    const roleLabel = user.role === 'premium' ? '⭐ Premium' :
+                        user.role === 'owner' ? '👑 Owner' :
+                        user.role === 'admin' ? '🛡️ Admin' : 'User';
+
+                    return `
+                        <tr data-user-id="${user.id}">
+                            <td>
+                                <div class="user-info">
+                                    <img src="${user.profile_pic || '/default-avatar.png'}" 
+                                         onerror="this.src='/default-avatar.png'" 
+                                         alt="${user.username}" />
+                                    <div>
+                                        <div class="name">${user.nickname || user.username}</div>
+                                        <div class="username">@${user.username}</div>
+                                        ${user.is_banned ? '<div style="font-size:11px;color:#dc2626;">🚫 Banned</div>' : ''}
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="stat-number">${user.followers || 0}</span></td>
+                            <td><span class="stat-number">${user.following || 0}</span></td>
+                            <td><span class="stat-number">${user.totalSaves || 0}</span></td>
+                            <td><span class="stat-number">${user.totalLikes || 0}</span></td>
+                            <td><span class="stat-number">${user.totalComments || 0}</span></td>
+                            <td>
+                                <span class="badge ${roleBadge}">${roleLabel}</span>
+                                ${user.is_banned ? '<span class="badge badge-banned" style="margin-left:4px;">Banned</span>' : ''}
+                            </td>
+                            <td>
+                                <div class="actions-cell">
+                                    <button class="btn-view" onclick="openLikesModal('${user.id}')">❤️ Likes</button>
+                                    <button class="btn-view" onclick="openSavesModal('${user.id}')">💾 Saves</button>
+                                    <button class="btn-view" onclick="openCommentsModal('${user.id}')">💬 Comments</button>
+                                    <button class="${user.is_banned ? 'btn-ban active' : 'btn-ban'}" 
+                                            onclick="openBanModal('${user.id}')">
+                                        ${user.is_banned ? 'Unban' : 'Ban'}
+                                    </button>
+                                    <button class="btn-delete" onclick="openDeleteModal('${user.id}')">🗑️ Delete</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            function attachUserEvents() {
+                // Any dynamic events can go here
+            }
+
+            // Search
+            let searchTimeout;
+            searchInput.addEventListener('input', () => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    currentSearch = searchInput.value;
+                    loadUsers(true);
+                }, 300);
+            });
+
+            // Filter
+            filterSelect.addEventListener('change', () => {
+                currentFilter = filterSelect.value;
+                loadUsers(true);
+            });
+
+            // Infinite scroll
+            let scrollTimeout;
+            window.addEventListener('scroll', () => {
+                clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(() => {
+                    const scrollY = window.scrollY;
+                    const windowHeight = window.innerHeight;
+                    const docHeight = document.documentElement.scrollHeight;
+                    if (scrollY + windowHeight >= docHeight - 400) {
+                        loadUsers();
+                    }
+                }, 100);
+            });
+
+            // ===== MODAL FUNCTIONS =====
+
+            // Ban Modal
+            window.openBanModal = function(userId) {
+                currentUserId = userId;
+                document.getElementById('banNote').value = '';
+                document.getElementById('banModal').classList.add('active');
+            };
+            window.closeBanModal = function() {
+                document.getElementById('banModal').classList.remove('active');
+                currentUserId = null;
+            };
+            document.getElementById('confirmBanBtn').addEventListener('click', async () => {
+                if (!currentUserId) return;
+                const note = document.getElementById('banNote').value;
+                try {
+                    const res = await fetch(`/api/admin/users/${currentUserId}/ban`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ note })
+                    });
+                    if (res.ok) {
+                        closeBanModal();
+                        loadUsers(true);
+                    } else {
+                        alert('Failed to ban user');
+                    }
+                } catch (error) {
+                    alert('Error: ' + error.message);
+                }
+            });
+
+            // Delete Modal
+            window.openDeleteModal = function(userId) {
+                currentUserId = userId;
+                document.getElementById('deleteModal').classList.add('active');
+            };
+            window.closeDeleteModal = function() {
+                document.getElementById('deleteModal').classList.remove('active');
+                currentUserId = null;
+            };
+            document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+                if (!currentUserId) return;
+                if (!confirm('Are you sure you want to permanently delete this user?')) return;
+                try {
+                    const res = await fetch(`/api/admin/users/${currentUserId}`, {
+                        method: 'DELETE'
+                    });
+                    if (res.ok) {
+                        closeDeleteModal();
+                        loadUsers(true);
+                    } else {
+                        alert('Failed to delete user');
+                    }
+                } catch (error) {
+                    alert('Error: ' + error.message);
+                }
+            });
+
+            // Likes Modal
+            window.openLikesModal = async function(userId) {
+                currentUserId = userId;
+                document.getElementById('likesModal').classList.add('active');
+                document.getElementById('likesList').innerHTML = `
+                    <div class="loading-state" style="padding:20px;">
+                        <div class="spinner" style="width:20px;height:20px;"></div>
+                        <div style="font-size:13px;">Loading...</div>
+                    </div>
+                `;
+                try {
+                    const res = await fetch(`/api/admin/users/${userId}/likes`);
+                    const data = await res.json();
+                    if (data.likes && data.likes.length > 0) {
+                        document.getElementById('likesList').innerHTML = data.likes.map(like => `
+                            <div class="item">
+                                <div class="info">
+                                    <img src="${like.prompts?.image_main || 'https://via.placeholder.com/36'}" 
+                                         onerror="this.src='https://via.placeholder.com/36'" />
+                                    <div>
+                                        <div class="title">${like.prompts?.title || 'Untitled'}</div>
+                                        <div class="meta">ID: ${like.prompts?.prompt_id || '—'} • Liked ${new Date(like.created_at).toLocaleDateString()}</div>
+                                    </div>
+                                </div>
+                                <button class="remove-btn" onclick="removeLike('${like.id}', '${userId}')">Remove</button>
+                            </div>
+                        `).join('');
+                    } else {
+                        document.getElementById('likesList').innerHTML = `
+                            <div style="text-align:center;padding:40px;color:#64748b;">
+                                <div style="font-size:32px;">❤️</div>
+                                <p>No likes yet</p>
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    document.getElementById('likesList').innerHTML = `<div style="color:#dc2626;text-align:center;">Error: ${error.message}</div>`;
+                }
+            };
+            window.closeLikesModal = function() {
+                document.getElementById('likesModal').classList.remove('active');
+                currentUserId = null;
+            };
+            window.removeLike = async function(likeId, userId) {
+                if (!confirm('Remove this like?')) return;
+                try {
+                    const res = await fetch(`/api/admin/users/${userId}/likes/${likeId}`, {
+                        method: 'DELETE'
+                    });
+                    if (res.ok) {
+                        openLikesModal(userId); // Refresh
+                    } else {
+                        alert('Failed to remove like');
+                    }
+                } catch (error) {
+                    alert('Error: ' + error.message);
+                }
+            };
+
+            // Saves Modal
+            window.openSavesModal = async function(userId) {
+                currentUserId = userId;
+                document.getElementById('savesModal').classList.add('active');
+                document.getElementById('savesList').innerHTML = `
+                    <div class="loading-state" style="padding:20px;">
+                        <div class="spinner" style="width:20px;height:20px;"></div>
+                        <div style="font-size:13px;">Loading...</div>
+                    </div>
+                `;
+                try {
+                    const res = await fetch(`/api/admin/users/${userId}/saves`);
+                    const data = await res.json();
+                    if (data.saves && data.saves.length > 0) {
+                        document.getElementById('savesList').innerHTML = data.saves.map(save => `
+                            <div class="item">
+                                <div class="info">
+                                    <img src="${save.prompts?.image_main || 'https://via.placeholder.com/36'}" 
+                                         onerror="this.src='https://via.placeholder.com/36'" />
+                                    <div>
+                                        <div class="title">${save.prompts?.title || 'Untitled'}</div>
+                                        <div class="meta">ID: ${save.prompts?.prompt_id || '—'} • Saved ${new Date(save.created_at).toLocaleDateString()}</div>
+                                    </div>
+                                </div>
+                                <button class="remove-btn" onclick="removeSave('${save.id}', '${userId}')">Remove</button>
+                            </div>
+                        `).join('');
+                    } else {
+                        document.getElementById('savesList').innerHTML = `
+                            <div style="text-align:center;padding:40px;color:#64748b;">
+                                <div style="font-size:32px;">💾</div>
+                                <p>No saves yet</p>
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    document.getElementById('savesList').innerHTML = `<div style="color:#dc2626;text-align:center;">Error: ${error.message}</div>`;
+                }
+            };
+            window.closeSavesModal = function() {
+                document.getElementById('savesModal').classList.remove('active');
+                currentUserId = null;
+            };
+            window.removeSave = async function(saveId, userId) {
+                if (!confirm('Remove this save?')) return;
+                try {
+                    const res = await fetch(`/api/admin/users/${userId}/saves/${saveId}`, {
+                        method: 'DELETE'
+                    });
+                    if (res.ok) {
+                        openSavesModal(userId); // Refresh
+                    } else {
+                        alert('Failed to remove save');
+                    }
+                } catch (error) {
+                    alert('Error: ' + error.message);
+                }
+            };
+
+            // Comments Modal
+            window.openCommentsModal = async function(userId) {
+                currentUserId = userId;
+                document.getElementById('commentsModal').classList.add('active');
+                document.getElementById('commentsList').innerHTML = `
+                    <div class="loading-state" style="padding:20px;">
+                        <div class="spinner" style="width:20px;height:20px;"></div>
+                        <div style="font-size:13px;">Loading...</div>
+                    </div>
+                `;
+                try {
+                    const res = await fetch(`/api/admin/users/${userId}/comments`);
+                    const data = await res.json();
+                    if (data.comments && data.comments.length > 0) {
+                        document.getElementById('commentsList').innerHTML = data.comments.map(comment => `
+                            <div class="item">
+                                <div class="info" style="flex:1;">
+                                    <div>
+                                        <div class="title">${comment.content || 'Empty comment'}</div>
+                                        <div class="meta">
+                                            On: ${comment.prompts?.title || 'Untitled'} • 
+                                            ${new Date(comment.created_at).toLocaleDateString()}
+                                            ${comment.is_hidden ? ' • <span style="color:#dc2626;">Hidden</span>' : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="display:flex;gap:4px;">
+                                    ${!comment.is_hidden ? `
+                                        <button class="remove-btn" onclick="hideComment('${comment.id}', '${userId}')">Hide</button>
+                                    ` : ''}
+                                    <button class="remove-btn" onclick="deleteComment('${comment.id}', '${userId}')">Delete</button>
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        document.getElementById('commentsList').innerHTML = `
+                            <div style="text-align:center;padding:40px;color:#64748b;">
+                                <div style="font-size:32px;">💬</div>
+                                <p>No comments yet</p>
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    document.getElementById('commentsList').innerHTML = `<div style="color:#dc2626;text-align:center;">Error: ${error.message}</div>`;
+                }
+            };
+            window.closeCommentsModal = function() {
+                document.getElementById('commentsModal').classList.remove('active');
+                currentUserId = null;
+            };
+            window.hideComment = async function(commentId, userId) {
+                try {
+                    const res = await fetch(`/api/admin/users/${userId}/comments/${commentId}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ is_hidden: true })
+                    });
+                    if (res.ok) {
+                        openCommentsModal(userId); // Refresh
+                    } else {
+                        alert('Failed to hide comment');
+                    }
+                } catch (error) {
+                    alert('Error: ' + error.message);
+                }
+            };
+            window.deleteComment = async function(commentId, userId) {
+                if (!confirm('Delete this comment permanently?')) return;
+                try {
+                    const res = await fetch(`/api/admin/users/${userId}/comments/${commentId}`, {
+                        method: 'DELETE'
+                    });
+                    if (res.ok) {
+                        openCommentsModal(userId); // Refresh
+                    } else {
+                        alert('Failed to delete comment');
+                    }
+                } catch (error) {
+                    alert('Error: ' + error.message);
+                }
+            };
+
+            // Close modals on overlay click
+            document.querySelectorAll('.modal-overlay').forEach(overlay => {
+                overlay.addEventListener('click', (e) => {
+                    if (e.target === overlay) {
+                        overlay.classList.remove('active');
+                    }
+                });
+            });
+
+            // ===== INIT =====
+            loadUsers(true);
+        });
+    </script>
+
+</body>
+</html>
