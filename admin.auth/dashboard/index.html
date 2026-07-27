@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard</title>
+    
+    <!-- Google Font: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+
+    <script>
+        // SECURITY: Redirect if no cookie
+        function getCookie(name) {
+            const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+            return match ? match[2] : null;
+        }
+        if (!getCookie('admin_auth')) {
+            window.location.href = '/admin.auth/';
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        /* ===== RESET & BASE ===== */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f9fafb;
+            color: #111827;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ===== CONTAINER ===== */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+
+        /* ===== TOP NAV ===== */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .top-nav .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 20px;
+            color: #111827;
+            letter-spacing: -0.025em;
+        }
+
+        .top-nav .brand .icon {
+            width: 32px;
+            height: 32px;
+            background: #4f46e5;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+        }
+
+        .top-nav .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .top-nav .nav-actions .btn-logout {
+            padding: 8px 16px;
+            background: #fee2e2;
+            color: #dc2626;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .top-nav .nav-actions .btn-logout:hover {
+            background: #fecaca;
+        }
+
+        /* ===== GREETING ===== */
+        .greeting {
+            margin-bottom: 32px;
+        }
+
+        .greeting h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #111827;
+            letter-spacing: -0.025em;
+        }
+
+        .greeting p {
+            color: #64748b;
+            font-size: 16px;
+            margin-top: 4px;
+        }
+
+        /* ===== STATS ROW ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px 24px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        }
+
+        .stat-card .label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #111827;
+            margin-top: 4px;
+        }
+
+        .stat-card .sub {
+            font-size: 14px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        /* ===== ACTION CARD ===== */
+        .action-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px 32px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .action-card .left {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .action-card .left h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .action-card .left p {
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .action-card .btn-primary {
+            padding: 10px 24px;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .action-card .btn-primary:hover {
+            background: #4338ca;
+            transform: translateY(-1px);
+        }
+
+        .action-card .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        /* ===== LIST SECTION ===== */
+        .list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .list-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .list-header .count {
+            font-size: 14px;
+            color: #64748b;
+            background: #f1f5f9;
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        .list-card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+        }
+
+        /* ===== PROMPT ITEMS ===== */
+        .prompt-item {
+            display: flex;
+            align-items: center;
+            padding: 16px 24px;
+            border-bottom: 1px solid #f1f5f9;
+            transition: background 0.15s;
+        }
+
+        .prompt-item:last-child {
+            border-bottom: none;
+        }
+
+        .prompt-item:hover {
+            background: #fafbfc;
+        }
+
+        .prompt-item .thumb {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1px solid #e2e8f0;
+            flex-shrink: 0;
+            background: #f1f5f9;
+        }
+
+        .prompt-item .info {
+            flex: 1;
+            margin-left: 16px;
+            min-width: 0;
+        }
+
+        .prompt-item .info .title {
+            font-weight: 600;
+            font-size: 15px;
+            color: #111827;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .prompt-item .info .meta {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        .prompt-item .actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+            margin-left: 16px;
+        }
+
+        .prompt-item .actions button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .prompt-item .actions .btn-edit {
+            background: #eef2ff;
+            color: #4f46e5;
+        }
+
+        .prompt-item .actions .btn-edit:hover {
+            background: #e0e7ff;
+        }
+
+        .prompt-item .actions .btn-delete {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        .prompt-item .actions .btn-delete:hover {
+            background: #fee2e2;
+        }
+
+        /* ===== LOADING STATE ===== */
+        .loading-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .loading-state .spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 2px solid #e2e8f0;
+            border-top-color: #4f46e5;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin-bottom: 12px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 560px;
+            width: 92%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+        }
+
+        .modal .modal-header h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .modal .modal-header .close-icon {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #64748b;
+            padding: 4px;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+
+        .modal .modal-header .close-icon:hover {
+            color: #111827;
+        }
+
+        .modal .form-group {
+            margin-bottom: 18px;
+        }
+
+        .modal .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+
+        .modal .form-group input,
+        .modal .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background: white;
+        }
+
+        .modal .form-group input:focus,
+        .modal .form-group textarea:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .modal .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .modal .form-group input[type="file"] {
+            padding: 6px;
+            border: 1px dashed #d1d5db;
+            background: #f9fafb;
+        }
+
+        .modal .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+
+        .modal .form-actions .btn-cancel {
+            padding: 10px 20px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .modal .form-actions .btn-cancel:hover {
+            background: #e2e8f0;
+        }
+
+        .modal .form-actions .btn-save {
+            padding: 10px 24px;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .modal .form-actions .btn-save:hover {
+            background: #4338ca;
+        }
+
+        .modal .form-actions .btn-save:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .modal .error-box {
+            color: #dc2626;
+            font-size: 14px;
+            margin-top: 12px;
+            text-align: center;
+        }
+
+        /* ===== DELETE CONFIRM MODAL ===== */
+        .modal-confirm .modal {
+            max-width: 400px;
+        }
+        .modal-confirm .modal .confirm-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        .modal-confirm .modal .confirm-actions .btn-danger {
+            padding: 10px 20px;
+            background: #dc2626;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .modal-confirm .modal .confirm-actions .btn-danger:hover {
+            background: #b91c1c;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .action-card {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 16px;
+                text-align: center;
+                padding: 20px;
+            }
+            .prompt-item {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .prompt-item .info .title {
+                white-space: normal;
+            }
+            .prompt-item .actions {
+                margin-left: 0;
+                width: 100%;
+                justify-content: flex-end;
+            }
+            .top-nav .brand {
+                font-size: 16px;
+            }
+            .modal {
+                padding: 24px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .greeting h1 {
+                font-size: 24px;
+            }
+            .stat-card .value {
+                font-size: 24px;
+            }
+            .top-nav {
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <!-- ===== TOP NAV ===== -->
+        <div class="top-nav">
+            <div class="brand">
+                <div class="icon">📚</div>
+                <span>Prompt Admin</span>
+            </div>
+            <div class="nav-actions">
+                <button class="btn-logout" id="logoutBtn">Sign Out</button>
+            </div>
+        </div>
+
+        <!-- ===== GREETING ===== -->
+        <div class="greeting">
+            <h1>Hello Rafi 👋</h1>
+            <p>Manage your AI prompt library</p>
+        </div>
+
+        <!-- ===== STATS ===== -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="label">Total Prompts</div>
+                <div class="value" id="totalPrompts">—</div>
+                <div class="sub">in your library</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Categories</div>
+                <div class="value" id="totalCategories">—</div>
+                <div class="sub">available</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Latest</div>
+                <div class="value" id="latestPrompt" style="font-size:18px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</div>
+                <div class="sub">most recent prompt</div>
+            </div>
+        </div>
+
+        <!-- ===== ACTION CARD ===== -->
+        <div class="action-card">
+            <div class="left">
+                <h3>➕ Add New Prompt</h3>
+                <p>Create a new AI prompt with images and categories</p>
+            </div>
+            <button class="btn-primary" id="openModalBtn">Add Prompt</button>
+        </div>
+
+        <!-- ===== PROMPT LIST ===== -->
+        <div class="list-header">
+            <h2>Your Prompts</h2>
+            <span class="count" id="promptCount">0</span>
+        </div>
+
+        <div class="list-card" id="promptList">
+            <div class="loading-state">
+                <div class="spinner"></div>
+                <div>Loading prompts...</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ===== ADD/EDIT MODAL ===== -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add New Prompt</h2>
+                <button class="close-icon" id="closeModalBtn">✕</button>
+            </div>
+
+            <form id="promptForm">
+                <input type="hidden" id="editId" />
+
+                <div class="form-group">
+                    <label for="title">Title</label>
+                    <input type="text" id="title" placeholder="e.g. Cyberpunk City at Night" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" rows="2" placeholder="Short description of the prompt..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="promptText">Prompt Text</label>
+                    <textarea id="promptText" rows="4" placeholder="The actual AI prompt..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="mainImage">Main Image</label>
+                    <input type="file" id="mainImage" accept="image/*" />
+                </div>
+
+                <div class="form-group">
+                    <label for="optionalImage">Optional Image</label>
+                    <input type="file" id="optionalImage" accept="image/*" />
+                </div>
+
+                <div class="form-group">
+                    <label for="categorySelect">Categories</label>
+                    <select id="categorySelect" multiple size="3" style="width:100%;padding:10px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;">
+                        <option value="" disabled>Loading...</option>
+                    </select>
+                    <div style="display:flex;gap:8px;margin-top:8px;">
+                        <input type="text" id="newCategoryInput" placeholder="New category..." style="flex:1;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;" />
+                        <button type="button" id="addCategoryBtn" style="padding:8px 16px;background:#10b981;color:white;border:none;border-radius:6px;font-weight:500;cursor:pointer;font-size:13px;">Add</button>
+                    </div>
+                </div>
+
+                <div class="error-box" id="errorBox"></div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" id="cancelModalBtn">Cancel</button>
+                    <button type="submit" class="btn-save" id="saveBtn">Save Prompt</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== DELETE CONFIRM MODAL ===== -->
+    <div class="modal-overlay modal-confirm" id="deleteModal">
+        <div class="modal">
+            <h2 style="font-size:20px;font-weight:700;color:#111827;">Delete Prompt?</h2>
+            <p style="color:#64748b;font-size:14px;margin-top:4px;">This action cannot be undone.</p>
+            <div class="confirm-actions">
+                <button class="btn-cancel" id="cancelDeleteBtn" style="padding:10px 20px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;font-weight:500;cursor:pointer;">Cancel</button>
+                <button class="btn-danger" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        //  SECURELY FETCH SUPABASE CONFIG
+        // ============================================================
+        let sb = null;
+        const BUCKET_NAME = 'prompt_images';
+
+        async function initSupabase() {
+            try {
+                const res = await fetch('/api/supabase-config');
+                const data = await res.json();
+                if (!data.url || !data.anonKey) throw new Error('Missing Supabase config');
+                sb = supabase.createClient(data.url, data.anonKey);
+                console.log("✅ Supabase initialized");
+                initApp();
+            } catch (error) {
+                console.error("Failed to initialize Supabase:", error);
+                document.getElementById('promptList').innerHTML =
+                    `<div class="empty-state"><div class="icon">⚠️</div>Error loading configuration</div>`;
+            }
+        }
+
+        // ============================================================
+        //  APP LOGIC
+        // ============================================================
+        function initApp() {
+
+            // ===== LOGOUT =====
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                document.cookie = 'admin_auth=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                window.location.href = '/admin.auth/';
+            });
+
+            // ===== MODAL CONTROLS =====
+            const modal = document.getElementById('modal');
+            const deleteModal = document.getElementById('deleteModal');
+            const openBtn = document.getElementById('openModalBtn');
+            const closeBtn = document.getElementById('closeModalBtn');
+            const cancelBtn = document.getElementById('cancelModalBtn');
+            const modalTitle = document.getElementById('modalTitle');
+            const saveBtn = document.getElementById('saveBtn');
+            const form = document.getElementById('promptForm');
+            const editId = document.getElementById('editId');
+            const errorBox = document.getElementById('errorBox');
+
+            function openModal(mode, data = null) {
+                if (mode === 'add') {
+                    modalTitle.textContent = 'Add New Prompt';
+                    saveBtn.textContent = 'Save Prompt';
+                    form.reset();
+                    editId.value = '';
+                    document.getElementById('mainImage').required = true;
+                } else {
+                    modalTitle.textContent = 'Edit Prompt';
+                    saveBtn.textContent = 'Update Prompt';
+                    document.getElementById('mainImage').required = false;
+                    editId.value = data.id;
+                    document.getElementById('title').value = data.title;
+                    document.getElementById('description').value = data.description || '';
+                    document.getElementById('promptText').value = data.prompt_text;
+                    const select = document.getElementById('categorySelect');
+                    Array.from(select.options).forEach(opt => {
+                        opt.selected = (data.category_ids || []).includes(opt.value);
+                    });
+                }
+                errorBox.textContent = '';
+                modal.classList.add('active');
+            }
+
+            openBtn.addEventListener('click', () => openModal('add'));
+            closeBtn.addEventListener('click', () => modal.classList.remove('active'));
+            cancelBtn.addEventListener('click', () => modal.classList.remove('active'));
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.classList.remove('active');
+            });
+
+            // ===== CATEGORIES =====
+            async function loadCategories(selectId) {
+                const select = document.getElementById(selectId);
+                select.innerHTML = '<option value="" disabled>Loading...</option>';
+                const { data, error } = await sb.from('categories').select('*').order('name');
+                if (error) {
+                    select.innerHTML = '<option value="" disabled>Error</option>';
+                    return;
+                }
+                select.innerHTML = '';
+                data.forEach(cat => {
+                    const opt = document.createElement('option');
+                    opt.value = cat.id;
+                    opt.textContent = cat.name;
+                    select.appendChild(opt);
+                });
+            }
+
+            document.getElementById('addCategoryBtn').addEventListener('click', async () => {
+                const input = document.getElementById('newCategoryInput');
+                const name = input.value.trim();
+                if (!name) return;
+                const { error } = await sb.from('categories').insert({ name });
+                if (error) {
+                    alert('Error: ' + error.message);
+                    return;
+                }
+                input.value = '';
+                loadCategories('categorySelect');
+                updateStats();
+            });
+
+            document.getElementById('newCategoryInput').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    document.getElementById('addCategoryBtn').click();
+                }
+            });
+
+            // ===== IMAGE UPLOAD =====
+            async function uploadImage(file, promptId, type) {
+                if (!file) return null;
+                const ext = file.name.split('.').pop();
+                const path = `${promptId}/${type}.${ext}`;
+                const { error } = await sb.storage.from(BUCKET_NAME).upload(path, file, { upsert: true });
+                if (error) {
+                    alert('Upload error: ' + error.message);
+                    return null;
+                }
+                const { data: urlData } = sb.storage.from(BUCKET_NAME).getPublicUrl(path);
+                return urlData.publicUrl;
+            }
+
+            // ===== SLUG GENERATOR =====
+            function generateSlug(title) {
+                return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+            }
+
+            // ===== SAVE PROMPT =====
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'Saving...';
+                errorBox.textContent = '';
+
+                const id = editId.value;
+                const title = document.getElementById('title').value.trim();
+                const description = document.getElementById('description').value.trim();
+                const promptText = document.getElementById('promptText').value.trim();
+                const mainFile = document.getElementById('mainImage').files[0];
+                const optionalFile = document.getElementById('optionalImage').files[0];
+                const selected = document.getElementById('categorySelect').selectedOptions;
+                const categoryIds = Array.from(selected).map(opt => opt.value);
+
+                if (!title || !promptText) {
+                    errorBox.textContent = 'Title and Prompt Text are required.';
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = id ? 'Update Prompt' : 'Save Prompt';
+                    return;
+                }
+
+                try {
+                    if (id) {
+                        // ===== EDIT =====
+                        const updates = {
+                            title,
+                            description,
+                            prompt_text: promptText,
+                            category_ids: categoryIds,
+                            updated_at: new Date()
+                        };
+                        if (mainFile) {
+                            const url = await uploadImage(mainFile, id, 'main');
+                            if (url) updates.image_main = url;
+                        }
+                        if (optionalFile) {
+                            const url = await uploadImage(optionalFile, id, 'optional');
+                            if (url) updates.image_optional = url;
+                        }
+                        const { error } = await sb.from('prompts').update(updates).eq('id', id);
+                        if (error) throw error;
+                    } else {
+                        // ===== ADD =====
+                        if (!mainFile) {
+                            errorBox.textContent = 'Main Image is required for new prompts.';
+                            saveBtn.disabled = false;
+                            saveBtn.textContent = 'Save Prompt';
+                            return;
+                        }
+                        let slug = generateSlug(title);
+                        const { data: existing } = await sb
+                            .from('prompts')
+                            .select('slug')
+                            .eq('slug', slug)
+                            .maybeSingle();
+                        if (existing) {
+                            slug += '-' + Math.random().toString(36).substring(2, 6);
+                        }
+                        const { data: newPrompt, error: insertError } = await sb
+                            .from('prompts')
+                            .insert({
+                                slug,
+                                title,
+                                description,
+                                prompt_text: promptText,
+                                category_ids: categoryIds,
+                                image_main: '',
+                                image_optional: ''
+                            })
+                            .select()
+                            .single();
+                        if (insertError) throw insertError;
+                        const mainUrl = await uploadImage(mainFile, newPrompt.id, 'main');
+                        let optionalUrl = null;
+                        if (optionalFile) {
+                            optionalUrl = await uploadImage(optionalFile, newPrompt.id, 'optional');
+                        }
+                        const { error: updateError } = await sb
+                            .from('prompts')
+                            .update({
+                                image_main: mainUrl,
+                                image_optional: optionalUrl
+                            })
+                            .eq('id', newPrompt.id);
+                        if (updateError) throw updateError;
+                    }
+
+                    modal.classList.remove('active');
+                    loadPrompts();
+                    updateStats();
+
+                } catch (err) {
+                    errorBox.textContent = 'Error: ' + err.message;
+                }
+
+                saveBtn.disabled = false;
+                saveBtn.textContent = id ? 'Update Prompt' : 'Save Prompt';
+            });
+
+            // ===== LOAD PROMPTS =====
+            async function loadPrompts() {
+                const container = document.getElementById('promptList');
+                const countEl = document.getElementById('promptCount');
+
+                container.innerHTML = `<div class="loading-state"><div class="spinner"></div><div>Loading prompts...</div></div>`;
+
+                const { data: prompts, error } = await sb
+                    .from('prompts')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    container.innerHTML =
+                        `<div class="empty-state"><div class="icon">⚠️</div>Error: ${error.message}</div>`;
+                    return;
+                }
+
+                if (!prompts || prompts.length === 0) {
+                    container.innerHTML =
+                        `<div class="empty-state"><div class="icon">📭</div>No prompts yet. Add your first one!</div>`;
+                    countEl.textContent = '0';
+                    return;
+                }
+
+                countEl.textContent = prompts.length;
+
+                let html = '';
+                prompts.forEach(p => {
+                    const date = new Date(p.created_at).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                    });
+                    html += `
+                        <div class="prompt-item">
+                            <img src="${p.image_main}" class="thumb" 
+                                 onerror="this.src='https://via.placeholder.com/48/94a3b8/ffffff?text=?'" 
+                                 alt="${p.title}" />
+                            <div class="info">
+                                <div class="title">${p.title}</div>
+                                <div class="meta">${date}</div>
+                            </div>
+                            <div class="actions">
+                                <button class="btn-edit" data-id="${p.id}">Edit</button>
+                                <button class="btn-delete" data-id="${p.id}">Delete</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+
+                // Edit events
+                document.querySelectorAll('.btn-edit').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const id = btn.dataset.id;
+                        const { data, error } = await sb
+                            .from('prompts')
+                            .select('*')
+                            .eq('id', id)
+                            .single();
+                        if (error) {
+                            alert('Error loading prompt: ' + error.message);
+                            return;
+                        }
+                        await loadCategories('categorySelect');
+                        openModal('edit', data);
+                    });
+                });
+
+                // Delete events
+                document.querySelectorAll('.btn-delete').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        deleteTargetId = btn.dataset.id;
+                        deleteModal.classList.add('active');
+                    });
+                });
+            }
+
+            // ===== DELETE =====
+            let deleteTargetId = null;
+            document.getElementById('cancelDeleteBtn').addEventListener('click', () => {
+                deleteModal.classList.remove('active');
+                deleteTargetId = null;
+            });
+            document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+                if (!deleteTargetId) return;
+                const { error } = await sb.from('prompts').delete().eq('id', deleteTargetId);
+                if (error) {
+                    alert('Error deleting: ' + error.message);
+                } else {
+                    deleteModal.classList.remove('active');
+                    deleteTargetId = null;
+                    loadPrompts();
+                    updateStats();
+                }
+            });
+            deleteModal.addEventListener('click', (e) => {
+                if (e.target === deleteModal) {
+                    deleteModal.classList.remove('active');
+                    deleteTargetId = null;
+                }
+            });
+
+            // ===== STATS =====
+            async function updateStats() {
+                const { count: promptCount } = await sb
+                    .from('prompts')
+                    .select('*', { count: 'exact', head: true });
+                const { count: catCount } = await sb
+                    .from('categories')
+                    .select('*', { count: 'exact', head: true });
+                document.getElementById('totalPrompts').textContent = promptCount || 0;
+                document.getElementById('totalCategories').textContent = catCount || 0;
+                const { data: latest } = await sb
+                    .from('prompts')
+                    .select('title')
+                    .order('created_at', { ascending: false })
+                    .limit(1);
+                document.getElementById('latestPrompt').textContent =
+                    latest && latest.length > 0 ? latest[0].title : '—';
+            }
+
+            // ===== INIT =====
+            loadCategories('categorySelect');
+            loadPrompts();
+            updateStats();
+
+            console.log("✅ Admin dashboard ready");
+        }
+
+        // ============================================================
+        //  START
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', initSupabase);
+    </script>
+
+</body>
+</html>
