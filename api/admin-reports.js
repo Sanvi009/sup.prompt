@@ -24,25 +24,19 @@ export default async function handler(req, res) {
   }
 
   const token = authHeader.split(' ')[1];
-  let adminId;
+  let decoded;
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    adminId = decoded.id;
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Check if user is admin (is_owner = true)
-    const { data: profile } = await supabaseAdmin
-      .from('profiles')
-      .select('is_owner')
-      .eq('id', adminId)
-      .single();
-
-    if (!profile || !profile.is_owner) {
+    // 🔥 NEW: Check if user is admin directly from token payload
+    if (!decoded.is_owner) {
       return res.status(403).json({ error: 'Forbidden — Admin access required' });
     }
   } catch (err) {
     return res.status(401).json({ error: 'Invalid token' });
   }
 
+  const adminId = decoded.id;
   const { action } = req.query;
 
   // ================================================================
