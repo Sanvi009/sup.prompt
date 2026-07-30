@@ -6,7 +6,7 @@ import { createClient } from '@supabase/supabase-js';
 // Initialize Supabase admin client (with service role key for DB operations)
 const supabaseAdmin = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY // Add this to Vercel env
+  process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
 export default async function handler(req, res) {
@@ -106,6 +106,44 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Username and password required' });
     }
 
+    // --- SPECIAL ADMIN CHECK: Bypass database if username matches ADMIN_USERNAME ---
+    const adminUsername = process.env.ADMIN_USERNAME;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+
+    if (username === adminUsername) {
+      // Compare with env password
+      if (password === adminPassword) {
+        // Admin login successful
+        const token = jwt.sign(
+          { 
+            id: 'admin', 
+            username: adminUsername,
+            is_owner: true 
+          },
+          process.env.JWT_SECRET,
+          { expiresIn: '7d' }
+        );
+
+        return res.status(200).json({
+          success: true,
+          token,
+          user: {
+            id: 'admin',
+            username: adminUsername,
+            display_name: 'Admin',
+            avatar_url: null,
+            is_premium: false,
+            is_owner: true,
+            is_banned: false
+          }
+        });
+      } else {
+        // Admin username correct but wrong password
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
+    }
+
+    // --- REGULAR USER LOGIN (database-based) ---
     // Get profile
     const { data: profile, error } = await supabaseAdmin
       .from('profiles')
@@ -175,7 +213,23 @@ export default async function handler(req, res) {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       
-      // Get fresh profile data
+      // If admin token
+      if (decoded.id === 'admin') {
+        return res.status(200).json({
+          success: true,
+          user: {
+            id: 'admin',
+            username: decoded.username,
+            display_name: 'Admin',
+            avatar_url: null,
+            is_premium: false,
+            is_owner: true,
+            is_banned: false
+          }
+        });
+      }
+
+      // Get fresh profile data for regular user
       const { data: profile } = await supabaseAdmin
         .from('profiles')
         .select('*')
