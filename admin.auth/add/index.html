@@ -499,28 +499,41 @@
                     .select()
                     .single();
 
-                if (insertError) throw insertError;
-
-                // 4. Upload images
-                // --- MODIFIED SECTION START ---
-                let mainUrl = null;
-                if (mainFile) {
-                    mainUrl = await uploadImage(mainFile, newPrompt.id, 'main');
-                }
-
-                let optionalUrl = null;
-                if (optionalFile) {
-                    optionalUrl = await uploadImage(optionalFile, newPrompt.id, 'optional');
-                }
-
-                // If main upload failed, stop and show an error
-                if (!mainUrl) {
-                    errorBox.textContent = 'Image upload failed. Please try again.';
+                if (insertError) {
+                    errorBox.textContent = 'Insert failed: ' + insertError.message;
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Create Prompt';
                     return;
                 }
-                // --- MODIFIED SECTION END ---
+
+                // 4. Upload images
+                let mainUrl = null;
+                if (mainFile) {
+                    try {
+                        mainUrl = await uploadImage(mainFile, newPrompt.id, 'main');
+                    } catch (uploadErr) {
+                        errorBox.textContent = 'Upload error: ' + uploadErr.message;
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Create Prompt';
+                        return;
+                    }
+                }
+
+                let optionalUrl = null;
+                if (optionalFile) {
+                    try {
+                        optionalUrl = await uploadImage(optionalFile, newPrompt.id, 'optional');
+                    } catch (uploadErr) {
+                        console.warn('Optional image upload failed:', uploadErr.message);
+                    }
+                }
+
+                if (!mainUrl) {
+                    errorBox.textContent = 'Main image upload failed (unknown reason).';
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Create Prompt';
+                    return;
+                }
 
                 // 5. Update prompt with image URLs
                 const { error: updateError } = await db
@@ -531,7 +544,12 @@
                     })
                     .eq('id', newPrompt.id);
 
-                if (updateError) throw updateError;
+                if (updateError) {
+                    errorBox.textContent = 'Update failed: ' + updateError.message;
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Create Prompt';
+                    return;
+                }
 
                 // Success
                 successBox.textContent = '✅ Prompt created successfully!';
