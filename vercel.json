@@ -8,7 +8,9 @@
     { "source": "/admin.auth/reports/users/(.*)", "destination": "/admin.auth/reports/users/index.html" },
     { "source": "/admin.auth/reports/prompts/(.*)", "destination": "/admin.auth/reports/prompts/index.html" },
     { "source": "/admin.auth/premium/(.*)", "destination": "/admin.auth/premium/index.html" },
-    { "source": "/admin.auth/(.*)", "destination": "/admin.auth/index.html" }
-    { "source": "/prompt/:slug", "destination": "/prompt/[slug].html" }
+    { "source": "/admin.auth/(.*)", "destination": "/admin.auth/index.html" },
+    { "source": "/prompt/:slug", "destination": "/prompt/[slug].html" },
+    { "source": "/feed/(.*)", "destination": "/feed/index.html" },
+    { "source": "/", "destination": "/index.html" }
   ]
 }
