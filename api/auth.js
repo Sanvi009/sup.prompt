@@ -3,7 +3,6 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { createClient } from '@supabase/supabase-js';
 
-// Initialize Supabase admin client (with service role key for DB operations)
 const supabaseAdmin = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -19,16 +18,15 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  const { action } = req.query;
+  const { action, source } = req.query;
   const { username, password } = req.body;
 
-  // --- REGISTER ---
+  // --- REGISTER (always database-based) ---
   if (action === 'register') {
     if (!username || !password) {
       return res.status(400).json({ error: 'Username and password required' });
     }
 
-    // Check if username exists
     const { data: existing } = await supabaseAdmin
       .from('profiles')
       .select('username')
@@ -39,10 +37,8 @@ export default async function handler(req, res) {
       return res.status(409).json({ error: 'Username already taken' });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create profile
     const { data: profile, error } = await supabaseAdmin
       .from('profiles')
       .insert({
@@ -64,7 +60,6 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: error.message });
     }
 
-    // Store password separately (custom auth)
     const { error: pwdError } = await supabaseAdmin
       .from('auth_passwords')
       .insert({
@@ -73,14 +68,12 @@ export default async function handler(req, res) {
       });
 
     if (pwdError) {
-      // Rollback profile
       await supabaseAdmin.from('profiles').delete().eq('id', profile.id);
       return res.status(500).json({ error: 'Failed to create account' });
     }
 
-    // Generate JWT
     const token = jwt.sign(
-      { id: profile.id, username: profile.username },
+      { id: profile.id, username: profile.username, is_owner: false },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -106,20 +99,14 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Username and password required' });
     }
 
-    // --- SPECIAL ADMIN CHECK: Bypass database if username matches ADMIN_USERNAME ---
-    const adminUsername = process.env.ADMIN_USERNAME;
-    const adminPassword = process.env.ADMIN_PASSWORD;
+    // 🔐 ONLY if source === 'admin', check Vercel env
+    if (source === 'admin') {
+      const adminUsername = process.env.ADMIN_USERNAME;
+      const adminPassword = process.env.ADMIN_PASSWORD;
 
-    if (username === adminUsername) {
-      // Compare with env password
-      if (password === adminPassword) {
-        // Admin login successful
+      if (username === adminUsername && password === adminPassword) {
         const token = jwt.sign(
-          { 
-            id: 'admin', 
-            username: adminUsername,
-            is_owner: true 
-          },
+          { id: 'admin', username: adminUsername, is_owner: true },
           process.env.JWT_SECRET,
           { expiresIn: '7d' }
         );
@@ -138,13 +125,11 @@ export default async function handler(req, res) {
           }
         });
       } else {
-        // Admin username correct but wrong password
         return res.status(401).json({ error: 'Invalid credentials' });
       }
     }
 
-    // --- REGULAR USER LOGIN (database-based) ---
-    // Get profile
+    // --- REGULAR USER LOGIN (database only) ---
     const { data: profile, error } = await supabaseAdmin
       .from('profiles')
       .select('*')
@@ -155,7 +140,6 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Check if banned
     if (profile.is_banned) {
       return res.status(403).json({
         error: 'Account banned',
@@ -163,7 +147,6 @@ export default async function handler(req, res) {
       });
     }
 
-    // Get password hash
     const { data: pwdData } = await supabaseAdmin
       .from('auth_passwords')
       .select('password_hash')
@@ -174,15 +157,13 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Verify password
     const valid = await bcrypt.compare(password, pwdData.password_hash);
     if (!valid) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Generate JWT
     const token = jwt.sign(
-      { id: profile.id, username: profile.username },
+      { id: profile.id, username: profile.username, is_owner: false },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -202,7 +183,7 @@ export default async function handler(req, res) {
     });
   }
 
-  // --- VERIFY (check if token is valid) ---
+  // --- VERIFY ---
   if (action === 'verify') {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -213,7 +194,6 @@ export default async function handler(req, res) {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       
-      // If admin token
       if (decoded.id === 'admin') {
         return res.status(200).json({
           success: true,
@@ -229,7 +209,6 @@ export default async function handler(req, res) {
         });
       }
 
-      // Get fresh profile data for regular user
       const { data: profile } = await supabaseAdmin
         .from('profiles')
         .select('*')
@@ -266,7 +245,6 @@ export default async function handler(req, res) {
 
   // --- LOGOUT ---
   if (action === 'logout') {
-    // Client-side handles token removal
     return res.status(200).json({ success: true });
   }
 
