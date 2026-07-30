@@ -833,35 +833,28 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Prompt ID required' });
       }
 
-      // Get prompt to delete images
-      const { data: prompt } = await supabaseAdmin
-        .from('prompts')
-        .select('image_main, image_optional')
-        .eq('id', promptId)
-        .single();
+      // 🔥 FIX: Always try to delete images using the promptId prefix
+      try {
+        // List all files that start with this promptId
+        const { data: fileList, error: listError } = await supabaseAdmin
+          .storage
+          .from('prompt_images')
+          .list('', { limit: 100, offset: 0 });
 
-      // Delete images from storage
-      if (prompt) {
-        const imagesToDelete = [];
-        if (prompt.image_main) {
-          try {
-            const url = new URL(prompt.image_main);
-            const path = url.pathname.split('/').slice(2).join('/');
-            if (path) imagesToDelete.push(path);
-          } catch (err) {}
+        if (!listError && fileList) {
+          const filesToDelete = fileList
+            .filter(file => file.name.startsWith(promptId))
+            .map(file => file.name);
+
+          if (filesToDelete.length > 0) {
+            await supabaseAdmin.storage
+              .from('prompt_images')
+              .remove(filesToDelete);
+          }
         }
-        if (prompt.image_optional) {
-          try {
-            const url = new URL(prompt.image_optional);
-            const path = url.pathname.split('/').slice(2).join('/');
-            if (path) imagesToDelete.push(path);
-          } catch (err) {}
-        }
-        if (imagesToDelete.length > 0) {
-          await supabaseAdmin.storage
-            .from('prompt_images')
-            .remove(imagesToDelete);
-        }
+      } catch (err) {
+        // Ignore storage errors — we still want to delete the prompt
+        console.warn('Failed to delete images for prompt', promptId, err);
       }
 
       // Delete prompt (cascades to likes, saves, comments)
