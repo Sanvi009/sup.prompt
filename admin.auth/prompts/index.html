@@ -878,19 +878,20 @@
                 return;
             }
 
-            // ★★★ DELETE BLOCK ★★★
+            // Delete
             if (target.classList.contains('btn-delete')) {
                 const promptId = target.dataset.promptid;
                 showConfirm(
                     'Delete Prompt',
                     '⚠️ This action is permanent. The prompt and all its images will be deleted. Are you sure?',
                     async () => {
-                        const url = `/api/admin?action=prompts&sub=delete&promptId=${promptId}`;
-                        const res = await fetch(url, {
+                        const res = await fetch('/api/admin?action=prompts&sub=delete', {
                             method: 'POST',
                             headers: {
+                                'Content-Type': 'application/json',
                                 'Authorization': `Bearer ${token}`
-                            }
+                            },
+                            body: JSON.stringify({ promptId })
                         });
                         if (res.ok) {
                             loadPrompts(true);
@@ -903,7 +904,6 @@
                 );
                 return;
             }
-            // ★★★ END DELETE BLOCK ★★★
 
             // View Likes
             if (target.classList.contains('btn-view-likes')) {
