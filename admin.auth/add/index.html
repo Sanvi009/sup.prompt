@@ -6,6 +6,7 @@
     <title>Add Prompt — Admin</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -332,7 +333,7 @@
                 // or we can add a new endpoint later
                 
                 // For now, we'll use the Supabase client directly
-                const { createClient } = (await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2')).default;
+                const supabase = supabase.createClient(config.url, config.anonKey);
                 
                 // Get config
                 const configRes = await fetch('/api/supabase-config');
@@ -367,7 +368,7 @@
             if (!name) return;
 
             try {
-                const { createClient } = (await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2')).default;
+                const supabase = supabase.createClient(config.url, config.anonKey);
                 const configRes = await fetch('/api/supabase-config');
                 const config = await configRes.json();
                 const supabase = createClient(config.url, config.anonKey);
@@ -398,7 +399,7 @@
             if (!file) return null;
 
             try {
-                const { createClient } = (await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2')).default;
+                const supabase = supabase.createClient(config.url, config.anonKey);
                 const configRes = await fetch('/api/supabase-config');
                 const config = await configRes.json();
                 const supabase = createClient(config.url, config.anonKey);
@@ -469,7 +470,7 @@
                 let slug = generateSlug(title);
 
                 // 2. Insert prompt (without images first)
-                const { createClient } = (await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2')).default;
+                const supabase = supabase.createClient(config.url, config.anonKey);
                 const configRes = await fetch('/api/supabase-config');
                 const config = await configRes.json();
                 const supabase = createClient(config.url, config.anonKey);
