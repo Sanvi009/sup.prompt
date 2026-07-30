@@ -502,11 +502,25 @@
                 if (insertError) throw insertError;
 
                 // 4. Upload images
-                const mainUrl = await uploadImage(mainFile, newPrompt.id, 'main');
+                // --- MODIFIED SECTION START ---
+                let mainUrl = null;
+                if (mainFile) {
+                    mainUrl = await uploadImage(mainFile, newPrompt.id, 'main');
+                }
+
                 let optionalUrl = null;
                 if (optionalFile) {
                     optionalUrl = await uploadImage(optionalFile, newPrompt.id, 'optional');
                 }
+
+                // If main upload failed, stop and show an error
+                if (!mainUrl) {
+                    errorBox.textContent = 'Image upload failed. Please try again.';
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Create Prompt';
+                    return;
+                }
+                // --- MODIFIED SECTION END ---
 
                 // 5. Update prompt with image URLs
                 const { error: updateError } = await db
