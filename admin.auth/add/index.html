@@ -324,23 +324,14 @@
             select.innerHTML = '<option value="" disabled>Loading categories...</option>';
 
             try {
-                const res = await fetch('/api/admin?action=prompts&sub=list&limit=1', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-
-                // Since we don't have a direct endpoint for categories, 
-                // we'll use the supabase client directly from the browser
-                // or we can add a new endpoint later
-                
-                // For now, we'll use the Supabase client directly
-                const supabase = supabase.createClient(config.url, config.anonKey);
-                
-                // Get config
+                // Get config first
                 const configRes = await fetch('/api/supabase-config');
                 const config = await configRes.json();
-                const supabase = createClient(config.url, config.anonKey);
 
-                const { data, error } = await supabase
+                // Create Supabase client (use a unique variable name)
+                const sb = supabase.createClient(config.url, config.anonKey);
+
+                const { data, error } = await sb
                     .from('categories')
                     .select('*')
                     .order('name');
@@ -368,12 +359,14 @@
             if (!name) return;
 
             try {
-                const supabase = supabase.createClient(config.url, config.anonKey);
+                // Get config first
                 const configRes = await fetch('/api/supabase-config');
                 const config = await configRes.json();
-                const supabase = createClient(config.url, config.anonKey);
 
-                const { error } = await supabase
+                // Create Supabase client (use a unique variable name)
+                const client = supabase.createClient(config.url, config.anonKey);
+
+                const { error } = await client
                     .from('categories')
                     .insert({ name });
 
@@ -399,21 +392,23 @@
             if (!file) return null;
 
             try {
-                const supabase = supabase.createClient(config.url, config.anonKey);
+                // Get config first
                 const configRes = await fetch('/api/supabase-config');
                 const config = await configRes.json();
-                const supabase = createClient(config.url, config.anonKey);
+
+                // Create Supabase client (use a unique variable name)
+                const s = supabase.createClient(config.url, config.anonKey);
 
                 const ext = file.name.split('.').pop();
                 const path = `${promptId}/${type}.${ext}`;
                 
-                const { error } = await supabase.storage
+                const { error } = await s.storage
                     .from('prompt_images')
                     .upload(path, file, { upsert: true });
 
                 if (error) throw error;
 
-                const { data: urlData } = supabase.storage
+                const { data: urlData } = s.storage
                     .from('prompt_images')
                     .getPublicUrl(path);
 
@@ -469,14 +464,15 @@
                 // 1. Generate slug
                 let slug = generateSlug(title);
 
-                // 2. Insert prompt (without images first)
-                const supabase = supabase.createClient(config.url, config.anonKey);
+                // 2. Get config first
                 const configRes = await fetch('/api/supabase-config');
                 const config = await configRes.json();
-                const supabase = createClient(config.url, config.anonKey);
+
+                // 3. Create Supabase client (use a unique variable name)
+                const db = supabase.createClient(config.url, config.anonKey);
 
                 // Check if slug exists
-                const { data: existing } = await supabase
+                const { data: existing } = await db
                     .from('prompts')
                     .select('slug')
                     .eq('slug', slug)
@@ -487,7 +483,7 @@
                 }
 
                 // Insert prompt
-                const { data: newPrompt, error: insertError } = await supabase
+                const { data: newPrompt, error: insertError } = await db
                     .from('prompts')
                     .insert({
                         slug,
@@ -505,15 +501,15 @@
 
                 if (insertError) throw insertError;
 
-                // 3. Upload images
+                // 4. Upload images
                 const mainUrl = await uploadImage(mainFile, newPrompt.id, 'main');
                 let optionalUrl = null;
                 if (optionalFile) {
                     optionalUrl = await uploadImage(optionalFile, newPrompt.id, 'optional');
                 }
 
-                // 4. Update prompt with image URLs
-                const { error: updateError } = await supabase
+                // 5. Update prompt with image URLs
+                const { error: updateError } = await db
                     .from('prompts')
                     .update({
                         image_main: mainUrl,
