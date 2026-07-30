@@ -9,5 +9,6 @@
     { "source": "/admin.auth/reports/prompts/(.*)", "destination": "/admin.auth/reports/prompts/index.html" },
     { "source": "/admin.auth/premium/(.*)", "destination": "/admin.auth/premium/index.html" },
     { "source": "/admin.auth/(.*)", "destination": "/admin.auth/index.html" }
+    { "source": "/prompt/:slug", "destination": "/prompt/[slug].html" }
   ]
 }
