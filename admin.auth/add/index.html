@@ -332,7 +332,7 @@
                 // or we can add a new endpoint later
                 
                 // For now, we'll use the Supabase client directly
-                const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2');
+                const { createClient } = (await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2')).default;
                 
                 // Get config
                 const configRes = await fetch('/api/supabase-config');
@@ -367,7 +367,7 @@
             if (!name) return;
 
             try {
-                const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2');
+                const { createClient } = (await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2')).default;
                 const configRes = await fetch('/api/supabase-config');
                 const config = await configRes.json();
                 const supabase = createClient(config.url, config.anonKey);
@@ -398,7 +398,7 @@
             if (!file) return null;
 
             try {
-                const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2');
+                const { createClient } = (await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2')).default;
                 const configRes = await fetch('/api/supabase-config');
                 const config = await configRes.json();
                 const supabase = createClient(config.url, config.anonKey);
@@ -469,7 +469,7 @@
                 let slug = generateSlug(title);
 
                 // 2. Insert prompt (without images first)
-                const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2');
+                const { createClient } = (await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2')).default;
                 const configRes = await fetch('/api/supabase-config');
                 const config = await configRes.json();
                 const supabase = createClient(config.url, config.anonKey);
