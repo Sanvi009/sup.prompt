@@ -387,7 +387,7 @@
             }
         });
 
-        // --- Image Upload Helper ---
+        // --- Image Upload Helper (Flattened) ---
         async function uploadImage(file, promptId, type) {
             if (!file) return null;
 
@@ -396,21 +396,26 @@
                 const configRes = await fetch('/api/supabase-config');
                 const config = await configRes.json();
 
-                // Create Supabase client (use a unique variable name)
+                // Create Supabase client
                 const s = supabase.createClient(config.url, config.anonKey);
 
+                // Generate unique filename: timestamp_random.ext
                 const ext = file.name.split('.').pop();
-                const path = `${promptId}/${type}.${ext}`;
-                
+                const timestamp = Date.now();
+                const random = Math.random().toString(36).substring(2, 6);
+                const filename = `${promptId}_${type}_${timestamp}_${random}.${ext}`;
+
+                // Upload directly to bucket root (no folder)
                 const { error } = await s.storage
                     .from('prompt_images')
-                    .upload(path, file, { upsert: true });
+                    .upload(filename, file, { upsert: false });
 
                 if (error) throw error;
 
+                // Get public URL
                 const { data: urlData } = s.storage
                     .from('prompt_images')
-                    .getPublicUrl(path);
+                    .getPublicUrl(filename);
 
                 return urlData.publicUrl;
             } catch (err) {
