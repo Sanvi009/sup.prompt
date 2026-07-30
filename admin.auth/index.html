@@ -110,7 +110,7 @@
             loadingMsg.style.display = 'block';
 
             try {
-                const res = await fetch('/api/auth?action=login', {
+                const res = await fetch('/api/auth?action=login&source=admin', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
