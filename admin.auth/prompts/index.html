@@ -885,14 +885,12 @@
                     'Delete Prompt',
                     '⚠️ This action is permanent. The prompt and all its images will be deleted. Are you sure?',
                     async () => {
-                        const res = await fetch('/api/admin?action=prompts&sub=delete', {
+                        const url = `/api/admin?action=prompts&sub=delete&promptId=${promptId}`;
+                        const res = await fetch(url, {
                             method: 'POST',
                             headers: {
-                                'Content-Type': 'application/json',
                                 'Authorization': `Bearer ${token}`
-                            },
-                            const url = `/api/admin?action=prompts&sub=delete&promptId=${promptId}`;
-                            const res = await fetch(url, { method: 'POST', headers: { ... } });
+                            }
                         });
                         if (res.ok) {
                             loadPrompts(true);
