@@ -430,7 +430,7 @@
                 .replace(/^-+|-+$/g, '');
         }
 
-        // --- Form Submit ---
+        // --- Form Submit (No Redirect) ---
         document.getElementById('addPromptForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -556,18 +556,15 @@
                     return;
                 }
 
-                // Success
-                successBox.textContent = '✅ Prompt created successfully!';
+                // ✅ SUCCESS — stay on page, show message, disable button
+                successBox.textContent = '✅ Prompt created successfully! You can now add another.';
                 successBox.style.display = 'block';
                 errorBox.textContent = '';
 
-                // Reset form
+                // Reset the form fields (but keep button disabled)
                 document.getElementById('addPromptForm').reset();
-
-                // Redirect after 2 seconds
-                setTimeout(() => {
-                    window.location.href = '/admin.auth/prompts/';
-                }, 2000);
+                submitBtn.disabled = true;
+                submitBtn.textContent = '✅ Done (Refresh to add more)';
 
             } catch (err) {
                 errorBox.textContent = 'Error: ' + err.message;
