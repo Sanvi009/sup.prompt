@@ -891,7 +891,8 @@
                                 'Content-Type': 'application/json',
                                 'Authorization': `Bearer ${token}`
                             },
-                            body: JSON.stringify({ promptId })
+                            const url = `/api/admin?action=prompts&sub=delete&promptId=${promptId}`;
+                            const res = await fetch(url, { method: 'POST', headers: { ... } });
                         });
                         if (res.ok) {
                             loadPrompts(true);
