@@ -18,7 +18,7 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  const { action, source } = req.query;
+  const { action } = req.query;
   const { username, password } = req.body;
 
   // --- REGISTER (always database-based) ---
@@ -27,6 +27,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Username and password required' });
     }
 
+    // Check if username exists
     const { data: existing } = await supabaseAdmin
       .from('profiles')
       .select('username')
@@ -93,43 +94,40 @@ export default async function handler(req, res) {
     });
   }
 
-  // --- LOGIN ---
+  // --- LOGIN (Checks Env First, Then Database) ---
   if (action === 'login') {
     if (!username || !password) {
       return res.status(400).json({ error: 'Username and password required' });
     }
 
-    // 🔐 ONLY if source === 'admin', check Vercel env
-    if (source === 'admin') {
-      const adminUsername = process.env.ADMIN_USERNAME;
-      const adminPassword = process.env.ADMIN_PASSWORD;
+    // 1. CHECK VERCEL ENV FIRST (for Admin)
+    const adminUsername = process.env.ADMIN_USERNAME;
+    const adminPassword = process.env.ADMIN_PASSWORD;
 
-      if (username === adminUsername && password === adminPassword) {
-        const token = jwt.sign(
-          { id: 'admin', username: adminUsername, is_owner: true },
-          process.env.JWT_SECRET,
-          { expiresIn: '7d' }
-        );
+    if (username === adminUsername && password === adminPassword) {
+      // Admin login successful — returns owner profile
+      const token = jwt.sign(
+        { id: 'admin', username: adminUsername, is_owner: true },
+        process.env.JWT_SECRET,
+        { expiresIn: '7d' }
+      );
 
-        return res.status(200).json({
-          success: true,
-          token,
-          user: {
-            id: 'admin',
-            username: adminUsername,
-            display_name: 'Admin',
-            avatar_url: null,
-            is_premium: false,
-            is_owner: true,
-            is_banned: false
-          }
-        });
-      } else {
-        return res.status(401).json({ error: 'Invalid credentials' });
-      }
+      return res.status(200).json({
+        success: true,
+        token,
+        user: {
+          id: 'admin',
+          username: adminUsername,
+          display_name: 'Admin (Owner)',
+          avatar_url: null,
+          is_premium: false,
+          is_owner: true,
+          is_banned: false
+        }
+      });
     }
 
-    // --- REGULAR USER LOGIN (database only) ---
+    // 2. FALLBACK TO DATABASE (for Regular Users)
     const { data: profile, error } = await supabaseAdmin
       .from('profiles')
       .select('*')
@@ -194,13 +192,14 @@ export default async function handler(req, res) {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       
+      // If admin token
       if (decoded.id === 'admin') {
         return res.status(200).json({
           success: true,
           user: {
             id: 'admin',
             username: decoded.username,
-            display_name: 'Admin',
+            display_name: 'Admin (Owner)',
             avatar_url: null,
             is_premium: false,
             is_owner: true,
@@ -209,6 +208,7 @@ export default async function handler(req, res) {
         });
       }
 
+      // Regular user
       const { data: profile } = await supabaseAdmin
         .from('profiles')
         .select('*')
