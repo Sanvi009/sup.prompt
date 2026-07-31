@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Search Results</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #f8fafc;
+            color: #111827;
+            -webkit-font-smoothing: antialiased;
+        }
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 24px 24px 80px;
+        }
+
+        header {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        header .brand {
+            font-size: 22px;
+            font-weight: 700;
+            color: #111827;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            letter-spacing: -0.025em;
+        }
+        header .brand span {
+            color: #4f46e5;
+        }
+        header .controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            max-width: 480px;
+            justify-content: flex-end;
+        }
+        header .controls input {
+            padding: 10px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 15px;
+            font-family: inherit;
+            background: #f9fafb;
+            transition: all 0.2s;
+            width: 100%;
+            max-width: 280px;
+        }
+        header .controls input:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 4px rgba(79,70,229,0.08);
+            background: white;
+        }
+        header .controls .profile-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #eef2ff;
+            border: 2px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            color: #4f46e5;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            text-decoration: none;
+        }
+        header .controls .profile-btn:hover {
+            background: #e0e7ff;
+            transform: scale(1.05);
+        }
+        header .controls .profile-btn img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .back {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 20px;
+            color: #4f46e5;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+            transition: color 0.2s;
+        }
+        .back:hover { color: #4338ca; }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #111827;
+            margin: 24px 0 12px;
+        }
+
+        .users-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 24px;
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            padding: 12px 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+        }
+        .user-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+        .user-item:hover {
+            background: #f1f5f9;
+        }
+        .user-item .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #eef2ff;
+            object-fit: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #4f46e5;
+            font-size: 16px;
+        }
+        .user-item .info {
+            flex: 1;
+            min-width: 0;
+        }
+        .user-item .info .username {
+            font-weight: 600;
+            font-size: 15px;
+            color: #111827;
+        }
+        .user-item .info .display-name {
+            font-size: 14px;
+            color: #64748b;
+        }
+        .user-item .info .badges {
+            display: flex;
+            gap: 4px;
+            font-size: 14px;
+        }
+        .user-item .follow-btn {
+            padding: 6px 16px;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        .user-item .follow-btn:hover {
+            background: #4338ca;
+        }
+        .user-item .follow-btn.following {
+            background: #f1f5f9;
+            color: #111827;
+        }
+        .user-item .follow-btn.following:hover {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .prompt-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+        .prompt-card {
+            position: relative;
+            width: 100%;
+            padding-bottom: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            background: #f1f5f9;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .prompt-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+        }
+        .prompt-card img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .prompt-card .overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 12px 16px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.5));
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            opacity: 0;
+            transition: opacity 0.25s;
+        }
+        .prompt-card:hover .overlay {
+            opacity: 1;
+        }
+        .prompt-card .overlay .stats {
+            display: flex;
+            gap: 16px;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .prompt-card .overlay .stats span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .loader {
+            text-align: center;
+            padding: 40px 0 60px;
+            color: #64748b;
+            font-size: 15px;
+            grid-column: 1 / -1;
+        }
+        .loader .spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #4f46e5;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .empty {
+            text-align: center;
+            padding: 40px 24px;
+            color: #64748b;
+        }
+        .empty .icon { font-size: 48px; margin-bottom: 12px; }
+
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15,23,42,0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .popup-overlay.active { display: flex; }
+        .popup {
+            background: white;
+            border-radius: 20px;
+            padding: 32px 40px;
+            max-width: 400px;
+            width: 92%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+        .popup h2 { font-size: 22px; font-weight: 700; color: #111827; }
+        .popup p { color: #64748b; font-size: 15px; margin: 8px 0 24px; }
+        .popup .btn-primary {
+            padding: 12px 32px;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .popup .btn-primary:hover { background: #4338ca; }
+        .popup .btn-secondary {
+            padding: 12px 32px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-weight: 500;
+            font-size: 15px;
+            cursor: pointer;
+            margin-left: 12px;
+            transition: background 0.2s;
+        }
+        .popup .btn-secondary:hover { background: #e2e8f0; }
+
+        @media (max-width: 1024px) {
+            .prompt-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .prompt-grid { grid-template-columns: repeat(2, 1fr); }
+            header { padding: 12px 16px; flex-direction: column; align-items: stretch; }
+            header .controls { max-width: 100%; justify-content: stretch; }
+            header .controls input { max-width: 100%; }
+        }
+        @media (max-width: 480px) {
+            .prompt-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="/feed/" class="brand">📚 <span>Prompt</span> Library</a>
+        <div class="controls">
+            <input type="text" id="searchInput" placeholder="Search users & prompts..." value="" />
+            <a href="/profile" class="profile-btn" id="profileBtn">👤</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <a href="/feed/" class="back">← Back to Feed</a>
+        <div id="content">
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Searching...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="popup-overlay" id="popup">
+        <div class="popup">
+            <h2>🔒 Sign in to interact</h2>
+            <p>You need to log in or create an account to follow.</p>
+            <button class="btn-primary" id="popupLoginBtn">Log In / Sign Up</button>
+            <button class="btn-secondary" id="popupCloseBtn">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('user_token');
+        let currentUser = null;
+        let searchQuery = '';
+        let page = 0;
+        const pageSize = 12;
+        let loading = false;
+        let hasMore = true;
+
+        const container = document.getElementById('content');
+        const searchInput = document.getElementById('searchInput');
+        const profileBtn = document.getElementById('profileBtn');
+        const popup = document.getElementById('popup');
+
+        async function verifyUser() {
+            if (!token) return null;
+            try {
+                const res = await fetch('/api/auth?action=verify', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    currentUser = data.user;
+                    if (currentUser.avatar_url) {
+                        profileBtn.innerHTML = `<img src="${currentUser.avatar_url}" />`;
+                    } else {
+                        profileBtn.textContent = currentUser.username.charAt(0).toUpperCase();
+                    }
+                    return currentUser;
+                } else {
+                    localStorage.removeItem('user_token');
+                    return null;
+                }
+            } catch {
+                localStorage.removeItem('user_token');
+                return null;
+            }
+        }
+
+        function getSearchQuery() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('q') || '';
+        }
+
+        async function loadSearch(reset = false) {
+            if (loading || (!hasMore && !reset)) return;
+            loading = true;
+            if (reset) {
+                page = 0;
+                hasMore = true;
+                container.innerHTML = `
+                    <div class="loading" id="loading">
+                        <div class="spinner"></div>
+                        <p>Searching...</p>
+                    </div>
+                `;
+            }
+
+            searchQuery = getSearchQuery();
+            if (!searchQuery) {
+                container.innerHTML = `
+                    <div class="empty">
+                        <div class="icon">🔍</div>
+                        <p>Type something to search.</p>
+                    </div>
+                `;
+                loading = false;
+                return;
+            }
+
+            try {
+                const url = `/api/feed?action=search&q=${encodeURIComponent(searchQuery)}&limit=${pageSize}&offset=${page * pageSize}`;
+                const res = await fetch(url, {
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                });
+                const data = await res.json();
+
+                if (reset) container.innerHTML = '';
+
+                const users = data.users || [];
+                const prompts = data.prompts || [];
+
+                if (users.length > 0) {
+                    const userSection = document.createElement('div');
+                    userSection.innerHTML = `<div class="section-title">👤 Users</div><div class="users-list"></div>`;
+                    const list = userSection.querySelector('.users-list');
+                    users.forEach(u => {
+                        const avatarUrl = u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.username) + '&background=4f46e5&color=fff&size=40';
+                        const displayName = u.display_name || u.username;
+                        let badges = '';
+                        if (u.is_premium) badges += '⭐';
+                        if (u.is_owner) badges += '👑';
+                        const item = document.createElement('div');
+                        item.className = 'user-item';
+                        item.onclick = () => window.location.href = `/@${u.username}`;
+                        const followBtn = token && u.id !== currentUser?.id
+                            ? `<button class="follow-btn" data-id="${u.id}" data-username="${u.username}">Follow</button>`
+                            : '';
+                        item.innerHTML = `
+                            <div class="avatar" style="background-image:url(${avatarUrl});background-size:cover;">
+                                ${!u.avatar_url ? displayName.charAt(0).toUpperCase() : ''}
+                            </div>
+                            <div class="info">
+                                <div class="username">@${u.username} ${badges}</div>
+                                <div class="display-name">${displayName}</div>
+                            </div>
+                            ${followBtn}
+                        `;
+                        list.appendChild(item);
+                    });
+                    container.appendChild(userSection);
+                }
+
+                if (prompts.length > 0) {
+                    const promptSection = document.createElement('div');
+                    promptSection.innerHTML = `<div class="section-title">📝 Prompts</div><div class="prompt-grid"></div>`;
+                    const grid = promptSection.querySelector('.prompt-grid');
+                    prompts.forEach(p => {
+                        const card = document.createElement('div');
+                        card.className = 'prompt-card';
+                        card.onclick = () => window.location.href = `/prompt/${p.slug}`;
+                        const likes = p.like_count || 0;
+                        const saves = p.save_count || 0;
+                        card.innerHTML = `
+                            <img src="${p.image_main}" 
+                                 onerror="this.src='https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=400&h=400&fit=crop&auto=format'" 
+                                 alt="${p.title}" />
+                            <div class="overlay">
+                                <div class="stats">
+                                    <span>❤️ ${likes}</span>
+                                    <span>💾 ${saves}</span>
+                                </div>
+                            </div>
+                        `;
+                        grid.appendChild(card);
+                    });
+                    container.appendChild(promptSection);
+                }
+
+                if (users.length === 0 && prompts.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty">
+                            <div class="icon">🔍</div>
+                            <p>No results found for "<strong>${searchQuery}</strong>"</p>
+                        </div>
+                    `;
+                }
+
+                hasMore = data.hasMore;
+                page++;
+                loading = false;
+
+            } catch (err) {
+                console.error(err);
+                loading = false;
+                if (reset) {
+                    container.innerHTML = `
+                        <div class="empty">
+                            <div class="icon">⚠️</div>
+                            <p>Error loading search results.</p>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        document.addEventListener('click', async (e) => {
+            const followBtn = e.target.closest('.follow-btn');
+            if (!followBtn) return;
+            e.stopPropagation();
+            if (!currentUser) {
+                popup.classList.add('active');
+                return;
+            }
+            const userId = followBtn.dataset.id;
+            const isFollowing = followBtn.classList.contains('following');
+            const action = isFollowing ? 'unfollow' : 'follow';
+            const method = isFollowing ? 'DELETE' : 'POST';
+            try {
+                const res = await fetch(`/api/follows?action=${action}`, {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ targetUserId: userId })
+                });
+                if (res.ok) {
+                    if (isFollowing) {
+                        followBtn.textContent = 'Follow';
+                        followBtn.classList.remove('following');
+                    } else {
+                        followBtn.textContent = 'Following';
+                        followBtn.classList.add('following');
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
+        let searchTimeout;
+        searchInput.addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const q = searchInput.value.trim();
+                if (q.length >= 2) {
+                    window.location.href = `/search/?q=${encodeURIComponent(q)}`;
+                }
+            }, 500);
+        });
+
+        profileBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (currentUser) {
+                window.location.href = `/@${currentUser.username}`;
+            } else {
+                window.location.href = '/';
+            }
+        });
+
+        document.getElementById('popupLoginBtn').addEventListener('click', () => {
+            window.location.href = '/';
+        });
+        document.getElementById('popupCloseBtn').addEventListener('click', () => {
+            popup.classList.remove('active');
+        });
+        popup.addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) popup.classList.remove('active');
+        });
+
+        async function init() {
+            await verifyUser();
+            searchInput.value = getSearchQuery();
+            loadSearch(true);
+        }
+        init();
+    </script>
+</body>
+</html>

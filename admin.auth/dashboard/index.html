@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #f8fafc;
+            color: #111827;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .top-nav .brand {
+            font-size: 22px;
+            font-weight: 700;
+            color: #111827;
+        }
+        .top-nav .brand span {
+            color: #4f46e5;
+        }
+        .top-nav .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .top-nav .nav-actions .btn-logout {
+            padding: 8px 16px;
+            background: #fee2e2;
+            color: #dc2626;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .top-nav .nav-actions .btn-logout:hover {
+            background: #fecaca;
+        }
+        .top-nav .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        .top-nav .nav-links a {
+            text-decoration: none;
+            color: #64748b;
+            font-weight: 500;
+            font-size: 14px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .top-nav .nav-links a:hover {
+            background: #f1f5f9;
+            color: #111827;
+        }
+        .top-nav .nav-links a.active {
+            background: #eef2ff;
+            color: #4f46e5;
+        }
+        .greeting {
+            margin-bottom: 32px;
+        }
+        .greeting h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #111827;
+        }
+        .greeting p {
+            color: #64748b;
+            font-size: 16px;
+            margin-top: 4px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px 24px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        }
+        .stat-card .label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #111827;
+            margin-top: 4px;
+        }
+        .stat-card .sub {
+            font-size: 14px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+        .stat-card.highlight {
+            border-left: 4px solid #4f46e5;
+        }
+        .stat-card.warning {
+            border-left: 4px solid #f59e0b;
+        }
+        .top-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .top-card {
+            background: white;
+            padding: 20px 24px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+        .top-card h3 {
+            font-size: 14px;
+            font-weight: 500;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+        .top-card .prompt-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #111827;
+        }
+        .top-card .prompt-stats {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
+        .loading .spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 2px solid #e2e8f0;
+            border-top-color: #4f46e5;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .top-stats { grid-template-columns: 1fr; }
+            .top-nav { flex-direction: column; gap: 12px; }
+            .top-nav .nav-links { flex-wrap: wrap; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="top-nav">
+            <div class="brand">📚 <span>Admin</span></div>
+            <div class="nav-links">
+                <a href="/admin.auth/dashboard/" class="active">Dashboard</a>
+                <a href="/admin.auth/users/">Users</a>
+                <a href="/admin.auth/prompts/">Prompts</a>
+                <a href="/admin.auth/add/">Add Prompt</a>
+                <a href="/admin.auth/reports/users/">Reports</a>
+                <a href="/admin.auth/premium/">Premium</a>
+            </div>
+            <div class="nav-actions">
+                <button class="btn-logout" id="logoutBtn">Sign Out</button>
+            </div>
+        </div>
+
+        <div class="greeting">
+            <h1>Admin Dashboard</h1>
+            <p>Overview of your prompt library</p>
+        </div>
+
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card highlight">
+                <div class="label">Total Users</div>
+                <div class="value" id="totalUsers">—</div>
+                <div class="sub">registered accounts</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Total Prompts</div>
+                <div class="value" id="totalPrompts">—</div>
+                <div class="sub">published</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Total Likes</div>
+                <div class="value" id="totalLikes">—</div>
+                <div class="sub">across all prompts</div>
+            </div>
+            <div class="stat-card warning">
+                <div class="label">Pending Reports</div>
+                <div class="value" id="pendingReports">—</div>
+                <div class="sub">awaiting review</div>
+            </div>
+        </div>
+
+        <div class="top-stats" id="topStats">
+            <div class="top-card">
+                <h3>🔥 Most Liked</h3>
+                <div class="prompt-title" id="mostLiked">—</div>
+                <div class="prompt-stats" id="mostLikedCount">—</div>
+            </div>
+            <div class="top-card">
+                <h3>📌 Most Saved</h3>
+                <div class="prompt-title" id="mostSaved">—</div>
+                <div class="prompt-stats" id="mostSavedCount">—</div>
+            </div>
+            <div class="top-card">
+                <h3>💬 Most Commented</h3>
+                <div class="prompt-title" id="mostCommented">—</div>
+                <div class="prompt-stats" id="mostCommentedCount">—</div>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Loading dashboard data...</p>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('admin_token');
+        if (!token) {
+            window.location.href = '/admin.auth/';
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('admin_token');
+            window.location.href = '/admin.auth/';
+        });
+
+        async function loadDashboard() {
+            try {
+                const res = await fetch('/api/admin?action=dashboard', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!res.ok) {
+                    if (res.status === 401 || res.status === 403) {
+                        localStorage.removeItem('admin_token');
+                        window.location.href = '/admin.auth/';
+                        return;
+                    }
+                    throw new Error('Failed to load');
+                }
+
+                const data = await res.json();
+                const stats = data.stats;
+
+                document.getElementById('totalUsers').textContent = stats.totalUsers || 0;
+                document.getElementById('totalPrompts').textContent = stats.totalPrompts || 0;
+                document.getElementById('totalLikes').textContent = stats.totalLikes || 0;
+                document.getElementById('pendingReports').textContent = stats.pendingReports || 0;
+
+                if (stats.mostLiked) {
+                    document.getElementById('mostLiked').textContent = stats.mostLiked.title;
+                    document.getElementById('mostLikedCount').textContent = `${stats.mostLiked.like_count} likes`;
+                }
+                if (stats.mostSaved) {
+                    document.getElementById('mostSaved').textContent = stats.mostSaved.title;
+                    document.getElementById('mostSavedCount').textContent = `${stats.mostSaved.save_count} saves`;
+                }
+                if (stats.mostCommented) {
+                    document.getElementById('mostCommented').textContent = stats.mostCommented.title;
+                    document.getElementById('mostCommentedCount').textContent = `${stats.mostCommented.comment_count} comments`;
+                }
+
+                document.getElementById('loading').style.display = 'none';
+
+            } catch (err) {
+                console.error('Error:', err);
+                document.getElementById('loading').innerHTML = `
+                    <p style="color:#dc2626;">Error loading dashboard. Please refresh.</p>
+                `;
+            }
+        }
+
+        loadDashboard();
+    </script>
+</body>
+</html>

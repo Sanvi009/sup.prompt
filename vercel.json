@@ -1,0 +1,22 @@
+{
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+
+    { "source": "/admin.auth/dashboard/(.*)", "destination": "/admin.auth/dashboard/index.html" },
+    { "source": "/admin.auth/users/(.*)", "destination": "/admin.auth/users/index.html" },
+    { "source": "/admin.auth/prompts/(.*)", "destination": "/admin.auth/prompts/index.html" },
+    { "source": "/admin.auth/add/(.*)", "destination": "/admin.auth/add/index.html" },
+    { "source": "/admin.auth/reports/users/(.*)", "destination": "/admin.auth/reports/users/index.html" },
+    { "source": "/admin.auth/reports/prompts/(.*)", "destination": "/admin.auth/reports/prompts/index.html" },
+    { "source": "/admin.auth/premium/(.*)", "destination": "/admin.auth/premium/index.html" },
+    { "source": "/admin.auth/(.*)", "destination": "/admin.auth/index.html" },
+
+    { "source": "/prompt/:slug", "destination": "/prompt/[slug].html" },
+    { "source": "/@:username", "destination": "/@[username]/index.html" },
+    { "source": "/feed/(.*)", "destination": "/feed/index.html" },
+    { "source": "/search/(.*)", "destination": "/search/index.html" },
+    { "source": "/settings/(.*)", "destination": "/settings/index.html" },
+
+    { "source": "/", "destination": "/index.html" }
+  ]
+}

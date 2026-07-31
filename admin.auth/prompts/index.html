@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prompt Management — Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #f8fafc;
+            color: #111827;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .top-nav .brand {
+            font-size: 22px;
+            font-weight: 700;
+            color: #111827;
+        }
+        .top-nav .brand span {
+            color: #4f46e5;
+        }
+        .top-nav .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        .top-nav .nav-links a {
+            text-decoration: none;
+            color: #64748b;
+            font-weight: 500;
+            font-size: 14px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .top-nav .nav-links a:hover {
+            background: #f1f5f9;
+            color: #111827;
+        }
+        .top-nav .nav-links a.active {
+            background: #eef2ff;
+            color: #4f46e5;
+        }
+        .top-nav .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .top-nav .nav-actions .btn-logout {
+            padding: 8px 16px;
+            background: #fee2e2;
+            color: #dc2626;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .top-nav .nav-actions .btn-logout:hover {
+            background: #fecaca;
+        }
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .page-header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #111827;
+        }
+        .page-header .controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .page-header .controls input,
+        .page-header .controls select {
+            padding: 10px 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            background: white;
+        }
+        .page-header .controls input:focus,
+        .page-header .controls select:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+        }
+        .prompt-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        .prompt-card {
+            background: white;
+            padding: 16px 20px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            transition: all 0.2s;
+        }
+        .prompt-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .prompt-card .prompt-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex: 1;
+            min-width: 200px;
+        }
+        .prompt-card .prompt-info .thumb {
+            width: 56px;
+            height: 56px;
+            border-radius: 8px;
+            background: #e2e8f0;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+        .prompt-card .prompt-info .details {
+            display: flex;
+            flex-direction: column;
+        }
+        .prompt-card .prompt-info .details .title {
+            font-weight: 600;
+            font-size: 16px;
+            color: #111827;
+        }
+        .prompt-card .prompt-info .details .meta {
+            font-size: 13px;
+            color: #64748b;
+        }
+        .prompt-card .prompt-info .details .badges {
+            display: flex;
+            gap: 6px;
+            margin-top: 2px;
+        }
+        .prompt-card .prompt-info .details .badges .badge {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .badge-published {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        .badge-unpublished {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+        .badge-boosted {
+            background: #fbbf24;
+            color: #78350f;
+        }
+        .prompt-card .prompt-stats {
+            display: flex;
+            gap: 20px;
+            color: #64748b;
+            font-size: 13px;
+        }
+        .prompt-card .prompt-stats span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .prompt-card .prompt-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .prompt-card .prompt-actions button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-edit {
+            background: #eef2ff;
+            color: #4f46e5;
+        }
+        .btn-edit:hover {
+            background: #e0e7ff;
+        }
+        .btn-publish {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        .btn-publish:hover {
+            background: #bbf7d0;
+        }
+        .btn-unpublish {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+        .btn-unpublish:hover {
+            background: #fee2e2;
+        }
+        .btn-boost {
+            background: #fef3c7;
+            color: #b45309;
+        }
+        .btn-boost:hover {
+            background: #fde68a;
+        }
+        .btn-unboost {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+        .btn-unboost:hover {
+            background: #e2e8f0;
+        }
+        .btn-delete {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+        .btn-delete:hover {
+            background: #fee2e2;
+        }
+        .btn-view-likes {
+            background: #f3e8ff;
+            color: #7c3aed;
+        }
+        .btn-view-likes:hover {
+            background: #ede9fe;
+        }
+        .btn-view-saves {
+            background: #ecfdf5;
+            color: #059669;
+        }
+        .btn-view-saves:hover {
+            background: #d1fae5;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
+        .loading .spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 2px solid #e2e8f0;
+            border-top-color: #4f46e5;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .empty {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
+        .empty .icon { font-size: 48px; margin-bottom: 12px; }
+        .load-more {
+            text-align: center;
+            padding: 20px;
+        }
+        .load-more button {
+            padding: 10px 24px;
+            background: #e2e8f0;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .load-more button:hover {
+            background: #cbd5e1;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 600px;
+            width: 92%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+        .modal .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        .modal .modal-header h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #111827;
+        }
+        .modal .modal-header .close-icon {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #64748b;
+        }
+        .modal .modal-body {
+            margin-bottom: 20px;
+        }
+        .modal .modal-body .detail-row {
+            display: flex;
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .modal .modal-body .detail-row .label {
+            width: 120px;
+            font-weight: 500;
+            color: #64748b;
+            flex-shrink: 0;
+        }
+        .modal .modal-body .detail-row .value {
+            flex: 1;
+            color: #111827;
+        }
+        .modal .modal-body .section-title {
+            font-weight: 600;
+            margin-top: 16px;
+            margin-bottom: 8px;
+            color: #111827;
+        }
+        .modal .modal-body .user-item {
+            padding: 8px 12px;
+            background: #f8fafc;
+            border-radius: 6px;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+        .modal .modal-body .user-item .avatar-small {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            object-fit: cover;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+        .modal .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        .modal .modal-actions .btn-secondary {
+            padding: 10px 20px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .modal .modal-actions .btn-primary {
+            padding: 10px 20px;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .modal .modal-actions .btn-primary:hover {
+            background: #4338ca;
+        }
+        .modal .error-box {
+            color: #dc2626;
+            font-size: 14px;
+            margin-top: 12px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .prompt-card {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .prompt-card .prompt-info {
+                min-width: auto;
+            }
+            .prompt-card .prompt-stats {
+                flex-wrap: wrap;
+            }
+            .prompt-card .prompt-actions {
+                justify-content: flex-end;
+            }
+            .page-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .page-header .controls {
+                flex-wrap: wrap;
+            }
+            .top-nav {
+                flex-direction: column;
+                gap: 12px;
+            }
+            .top-nav .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="top-nav">
+            <div class="brand">📚 <span>Admin</span></div>
+            <div class="nav-links">
+                <a href="/admin.auth/dashboard/">Dashboard</a>
+                <a href="/admin.auth/users/">Users</a>
+                <a href="/admin.auth/prompts/" class="active">Prompts</a>
+                <a href="/admin.auth/add/">Add Prompt</a>
+                <a href="/admin.auth/reports/users/">Reports</a>
+                <a href="/admin.auth/premium/">Premium</a>
+            </div>
+            <div class="nav-actions">
+                <button class="btn-logout" id="logoutBtn">Sign Out</button>
+            </div>
+        </div>
+
+        <div class="page-header">
+            <h1>📝 Prompt Management</h1>
+            <div class="controls">
+                <select id="filterSelect">
+                    <option value="all">All Prompts</option>
+                    <option value="published">Published</option>
+                    <option value="unpublished">Unpublished</option>
+                    <option value="boosted">Boosted</option>
+                </select>
+                <input type="text" id="searchInput" placeholder="Search prompts..." />
+            </div>
+        </div>
+
+        <div class="prompt-grid" id="promptGrid">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading prompts...</p>
+            </div>
+        </div>
+
+        <div class="load-more" id="loadMoreContainer" style="display:none;">
+            <button id="loadMoreBtn">Load More</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="promptModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="modalTitle">Prompt Details</h2>
+                <button class="close-icon" id="closeModalBtn">✕</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <div class="loading" style="padding:20px;">
+                    <div class="spinner"></div>
+                    <p>Loading...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="editModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="editModalTitle">Edit Prompt</h2>
+                <button class="close-icon" id="closeEditBtn">✕</button>
+            </div>
+            <div class="modal-body">
+                <form id="editForm">
+                    <input type="hidden" id="editPromptId" />
+                    <div class="form-group" style="margin-bottom:16px;">
+                        <label style="display:block;font-weight:500;margin-bottom:4px;">Title</label>
+                        <input type="text" id="editTitle" style="width:100%;padding:10px 14px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;font-family:inherit;" required />
+                    </div>
+                    <div class="form-group" style="margin-bottom:16px;">
+                        <label style="display:block;font-weight:500;margin-bottom:4px;">Description</label>
+                        <textarea id="editDescription" rows="2" style="width:100%;padding:10px 14px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;font-family:inherit;resize:vertical;"></textarea>
+                    </div>
+                    <div class="form-group" style="margin-bottom:16px;">
+                        <label style="display:block;font-weight:500;margin-bottom:4px;">Prompt Text</label>
+                        <textarea id="editPromptText" rows="4" style="width:100%;padding:10px 14px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;font-family:inherit;resize:vertical;" required></textarea>
+                    </div>
+                    <div class="form-group" style="margin-bottom:16px;">
+                        <label style="display:block;font-weight:500;margin-bottom:4px;">Main Image</label>
+                        <input type="file" id="editMainImage" accept="image/*" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;" />
+                        <p style="font-size:12px;color:#64748b;margin-top:4px;">Leave empty to keep current image</p>
+                    </div>
+                    <div class="form-group" style="margin-bottom:16px;">
+                        <label style="display:block;font-weight:500;margin-bottom:4px;">Optional Image</label>
+                        <input type="file" id="editOptionalImage" accept="image/*" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;" />
+                        <p style="font-size:12px;color:#64748b;margin-top:4px;">Leave empty to keep current image</p>
+                    </div>
+                    <div class="error-box" id="editError"></div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary" id="cancelEditBtn">Cancel</button>
+                        <button type="submit" class="btn-primary" id="saveEditBtn">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal" style="max-width:420px;">
+            <div class="modal-header">
+                <h2 id="confirmTitle">Confirm Action</h2>
+                <button class="close-icon" id="closeConfirmBtn">✕</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage" style="color:#64748b;">Are you sure you want to perform this action?</p>
+                <div class="error-box" id="confirmError"></div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-secondary" id="cancelConfirmBtn">Cancel</button>
+                <button class="btn-primary" id="confirmActionBtn" style="background:#dc2626;">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('admin_token');
+        if (!token) {
+            window.location.href = '/admin.auth/';
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('admin_token');
+            window.location.href = '/admin.auth/';
+        });
+
+        let currentFilter = 'all';
+        let currentSearch = '';
+        let offset = 0;
+        const limit = 50;
+        let hasMore = true;
+        let isLoading = false;
+
+        const promptGrid = document.getElementById('promptGrid');
+        const loadMoreContainer = document.getElementById('loadMoreContainer');
+        const loadMoreBtn = document.getElementById('loadMoreBtn');
+        const filterSelect = document.getElementById('filterSelect');
+        const searchInput = document.getElementById('searchInput');
+
+        async function loadPrompts(reset = false) {
+            if (isLoading) return;
+            if (!hasMore && !reset) return;
+
+            isLoading = true;
+            if (reset) {
+                offset = 0;
+                hasMore = true;
+                promptGrid.innerHTML = `
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading prompts...</p>
+                    </div>
+                `;
+                loadMoreContainer.style.display = 'none';
+            }
+
+            try {
+                let url = `/api/admin?action=prompts&sub=list&limit=${limit}&offset=${offset}`;
+                
+                if (currentFilter === 'published') {
+                    url += '&published=true';
+                } else if (currentFilter === 'unpublished') {
+                    url += '&published=false';
+                }
+
+                const res = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!res.ok) {
+                    if (res.status === 401 || res.status === 403) {
+                        localStorage.removeItem('admin_token');
+                        window.location.href = '/admin.auth/';
+                        return;
+                    }
+                    throw new Error('Failed to load prompts');
+                }
+
+                const data = await res.json();
+                const prompts = data.prompts || [];
+
+                if (reset) {
+                    promptGrid.innerHTML = '';
+                }
+
+                let filtered = prompts;
+                if (currentSearch.trim()) {
+                    const q = currentSearch.toLowerCase().trim();
+                    filtered = prompts.filter(p => 
+                        p.title.toLowerCase().includes(q) ||
+                        (p.description || '').toLowerCase().includes(q) ||
+                        p.prompt_text.toLowerCase().includes(q)
+                    );
+                }
+
+                if (filtered.length === 0 && reset) {
+                    promptGrid.innerHTML = `
+                        <div class="empty">
+                            <div class="icon">📭</div>
+                            <p>No prompts found.</p>
+                        </div>
+                    `;
+                    loadMoreContainer.style.display = 'none';
+                    isLoading = false;
+                    return;
+                }
+
+                filtered.forEach(prompt => {
+                    const card = document.createElement('div');
+                    card.className = 'prompt-card';
+
+                    const thumb = prompt.image_main || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(prompt.title) + '&background=4f46e5&color=fff&size=56&format=svg';
+
+                    let badgesHtml = '';
+                    if (prompt.is_published) {
+                        badgesHtml += `<span class="badge badge-published">Published</span>`;
+                    } else {
+                        badgesHtml += `<span class="badge badge-unpublished">Unpublished</span>`;
+                    }
+                    if (prompt.is_boosted) {
+                        badgesHtml += `<span class="badge badge-boosted">Boosted</span>`;
+                    }
+
+                    const date = new Date(prompt.created_at).toLocaleDateString();
+
+                    card.innerHTML = `
+                        <div class="prompt-info">
+                            <img src="${thumb}" class="thumb" alt="${prompt.title}" />
+                            <div class="details">
+                                <div class="title">${prompt.title}</div>
+                                <div class="meta">${date} • ${prompt.unique_id || ''}</div>
+                                <div class="badges">${badgesHtml}</div>
+                            </div>
+                        </div>
+                        <div class="prompt-stats">
+                            <span>❤️ ${prompt.like_count || 0}</span>
+                            <span>💾 ${prompt.save_count || 0}</span>
+                            <span>💬 ${prompt.comment_count || 0}</span>
+                            <span>👁️ ${prompt.view_count || 0}</span>
+                        </div>
+                        <div class="prompt-actions">
+                            <button class="btn-edit" data-promptid="${prompt.id}">Edit</button>
+                            ${prompt.is_published 
+                                ? `<button class="btn-unpublish" data-promptid="${prompt.id}">Unpublish</button>`
+                                : `<button class="btn-publish" data-promptid="${prompt.id}">Publish</button>`
+                            }
+                            ${prompt.is_boosted 
+                                ? `<button class="btn-unboost" data-promptid="${prompt.id}">Unboost</button>`
+                                : `<button class="btn-boost" data-promptid="${prompt.id}">Boost</button>`
+                            }
+                            <button class="btn-view-likes" data-promptid="${prompt.id}">Likes</button>
+                            <button class="btn-view-saves" data-promptid="${prompt.id}">Saves</button>
+                            <button class="btn-delete" data-promptid="${prompt.id}">Delete</button>
+                        </div>
+                    `;
+
+                    promptGrid.appendChild(card);
+                });
+
+                hasMore = data.hasMore;
+                offset += filtered.length;
+                loadMoreContainer.style.display = hasMore ? 'block' : 'none';
+
+            } catch (err) {
+                console.error('Error:', err);
+                if (reset) {
+                    promptGrid.innerHTML = `
+                        <div class="empty">
+                            <div class="icon">⚠️</div>
+                            <p>Error loading prompts. Please refresh.</p>
+                        </div>
+                    `;
+                }
+            }
+
+            isLoading = false;
+        }
+
+        filterSelect.addEventListener('change', () => {
+            currentFilter = filterSelect.value;
+            loadPrompts(true);
+        });
+
+        let searchTimeout;
+        searchInput.addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                currentSearch = searchInput.value.trim();
+                loadPrompts(true);
+            }, 300);
+        });
+
+        loadMoreBtn.addEventListener('click', () => loadPrompts());
+
+        document.addEventListener('click', async (e) => {
+            const target = e.target;
+
+            if (target.classList.contains('btn-edit')) {
+                const promptId = target.dataset.promptid;
+                await openEditModal(promptId);
+                return;
+            }
+
+            if (target.classList.contains('btn-publish')) {
+                const promptId = target.dataset.promptid;
+                showConfirm(
+                    'Publish Prompt',
+                    'Are you sure you want to publish this prompt? It will be visible to all users.',
+                    async () => {
+                        const res = await fetch('/api/admin?action=prompts&sub=publish', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({ promptId, publish: true })
+                        });
+                        if (res.ok) {
+                            loadPrompts(true);
+                            closeConfirm();
+                        } else {
+                            const data = await res.json();
+                            document.getElementById('confirmError').textContent = data.error || 'Failed to publish';
+                        }
+                    }
+                );
+                return;
+            }
+
+            if (target.classList.contains('btn-unpublish')) {
+                const promptId = target.dataset.promptid;
+                showConfirm(
+                    'Unpublish Prompt',
+                    'Are you sure you want to unpublish this prompt? It will be hidden from all users.',
+                    async () => {
+                        const res = await fetch('/api/admin?action=prompts&sub=publish', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({ promptId, publish: false })
+                        });
+                        if (res.ok) {
+                            loadPrompts(true);
+                            closeConfirm();
+                        } else {
+                            const data = await res.json();
+                            document.getElementById('confirmError').textContent = data.error || 'Failed to unpublish';
+                        }
+                    }
+                );
+                return;
+            }
+
+            if (target.classList.contains('btn-boost')) {
+                const promptId = target.dataset.promptid;
+                showConfirm(
+                    'Boost Prompt',
+                    'Boosted prompts appear at the top of user feeds. Are you sure?',
+                    async () => {
+                        const res = await fetch('/api/admin?action=prompts&sub=boost', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({ promptId, boost: true })
+                        });
+                        if (res.ok) {
+                            loadPrompts(true);
+                            closeConfirm();
+                        } else {
+                            const data = await res.json();
+                            document.getElementById('confirmError').textContent = data.error || 'Failed to boost';
+                        }
+                    }
+                );
+                return;
+            }
+
+            if (target.classList.contains('btn-unboost')) {
+                const promptId = target.dataset.promptid;
+                showConfirm(
+                    'Unboost Prompt',
+                    'Remove boost from this prompt.',
+                    async () => {
+                        const res = await fetch('/api/admin?action=prompts&sub=boost', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({ promptId, boost: false })
+                        });
+                        if (res.ok) {
+                            loadPrompts(true);
+                            closeConfirm();
+                        } else {
+                            const data = await res.json();
+                            document.getElementById('confirmError').textContent = data.error || 'Failed to unboost';
+                        }
+                    }
+                );
+                return;
+            }
+
+            if (target.classList.contains('btn-delete')) {
+                const promptId = target.dataset.promptid;
+                showConfirm(
+                    'Delete Prompt',
+                    '⚠️ This action is permanent. The prompt and all its images will be deleted. Are you sure?',
+                    async () => {
+                        const res = await fetch('/api/admin?action=prompts&sub=delete', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({ promptId })
+                        });
+                        if (res.ok) {
+                            loadPrompts(true);
+                            closeConfirm();
+                        } else {
+                            const data = await res.json();
+                            document.getElementById('confirmError').textContent = data.error || 'Failed to delete';
+                        }
+                    }
+                );
+                return;
+            }
+
+            if (target.classList.contains('btn-view-likes')) {
+                const promptId = target.dataset.promptid;
+                await showPromptDetails(promptId, 'likes');
+                return;
+            }
+
+            if (target.classList.contains('btn-view-saves')) {
+                const promptId = target.dataset.promptid;
+                await showPromptDetails(promptId, 'saves');
+                return;
+            }
+        });
+
+        async function openEditModal(promptId) {
+            const modal = document.getElementById('editModal');
+            const title = document.getElementById('editModalTitle');
+            const form = document.getElementById('editForm');
+            const errorBox = document.getElementById('editError');
+
+            modal.classList.add('active');
+            title.textContent = 'Edit Prompt';
+            errorBox.textContent = '';
+
+            try {
+                const res = await fetch(`/api/admin?action=prompts&sub=get&promptId=${promptId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!res.ok) throw new Error('Failed to load prompt');
+
+                const data = await res.json();
+                const prompt = data.prompt;
+
+                document.getElementById('editPromptId').value = prompt.id;
+                document.getElementById('editTitle').value = prompt.title;
+                document.getElementById('editDescription').value = prompt.description || '';
+                document.getElementById('editPromptText').value = prompt.prompt_text;
+
+            } catch (err) {
+                errorBox.textContent = err.message;
+            }
+        }
+
+        document.getElementById('editForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const saveBtn = document.getElementById('saveEditBtn');
+            const errorBox = document.getElementById('editError');
+            
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+            errorBox.textContent = '';
+
+            const promptId = document.getElementById('editPromptId').value;
+            const title = document.getElementById('editTitle').value.trim();
+            const description = document.getElementById('editDescription').value.trim();
+            const promptText = document.getElementById('editPromptText').value.trim();
+            const mainFile = document.getElementById('editMainImage').files[0];
+            const optionalFile = document.getElementById('editOptionalImage').files[0];
+
+            try {
+                let imageMain = null;
+                let imageOptional = null;
+
+                if (mainFile) {
+                    const formData = new FormData();
+                    formData.append('file', mainFile);
+                    formData.append('promptId', promptId);
+                    formData.append('type', 'main');
+                }
+
+                if (optionalFile) {
+                    // Similar for optional image
+                }
+
+                const res = await fetch('/api/admin?action=prompts&sub=edit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        promptId,
+                        title,
+                        description,
+                        prompt_text: promptText
+                    })
+                });
+
+                if (!res.ok) {
+                    const data = await res.json();
+                    throw new Error(data.error || 'Failed to save');
+                }
+
+                document.getElementById('editModal').classList.remove('active');
+                loadPrompts(true);
+
+            } catch (err) {
+                errorBox.textContent = err.message;
+            }
+
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save Changes';
+        });
+
+        async function showPromptDetails(promptId, type) {
+            const modal = document.getElementById('promptModal');
+            const body = document.getElementById('modalBody');
+            const title = document.getElementById('modalTitle');
+
+            modal.classList.add('active');
+            title.textContent = type === 'likes' ? '❤️ Users Who Liked' : '💾 Users Who Saved';
+            body.innerHTML = `
+                <div class="loading" style="padding:20px;">
+                    <div class="spinner"></div>
+                    <p>Loading...</p>
+                </div>
+            `;
+
+            try {
+                const res = await fetch(`/api/admin?action=prompts&sub=get&promptId=${promptId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!res.ok) throw new Error('Failed to load');
+
+                const data = await res.json();
+                const items = type === 'likes' ? data.likes : data.saves;
+
+                let html = `<div class="detail-row">
+                    <div class="label">Prompt</div>
+                    <div class="value">${data.prompt.title}</div>
+                </div>
+                <div class="section-title">${type === 'likes' ? '❤️ Likes' : '💾 Saves'} (${items.length})</div>
+                `;
+
+                if (items.length === 0) {
+                    html += `<p style="color:#64748b;font-size:14px;">No ${type}</p>`;
+                } else {
+                    items.forEach(item => {
+                        const user = item.profiles || {};
+                        const avatarUrl = user.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.username || '?') + '&background=4f46e5&color=fff&size=24';
+                        html += `
+                            <div class="user-item">
+                                <span>
+                                    <img src="${avatarUrl}" class="avatar-small" />
+                                    @${user.username || 'Unknown'}
+                                    ${user.display_name ? `(${user.display_name})` : ''}
+                                </span>
+                                <span style="color:#64748b;font-size:12px;">${new Date(item.created_at).toLocaleDateString()}</span>
+                            </div>
+                        `;
+                    });
+                }
+
+                body.innerHTML = html;
+
+            } catch (err) {
+                body.innerHTML = `<p style="color:#dc2626;text-align:center;">Error: ${err.message}</p>`;
+            }
+        }
+
+        let confirmCallback = null;
+
+        function showConfirm(title, message, callback) {
+            document.getElementById('confirmTitle').textContent = title;
+            document.getElementById('confirmMessage').textContent = message;
+            document.getElementById('confirmError').textContent = '';
+            confirmCallback = callback;
+            document.getElementById('confirmModal').classList.add('active');
+        }
+
+        function closeConfirm() {
+            document.getElementById('confirmModal').classList.remove('active');
+            confirmCallback = null;
+        }
+
+        document.getElementById('closeConfirmBtn').addEventListener('click', closeConfirm);
+        document.getElementById('cancelConfirmBtn').addEventListener('click', closeConfirm);
+        document.getElementById('confirmActionBtn').addEventListener('click', () => {
+            if (confirmCallback) {
+                confirmCallback();
+            }
+        });
+
+        document.getElementById('closeModalBtn').addEventListener('click', () => {
+            document.getElementById('promptModal').classList.remove('active');
+        });
+
+        document.getElementById('promptModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                document.getElementById('promptModal').classList.remove('active');
+            }
+        });
+
+        document.getElementById('closeEditBtn').addEventListener('click', () => {
+            document.getElementById('editModal').classList.remove('active');
+        });
+
+        document.getElementById('cancelEditBtn').addEventListener('click', () => {
+            document.getElementById('editModal').classList.remove('active');
+        });
+
+        document.getElementById('editModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                document.getElementById('editModal').classList.remove('active');
+            }
+        });
+
+        loadPrompts(true);
+    </script>
+</body>
+</html>
