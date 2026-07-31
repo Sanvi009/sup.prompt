@@ -198,12 +198,10 @@
             <h1>Prompt Library</h1>
             <p class="sub">Discover, save, and share AI prompts</p>
 
-            <!-- Profile Icon (visible only when logged in) -->
             <div class="profile-icon" id="profileIcon" style="display:none;" title="Profile">
                 👤
             </div>
 
-            <!-- Auth Box -->
             <div class="auth-box" id="authBox">
                 <div id="modeLabel" style="font-weight:600;font-size:18px;color:#111827;">Welcome</div>
                 <div id="errorMsg" class="error-msg"></div>
@@ -227,11 +225,9 @@
     </div>
 
     <script>
-        // --- State ---
         let isLoginMode = true;
         const token = localStorage.getItem('user_token');
 
-        // --- DOM ---
         const usernameInput = document.getElementById('usernameInput');
         const passwordInput = document.getElementById('passwordInput');
         const actionBtn = document.getElementById('actionBtn');
@@ -243,16 +239,13 @@
         const guestBtn = document.getElementById('guestBtn');
         const profileIcon = document.getElementById('profileIcon');
 
-        // --- Auto-check if already logged in ---
         if (token) {
-            // Verify token with backend
             fetch('/api/auth?action=verify', {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    // Already logged in — redirect to feed
                     window.location.href = '/feed/';
                 } else {
                     localStorage.removeItem('user_token');
@@ -263,7 +256,6 @@
             });
         }
 
-        // --- Toggle Login / Register ---
         toggleModeBtn.addEventListener('click', () => {
             isLoginMode = !isLoginMode;
             errorMsg.textContent = '';
@@ -282,7 +274,6 @@
             }
         });
 
-        // --- Handle Login / Register ---
         actionBtn.addEventListener('click', async () => {
             const username = usernameInput.value.trim();
             const password = passwordInput.value.trim();
@@ -310,7 +301,6 @@
                 const data = await res.json();
 
                 if (data.success) {
-                    // Check if banned
                     if (data.user.is_banned) {
                         errorMsg.textContent = 'Account banned: ' + (data.user.ban_note || '');
                         actionBtn.disabled = false;
@@ -318,14 +308,11 @@
                         return;
                     }
 
-                    // Store token
                     localStorage.setItem('user_token', data.token);
 
-                    // Show success
                     successMsg.textContent = isLoginMode ? 'Logged in! Redirecting...' : 'Account created! Redirecting...';
                     successMsg.style.display = 'block';
 
-                    // Redirect to feed
                     setTimeout(() => {
                         window.location.href = '/feed/';
                     }, 1000);
@@ -340,7 +327,6 @@
             actionBtn.textContent = isLoginMode ? 'Log In' : 'Sign Up';
         });
 
-        // --- Enter key support ---
         passwordInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') actionBtn.click();
         });
@@ -348,17 +334,14 @@
             if (e.key === 'Enter') actionBtn.click();
         });
 
-        // --- Guest Entry ---
         guestBtn.addEventListener('click', () => {
-            // Just redirect to feed — guest mode is handled by feed page
             window.location.href = '/feed/';
         });
 
-        // --- Profile Icon (if logged in) ---
         if (token) {
             profileIcon.style.display = 'flex';
             profileIcon.addEventListener('click', () => {
-                window.location.href = '/@me/'; // Will be profile page later
+                window.location.href = '/@me/';
             });
         }
     </script>
