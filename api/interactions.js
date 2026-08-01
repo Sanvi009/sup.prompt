@@ -304,7 +304,7 @@ export default async function handler(req, res) {
     });
   }
 
-  // --- LIKED PROMPTS (REPLACED) ---
+  // --- LIKED PROMPTS (FIXED - NO FOREIGN KEY JOIN) ---
   if (req.method === 'GET' && action === 'liked-prompts') {
     const { targetUserId, limit = 20, offset = 0 } = req.query;
     const id = targetUserId || userId;
@@ -313,38 +313,51 @@ export default async function handler(req, res) {
     const offsetNum = Number(offset) || 0;
     const limitNum = Number(limit) || 20;
 
-    const { data: likedPrompts, error, count } = await supabaseAdmin
-      .from('likes')
-      .select(`
-        prompt_id,
-        created_at,
-        prompts:prompt_id (
-          id,
-          slug,
-          title,
-          image_main,
-          description,
-          like_count,
-          save_count,
-          created_at
-        )
-      `, { count: 'exact' })
-      .eq('user_id', id)
-      .order('created_at', { ascending: false })
-      .range(offsetNum, offsetNum + limitNum - 1); // ✅ FIXED
+    try {
+      // First, get the liked prompt IDs
+      const { data: likes, error: likesError, count } = await supabaseAdmin
+        .from('likes')
+        .select('prompt_id', { count: 'exact' })
+        .eq('user_id', id)
+        .order('created_at', { ascending: false })
+        .range(offsetNum, offsetNum + limitNum - 1);
 
-    if (error) {
-      return res.status(500).json({ error: error.message });
+      if (likesError) {
+        return res.status(500).json({ error: likesError.message });
+      }
+
+      if (!likes || likes.length === 0) {
+        return res.status(200).json({
+          prompts: [],
+          total: count || 0,
+          hasMore: false
+        });
+      }
+
+      const promptIds = likes.map(item => item.prompt_id);
+
+      // Then fetch the prompt details separately
+      const { data: prompts, error: promptsError } = await supabaseAdmin
+        .from('prompts')
+        .select('id, slug, title, image_main, description, like_count, save_count, created_at')
+        .in('id', promptIds)
+        .order('created_at', { ascending: false });
+
+      if (promptsError) {
+        return res.status(500).json({ error: promptsError.message });
+      }
+
+      return res.status(200).json({
+        prompts: prompts || [],
+        total: count || 0,
+        hasMore: (offsetNum + limitNum) < (count || 0)
+      });
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
     }
-
-    return res.status(200).json({
-      prompts: likedPrompts.map(item => item.prompts),
-      total: count || 0,
-      hasMore: (offsetNum + limitNum) < (count || 0)
-    });
   }
 
-  // --- SAVED PROMPTS (REPLACED) ---
+  // --- SAVED PROMPTS (FIXED - NO FOREIGN KEY JOIN) ---
   if (req.method === 'GET' && action === 'saved-prompts') {
     const { targetUserId, limit = 20, offset = 0 } = req.query;
     const id = targetUserId || userId;
@@ -353,35 +366,48 @@ export default async function handler(req, res) {
     const offsetNum = Number(offset) || 0;
     const limitNum = Number(limit) || 20;
 
-    const { data: savedPrompts, error, count } = await supabaseAdmin
-      .from('saves')
-      .select(`
-        prompt_id,
-        created_at,
-        prompts:prompt_id (
-          id,
-          slug,
-          title,
-          image_main,
-          description,
-          like_count,
-          save_count,
-          created_at
-        )
-      `, { count: 'exact' })
-      .eq('user_id', id)
-      .order('created_at', { ascending: false })
-      .range(offsetNum, offsetNum + limitNum - 1); // ✅ FIXED
+    try {
+      // First, get the saved prompt IDs
+      const { data: saves, error: savesError, count } = await supabaseAdmin
+        .from('saves')
+        .select('prompt_id', { count: 'exact' })
+        .eq('user_id', id)
+        .order('created_at', { ascending: false })
+        .range(offsetNum, offsetNum + limitNum - 1);
 
-    if (error) {
-      return res.status(500).json({ error: error.message });
+      if (savesError) {
+        return res.status(500).json({ error: savesError.message });
+      }
+
+      if (!saves || saves.length === 0) {
+        return res.status(200).json({
+          prompts: [],
+          total: count || 0,
+          hasMore: false
+        });
+      }
+
+      const promptIds = saves.map(item => item.prompt_id);
+
+      // Then fetch the prompt details separately
+      const { data: prompts, error: promptsError } = await supabaseAdmin
+        .from('prompts')
+        .select('id, slug, title, image_main, description, like_count, save_count, created_at')
+        .in('id', promptIds)
+        .order('created_at', { ascending: false });
+
+      if (promptsError) {
+        return res.status(500).json({ error: promptsError.message });
+      }
+
+      return res.status(200).json({
+        prompts: prompts || [],
+        total: count || 0,
+        hasMore: (offsetNum + limitNum) < (count || 0)
+      });
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
     }
-
-    return res.status(200).json({
-      prompts: savedPrompts.map(item => item.prompts),
-      total: count || 0,
-      hasMore: (offsetNum + limitNum) < (count || 0)
-    });
   }
 
   return res.status(405).json({ error: 'Method not allowed' });
