@@ -710,7 +710,18 @@
                     headers: token ? { 'Authorization': `Bearer ${token}` } : {}
                 });
                 const data = await res.json();
-                const items = data.prompts || data.comments || [];
+                let items = data.prompts || data.comments || [];
+
+                // ✅ FIX: Deduplicate comments tab by prompt_id
+                if (tab === 'comments') {
+                    const seen = new Set();
+                    items = items.filter(item => {
+                        const id = item.prompt_id || item.id;
+                        if (seen.has(id)) return false;
+                        seen.add(id);
+                        return true;
+                    });
+                }
 
                 if (reset) grid.innerHTML = '';
 
