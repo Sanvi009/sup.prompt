@@ -32,6 +32,7 @@ export default async function handler(req, res) {
   const { action } = req.query;
   const { promptId } = req.body;
 
+  // --- LIKE ---
   if (req.method === 'POST' && action === 'like') {
     if (!promptId) {
       return res.status(400).json({ error: 'Prompt ID required' });
@@ -96,6 +97,7 @@ export default async function handler(req, res) {
     });
   }
 
+  // --- UNLIKE ---
   if (req.method === 'DELETE' && action === 'unlike') {
     if (!promptId) {
       return res.status(400).json({ error: 'Prompt ID required' });
@@ -146,6 +148,7 @@ export default async function handler(req, res) {
     });
   }
 
+  // --- SAVE ---
   if (req.method === 'POST' && action === 'save') {
     if (!promptId) {
       return res.status(400).json({ error: 'Prompt ID required' });
@@ -210,6 +213,7 @@ export default async function handler(req, res) {
     });
   }
 
+  // --- UNSAVE ---
   if (req.method === 'DELETE' && action === 'unsave') {
     if (!promptId) {
       return res.status(400).json({ error: 'Prompt ID required' });
@@ -260,6 +264,7 @@ export default async function handler(req, res) {
     });
   }
 
+  // --- STATUS ---
   if (req.method === 'GET' && action === 'status') {
     const { promptId } = req.query;
 
@@ -299,6 +304,7 @@ export default async function handler(req, res) {
     });
   }
 
+  // --- LIKED PROMPTS ---
   if (req.method === 'GET' && action === 'liked-prompts') {
     const { targetUserId, limit = 20, offset = 0 } = req.query;
     const id = targetUserId || userId;
@@ -319,7 +325,7 @@ export default async function handler(req, res) {
           created_at
         )
       `, { count: 'exact' })
-      .eq('username', targetUserId)
+      .eq('user_id', id)                   // ✅ FIXED: use user_id
       .order('created_at', { ascending: false })
       .range(Number(offset), Number(offset) + Number(limit) - 1);
 
@@ -334,6 +340,7 @@ export default async function handler(req, res) {
     });
   }
 
+  // --- SAVED PROMPTS ---
   if (req.method === 'GET' && action === 'saved-prompts') {
     const { targetUserId, limit = 20, offset = 0 } = req.query;
     const id = targetUserId || userId;
@@ -354,7 +361,7 @@ export default async function handler(req, res) {
           created_at
         )
       `, { count: 'exact' })
-      .eq('username', targetUserId)
+      .eq('user_id', id)                   // ✅ FIXED: use user_id
       .order('created_at', { ascending: false })
       .range(Number(offset), Number(offset) + Number(limit) - 1);
 
