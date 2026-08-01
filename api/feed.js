@@ -201,14 +201,31 @@ export default async function handler(req, res) {
       })
     );
 
-    // 🔥 BULK VIEW COUNT UPDATE
+    // 🔥 BULK VIEW COUNT UPDATE (fixed — two-step approach)
     if (allPrompts.length > 0) {
       const promptIds = allPrompts.map(p => p.id);
       try {
-        await supabaseAdmin
+        // 1. Get current view counts
+        const { data: currentPrompts } = await supabaseAdmin
           .from('prompts')
-          .update({ view_count: supabaseAdmin.sql`view_count + 1` })
+          .select('id, view_count')
           .in('id', promptIds);
+
+        if (currentPrompts && currentPrompts.length > 0) {
+          // 2. Build update objects
+          const updates = currentPrompts.map(p => ({
+            id: p.id,
+            view_count: (p.view_count || 0) + 1
+          }));
+
+          // 3. Update each one individually
+          for (const update of updates) {
+            await supabaseAdmin
+              .from('prompts')
+              .update({ view_count: update.view_count })
+              .eq('id', update.id);
+          }
+        }
       } catch (err) {
         // Silently fail — views are non-critical
         console.warn('View count update failed:', err.message);
@@ -328,14 +345,31 @@ export default async function handler(req, res) {
       })
     );
 
-    // 🔥 BULK VIEW COUNT UPDATE
+    // 🔥 BULK VIEW COUNT UPDATE (fixed — two-step approach)
     if (prompts.length > 0) {
       const promptIds = prompts.map(p => p.id);
       try {
-        await supabaseAdmin
+        // 1. Get current view counts
+        const { data: currentPrompts } = await supabaseAdmin
           .from('prompts')
-          .update({ view_count: supabaseAdmin.sql`view_count + 1` })
+          .select('id, view_count')
           .in('id', promptIds);
+
+        if (currentPrompts && currentPrompts.length > 0) {
+          // 2. Build update objects
+          const updates = currentPrompts.map(p => ({
+            id: p.id,
+            view_count: (p.view_count || 0) + 1
+          }));
+
+          // 3. Update each one individually
+          for (const update of updates) {
+            await supabaseAdmin
+              .from('prompts')
+              .update({ view_count: update.view_count })
+              .eq('id', update.id);
+          }
+        }
       } catch (err) {
         // Silently fail — views are non-critical
         console.warn('View count update failed:', err.message);
