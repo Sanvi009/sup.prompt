@@ -17,9 +17,10 @@ export default async function handler(req, res) {
   }
 
   const { action } = req.query;
-  const { username, password } = req.body;
+
 
   if (action === 'register') {
+    const { username, password } = req.body;
     if (!username || !password) {
       return res.status(400).json({ error: 'Username and password required' });
     }
@@ -91,6 +92,7 @@ export default async function handler(req, res) {
   }
 
   if (action === 'login') {
+    const { username, password } = req.body;
     if (!username || !password) {
       return res.status(400).json({ error: 'Username and password required' });
     }
