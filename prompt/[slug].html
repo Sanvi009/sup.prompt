@@ -35,9 +35,93 @@
             font-weight: 500;
             font-size: 14px;
             transition: color 0.2s;
-            letter-spacing: -0.2px;
         }
         .back:hover { color: #1877f2; }
+
+        /* ===== SKELETON LOADING ===== */
+        .skeleton {
+            background: linear-gradient(90deg, #e4e6eb 25%, #f0f2f5 50%, #e4e6eb 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .skeleton-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+        }
+        .skeleton-text {
+            height: 14px;
+            border-radius: 6px;
+        }
+        .skeleton-text.short { width: 120px; }
+        .skeleton-text.long { width: 220px; }
+        .skeleton-image {
+            width: 100%;
+            height: 300px;
+            border-radius: 0;
+        }
+        .skeleton-title {
+            height: 28px;
+            width: 80%;
+            border-radius: 6px;
+            margin: 12px 0 8px;
+        }
+        .skeleton-action {
+            width: 60px;
+            height: 32px;
+            border-radius: 20px;
+        }
+        .skeleton-prompt {
+            height: 60px;
+            border-radius: 8px;
+        }
+
+        .skeleton-post-card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #e4e6eb;
+            padding: 16px 18px;
+            margin-bottom: 20px;
+        }
+        .skeleton-post-card .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .skeleton-post-card .header .info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .skeleton-post-card .actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        /* ===== LOADING STATE ===== */
+        .loading {
+            text-align: center;
+            padding: 80px 20px;
+            color: #65676b;
+        }
+        .loading .spinner {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            border: 3px solid #e4e6eb;
+            border-top-color: #1877f2;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         /* ===== POST CARD ===== */
         .post-card {
@@ -47,7 +131,6 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.06);
             margin-bottom: 20px;
             overflow: hidden;
-            transition: box-shadow 0.2s;
         }
 
         /* ===== POST HEADER ===== */
@@ -90,6 +173,7 @@
             display: flex;
             align-items: center;
             gap: 6px;
+            cursor: pointer;
         }
         .post-header .user-info .badge {
             background: #1877f2;
@@ -106,9 +190,6 @@
             display: flex;
             align-items: center;
             gap: 4px;
-        }
-        .post-header .user-info .meta span {
-            font-weight: 400;
         }
 
         /* ===== POST TITLE ===== */
@@ -148,8 +229,6 @@
             align-items: center;
             gap: 6px;
             backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            letter-spacing: 0.2px;
             box-shadow: 0 1px 4px rgba(0,0,0,0.1);
         }
         .post-image-wrap .view-count svg {
@@ -158,23 +237,23 @@
             fill: currentColor;
         }
 
-        /* ===== INTERACTION BAR ===== */
-        .interaction-bar {
+        /* ===== ACTION BAR ===== */
+        .action-bar {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px 18px;
+            padding: 10px 18px 12px;
             border-bottom: 1px solid #e4e6eb;
             flex-wrap: wrap;
-            gap: 6px;
+            gap: 4px;
             background: #fafbfc;
         }
-        .interaction-bar .left {
+        .action-bar .left {
             display: flex;
             gap: 18px;
             flex-wrap: wrap;
         }
-        .interaction-bar button {
+        .action-bar button {
             background: none;
             border: none;
             cursor: pointer;
@@ -189,25 +268,37 @@
             padding: 6px 8px;
             border-radius: 8px;
         }
-        .interaction-bar button:hover {
+        .action-bar button:hover {
             background: #e4e6eb;
         }
-        .interaction-bar button.liked {
+        .action-bar button.liked {
             color: #e74c3c;
         }
-        .interaction-bar button.liked svg {
+        .action-bar button.liked svg {
             fill: #e74c3c;
         }
-        .interaction-bar button svg {
+        .action-bar button.saved {
+            color: #050505;
+        }
+        .action-bar button.saved svg {
+            fill: #050505;
+        }
+        .action-bar button svg {
             width: 20px;
             height: 20px;
             fill: currentColor;
             transition: fill 0.15s;
         }
-        .interaction-bar .count {
+        .action-bar .count {
             font-size: 14px;
             color: #65676b;
             font-weight: 500;
+        }
+        .action-bar .right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #65676b;
         }
 
         /* ===== PROMPT TEXT ===== */
@@ -292,7 +383,7 @@
             outline: none;
             border-color: #1877f2;
             background: white;
-            box-shadow: 0 0 0 3px rgba(24, 119, 242, 0.1);
+            box-shadow: 0 0 0 3px rgba(24,119,242,0.1);
         }
         .comment-input-wrap .btn-submit {
             padding: 8px 20px;
@@ -304,7 +395,6 @@
             font-size: 14px;
             cursor: pointer;
             transition: background 0.2s, transform 0.1s;
-            letter-spacing: 0.2px;
         }
         .comment-input-wrap .btn-submit:hover {
             background: #166fe5;
@@ -491,7 +581,6 @@
             font-size: 15px;
             cursor: pointer;
             transition: all 0.2s ease;
-            letter-spacing: 0.2px;
         }
         .copy-btn:hover {
             background: #166fe5;
@@ -513,7 +602,6 @@
             font-weight: 600;
             color: #050505;
             margin-bottom: 14px;
-            letter-spacing: -0.3px;
         }
         .related-grid {
             display: grid;
@@ -555,25 +643,7 @@
             font-weight: 600;
             line-height: 1.4;
             text-shadow: 0 1px 3px rgba(0,0,0,0.2);
-            letter-spacing: -0.2px;
         }
-
-        /* ===== LOADING ===== */
-        .loading {
-            text-align: center;
-            padding: 80px 20px;
-            color: #65676b;
-        }
-        .loading .spinner {
-            display: inline-block;
-            width: 32px;
-            height: 32px;
-            border: 3px solid #e4e6eb;
-            border-top-color: #1877f2;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
 
         /* ===== POPUP ===== */
         .popup-overlay {
@@ -582,7 +652,6 @@
             inset: 0;
             background: rgba(0,0,0,0.45);
             backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
             z-index: 1000;
             align-items: center;
             justify-content: center;
@@ -597,7 +666,7 @@
             text-align: center;
             box-shadow: 0 30px 80px rgba(0,0,0,0.2);
         }
-        .popup h2 { font-size: 22px; font-weight: 700; color: #050505; letter-spacing: -0.3px; }
+        .popup h2 { font-size: 22px; font-weight: 700; color: #050505; }
         .popup p { color: #65676b; font-size: 16px; margin: 10px 0 28px; line-height: 1.5; }
         .popup .btn-primary {
             padding: 12px 32px;
@@ -631,10 +700,10 @@
             .post-header { padding: 14px 14px 8px; gap: 10px; }
             .post-header .avatar { width: 38px; height: 38px; font-size: 16px; }
             .post-title { padding: 0 14px 4px; font-size: 19px; }
-            .interaction-bar { padding: 10px 14px; gap: 4px; }
-            .interaction-bar .left { gap: 8px; }
-            .interaction-bar button { font-size: 13px; padding: 4px 6px; }
-            .interaction-bar button svg { width: 18px; height: 18px; }
+            .action-bar { padding: 10px 14px; gap: 4px; }
+            .action-bar .left { gap: 8px; }
+            .action-bar button { font-size: 13px; padding: 4px 6px; }
+            .action-bar button svg { width: 18px; height: 18px; }
             .prompt-text-wrap { padding: 12px 14px 16px; }
             .prompt-text-wrap .text { font-size: 14px; padding: 12px 14px; }
             .comments-section { padding: 10px 14px 16px; }
@@ -648,18 +717,17 @@
             .comment-item .reply-input-wrap { margin-left: 28px; }
         }
         @media (max-width: 400px) {
-            .interaction-bar .left { gap: 4px; }
-            .interaction-bar button { font-size: 12px; padding: 4px; }
-            .interaction-bar button svg { width: 16px; height: 16px; }
+            .action-bar .left { gap: 4px; }
+            .action-bar button { font-size: 12px; padding: 4px; }
+            .action-bar button svg { width: 16px; height: 16px; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <a href="/feed/" class="back">← Back to Feed</a>
-        <div id="content" class="loading">
-            <div class="spinner"></div>
-            <p>Loading prompt...</p>
+        <div id="content">
+            <!-- Skeleton will be rendered by JavaScript -->
         </div>
     </div>
 
@@ -675,7 +743,7 @@
 
     <script>
         // ============================================================
-        //  STATE – unchanged core logic
+        //  STATE
         // ============================================================
         const token = localStorage.getItem('user_token');
         let user = null;
@@ -720,11 +788,49 @@
         }
 
         // ============================================================
+        //  RENDER SKELETON
+        // ============================================================
+        function renderSkeleton() {
+            container.innerHTML = `
+                <div class="skeleton-post-card">
+                    <div class="header">
+                        <div class="skeleton skeleton-avatar"></div>
+                        <div class="info">
+                            <div class="skeleton skeleton-text short"></div>
+                            <div class="skeleton skeleton-text long"></div>
+                        </div>
+                    </div>
+                    <div class="skeleton skeleton-title"></div>
+                    <div class="skeleton skeleton-image"></div>
+                    <div class="actions">
+                        <div class="skeleton skeleton-action"></div>
+                        <div class="skeleton skeleton-action"></div>
+                        <div class="skeleton skeleton-action"></div>
+                        <div class="skeleton skeleton-action"></div>
+                    </div>
+                    <div style="margin-top:16px;">
+                        <div class="skeleton skeleton-prompt"></div>
+                    </div>
+                </div>
+                <div style="margin-top:16px;">
+                    <div class="skeleton skeleton-text" style="width:60%;height:20px;margin-bottom:12px;"></div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                        <div class="skeleton" style="padding-bottom:100%;border-radius:14px;"></div>
+                        <div class="skeleton" style="padding-bottom:100%;border-radius:14px;"></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ============================================================
         //  LOAD PROMPT
         // ============================================================
         async function loadPrompt() {
             const slug = window.location.pathname.split('/').pop();
             currentSlug = slug;
+
+            // Show skeleton immediately
+            renderSkeleton();
 
             try {
                 const url = `/api/prompts?action=by-slug&slug=${slug}`;
@@ -761,13 +867,14 @@
         }
 
         // ============================================================
-        //  RENDER PROMPT – UI polished
+        //  RENDER PROMPT
         // ============================================================
         function renderPrompt(p) {
             const date = new Date(p.created_at).toLocaleDateString('en-US', {
                 month: 'short', day: 'numeric', year: 'numeric'
             });
 
+            // SVG icons
             const likeIcon = liked
                 ? `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`
                 : `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
@@ -777,6 +884,9 @@
             const likeClass = liked ? 'liked' : '';
             const saveClass = saved ? 'saved' : '';
             const viewIcon = `<svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5 5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3 1.34 3 3-1.34-3-3-3z"/></svg>`;
+            const commentIcon = `<svg viewBox="0 0 24 24"><path d="M21 6h-2v2h-2V6h-2V4h2V2h2v2h2v2zm-10 3c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm0 4c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>`;
+            const shareIcon = `<svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>`;
+            const reportIcon = `<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>`;
 
             container.innerHTML = `
                 <div class="post-card">
@@ -809,8 +919,8 @@
                         </div>
                     </div>
 
-                    <!-- Interaction Bar -->
-                    <div class="interaction-bar">
+                    <!-- Action Bar -->
+                    <div class="action-bar">
                         <div class="left">
                             <button class="like-btn ${likeClass}" id="likeBtn">
                                 ${likeIcon} <span class="count">${likeCount}</span>
@@ -818,18 +928,23 @@
                             <button class="save-btn ${saveClass}" id="saveBtn">
                                 ${saveIcon} <span class="count">${saveCount}</span>
                             </button>
-                            <button class="share-btn" id="shareBtn">
-                                <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
+                            <button class="comment-btn" id="commentBtn">
+                                ${commentIcon} <span class="count">${p.comment_count || 0}</span>
                             </button>
-                            <button class="report-btn" id="reportBtn">
-                                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                            <button class="share-btn" id="shareBtn">
+                                ${shareIcon}
+                            </button>
+                        </div>
+                        <div class="right">
+                            <button class="report-btn" id="reportBtn" title="Report">
+                                ${reportIcon}
                             </button>
                         </div>
                     </div>
 
                     <!-- Prompt Text -->
                     <div class="prompt-text-wrap">
-                        <div class="label">Prompt Text</div>
+                        <div class="label">Prompt</div>
                         <div class="text" id="promptText">${p.prompt_text}</div>
                     </div>
 
@@ -863,7 +978,7 @@
                 </div>
             `;
 
-            // --- Interactions (unchanged logic) ---
+            // --- Interactions ---
             document.getElementById('copyBtn').addEventListener('click', () => {
                 const text = document.getElementById('promptText').textContent;
                 navigator.clipboard.writeText(text).then(() => {
@@ -882,13 +997,18 @@
             document.getElementById('shareBtn').addEventListener('click', () => handleShare());
             document.getElementById('reportBtn').addEventListener('click', () => handleReport());
 
+            // Comment button scrolls to comments
+            document.getElementById('commentBtn').addEventListener('click', () => {
+                document.getElementById('commentsSection').scrollIntoView({ behavior: 'smooth' });
+            });
+
             document.getElementById('loadMoreBtn').addEventListener('click', () => {
                 loadComments(false);
             });
         }
 
         // ============================================================
-        //  INTERACTIONS (unchanged)
+        //  INTERACTIONS
         // ============================================================
         async function handleLike() {
             if (!user) { popup.classList.add('active'); return; }
@@ -964,7 +1084,7 @@
         }
 
         // ============================================================
-        //  COMMENTS (unchanged core)
+        //  COMMENTS
         // ============================================================
         async function loadComments(reset = false) {
             if (loadingComments) return;
@@ -1041,7 +1161,7 @@
         }
 
         // ============================================================
-        //  COMMENT EVENTS (unchanged)
+        //  COMMENT EVENTS
         // ============================================================
         document.addEventListener('click', async (e) => {
             const submitBtn = e.target.closest('.comment-submit');
@@ -1115,7 +1235,7 @@
         });
 
         // ============================================================
-        //  RELATED (unchanged)
+        //  RELATED
         // ============================================================
         async function loadRelated() {
             try {
@@ -1140,7 +1260,7 @@
         }
 
         // ============================================================
-        //  POPUP (unchanged)
+        //  POPUP
         // ============================================================
         document.getElementById('popupLoginBtn').addEventListener('click', () => {
             window.location.href = '/';
