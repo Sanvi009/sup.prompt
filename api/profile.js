@@ -294,32 +294,39 @@ export default async function handler(req, res) {
   }
 
   // ================================================================
-  // DELETE AVATAR
+  // DELETE AVATAR (WITH STORAGE CLEANUP)
   // ================================================================
   if (req.method === 'DELETE' && action === 'avatar') {
-    // Get current avatar URL to delete from storage
-    const { data: current } = await supabaseAdmin
-      .from('profiles')
-      .select('avatar_url')
-      .eq('id', userId)
-      .single();
+    try {
+      // 1. List all files in user_avatars that start with this user's ID
+      const { data: fileList, error: listError } = await supabaseAdmin
+        .storage
+        .from('user_avatars')
+        .list('', { limit: 100, offset: 0 });
 
-    if (current?.avatar_url) {
-      // Extract path from URL to delete from storage
-      try {
-        const url = new URL(current.avatar_url);
-        const path = url.pathname.split('/').slice(2).join('/');
-        if (path) {
-          await supabaseAdmin.storage
+      if (!listError && fileList) {
+        // Find files that start with userId
+        const filesToDelete = fileList
+          .filter(file => file.name.startsWith(userId))
+          .map(file => file.name);
+
+        // 2. Delete them from storage
+        if (filesToDelete.length > 0) {
+          const { error: deleteError } = await supabaseAdmin
+            .storage
             .from('user_avatars')
-            .remove([path]);
+            .remove(filesToDelete);
+
+          if (deleteError) {
+            console.warn('Failed to delete avatar files from storage:', deleteError);
+          }
         }
-      } catch (err) {
-        // Ignore storage errors
       }
+    } catch (err) {
+      console.warn('Error cleaning up avatar files:', err);
     }
 
-    // Update profile
+    // 3. Update profile (set avatar_url to null)
     const { data, error } = await supabaseAdmin
       .from('profiles')
       .update({
