@@ -9,235 +9,228 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+        /* ===== RESET & BASE ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Inter', -apple-system, sans-serif;
-            background: #f8fafc;
-            color: #111827;
+            background: #f0f0f0;
+            color: #1a1a1a;
             -webkit-font-smoothing: antialiased;
+            padding-bottom: 80px; /* space for sticky logout */
         }
+
         .container {
             max-width: 900px;
             margin: 0 auto;
-            padding: 32px 24px 80px;
+            padding: 0 16px 20px;
         }
+
+        /* ===== BACK BUTTON ===== */
         .back {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            margin-bottom: 20px;
-            color: #4f46e5;
+            margin: 12px 0 8px;
+            color: #1a1a1a;
             text-decoration: none;
             font-weight: 500;
-            font-size: 15px;
-            transition: color 0.2s;
+            font-size: 24px;
+            transition: opacity 0.2s;
         }
-        .back:hover { color: #4338ca; }
+        .back:hover { opacity: 0.6; }
 
+        /* ===== PROFILE HEADER (Instagram-style) ===== */
         .profile-header {
-            background: white;
-            border-radius: 24px;
-            border: 1px solid #e2e8f0;
-            padding: 32px 36px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
-            margin-bottom: 24px;
-        }
-        .profile-header .top {
             display: flex;
-            align-items: flex-start;
-            gap: 24px;
+            align-items: center;
+            gap: 28px;
+            padding: 8px 0 16px;
             flex-wrap: wrap;
         }
+
         .profile-header .avatar-wrap {
-            position: relative;
             flex-shrink: 0;
         }
         .profile-header .avatar-wrap .avatar {
             width: 96px;
             height: 96px;
             border-radius: 50%;
-            background: #eef2ff;
+            background: #e8ecf1;
             object-fit: cover;
-            border: 3px solid #e2e8f0;
+            border: 3px solid #e0e0e0;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 36px;
             font-weight: 600;
             color: #4f46e5;
+            box-shadow: 
+                inset 4px 4px 8px rgba(0,0,0,0.06),
+                inset -4px -4px 8px rgba(255,255,255,0.7);
         }
-        .profile-header .avatar-wrap .badge {
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            background: #fbbf24;
-            color: #78350f;
-            font-size: 12px;
-            font-weight: 600;
-            padding: 2px 8px;
-            border-radius: 12px;
-            border: 2px solid white;
+        .profile-header .avatar-wrap .avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
         }
-        .profile-header .avatar-wrap .badge.owner {
-            background: #4f46e5;
-            color: white;
-        }
-        .profile-header .info {
+
+        .profile-header .stats-row {
+            display: flex;
+            gap: 32px;
             flex: 1;
-            min-width: 200px;
-        }
-        .profile-header .info .username {
-            font-size: 24px;
-            font-weight: 700;
-            color: #111827;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .profile-header .info .username .premium-badge {
-            font-size: 16px;
-        }
-        .profile-header .info .display-name {
-            font-size: 16px;
-            color: #64748b;
-        }
-        .profile-header .info .bio {
-            font-size: 15px;
-            color: #374151;
-            margin-top: 4px;
-        }
-        .profile-header .info .joined {
-            font-size: 13px;
-            color: #94a3b8;
-            margin-top: 4px;
-        }
-        .profile-header .actions {
-            display: flex;
-            gap: 10px;
+            justify-content: flex-start;
             flex-wrap: wrap;
-            margin-left: auto;
         }
-        .profile-header .actions .btn-follow {
-            padding: 10px 24px;
-            background: #4f46e5;
+        .profile-header .stats-row .stat {
+            text-align: center;
+        }
+        .profile-header .stats-row .stat .value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+        .profile-header .stats-row .stat .label {
+            font-size: 13px;
+            color: #666;
+        }
+
+        /* ===== PROFILE INFO ===== */
+        .profile-info {
+            width: 100%;
+            margin-top: -8px;
+        }
+        .profile-info .display-name {
+            font-weight: 600;
+            font-size: 16px;
+            color: #1a1a1a;
+        }
+        .profile-info .bio {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.5;
+            margin-top: 2px;
+            white-space: pre-wrap;
+        }
+
+        /* ===== ACTION BUTTONS ===== */
+        .profile-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+        .profile-actions .btn-follow {
+            padding: 8px 24px;
+            background: #1a1a1a;
             color: white;
             border: none;
-            border-radius: 12px;
+            border-radius: 8px;
             font-weight: 600;
             font-size: 14px;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         }
-        .profile-header .actions .btn-follow:hover {
-            background: #4338ca;
+        .profile-actions .btn-follow:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
-        .profile-header .actions .btn-follow.following {
-            background: #f1f5f9;
-            color: #111827;
-            border: 1px solid #e2e8f0;
+        .profile-actions .btn-follow.following {
+            background: #e0e0e0;
+            color: #1a1a1a;
         }
-        .profile-header .actions .btn-follow.following:hover {
-            background: #fee2e2;
-            color: #dc2626;
+        .profile-actions .btn-follow.following:hover {
+            background: #d0d0d0;
         }
-        .profile-header .actions .btn-edit {
-            padding: 10px 24px;
-            background: #f1f5f9;
-            color: #111827;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
+        .profile-actions .btn-edit {
+            padding: 8px 24px;
+            background: #e0e0e0;
+            color: #1a1a1a;
+            border: none;
+            border-radius: 8px;
             font-weight: 500;
             font-size: 14px;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s;
         }
-        .profile-header .actions .btn-edit:hover {
-            background: #e2e8f0;
+        .profile-actions .btn-edit:hover {
+            background: #d0d0d0;
         }
-        .profile-header .actions .btn-report {
-            padding: 10px 16px;
-            background: none;
+        .profile-actions .btn-more {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: #e0e0e0;
             border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: #64748b;
-            transition: color 0.2s;
-        }
-        .profile-header .actions .btn-report:hover {
-            color: #dc2626;
-        }
-
-        .stats-row {
             display: flex;
-            gap: 32px;
-            padding: 16px 0 8px;
-            border-top: 1px solid #f1f5f9;
-            margin-top: 16px;
-        }
-        .stats-row .stat {
-            text-align: center;
-        }
-        .stats-row .stat .value {
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
             font-size: 20px;
-            font-weight: 700;
-            color: #111827;
+            color: #1a1a1a;
+            transition: all 0.2s;
         }
-        .stats-row .stat .label {
-            font-size: 13px;
-            color: #64748b;
+        .profile-actions .btn-more:hover {
+            background: #d0d0d0;
         }
 
+        /* ===== TABS ===== */
         .tabs {
             display: flex;
-            gap: 4px;
-            background: white;
-            border-radius: 16px;
-            border: 1px solid #e2e8f0;
-            padding: 4px;
-            margin-bottom: 24px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+            gap: 0;
+            margin: 16px 0 12px;
+            border-bottom: 1px solid #d0d0d0;
         }
         .tabs .tab {
             flex: 1;
-            padding: 12px;
+            padding: 10px 0;
             text-align: center;
             font-weight: 600;
-            font-size: 15px;
-            color: #64748b;
+            font-size: 14px;
+            color: #666;
             cursor: pointer;
-            border-radius: 12px;
-            transition: all 0.2s;
             border: none;
             background: none;
             font-family: inherit;
-        }
-        .tabs .tab:hover {
-            background: #f1f5f9;
+            transition: all 0.2s;
+            position: relative;
         }
         .tabs .tab.active {
-            background: #4f46e5;
-            color: white;
+            color: #1a1a1a;
+        }
+        .tabs .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 20%;
+            right: 20%;
+            height: 2px;
+            background: #1a1a1a;
+        }
+        .tabs .tab:hover {
+            color: #1a1a1a;
         }
 
+        /* ===== PROMPT GRID (2‑col, Instagram-style) ===== */
         .prompt-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 4px;
         }
         .prompt-card {
             position: relative;
             width: 100%;
             padding-bottom: 100%;
-            border-radius: 12px;
+            border-radius: 4px;
             overflow: hidden;
             cursor: pointer;
-            background: #f1f5f9;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-            transition: transform 0.2s, box-shadow 0.2s;
+            background: #e8ecf1;
+            transition: transform 0.2s;
         }
         .prompt-card:hover {
-            transform: scale(1.02);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+            transform: scale(1.01);
         }
         .prompt-card img {
             position: absolute;
@@ -252,22 +245,22 @@
             bottom: 0;
             left: 0;
             right: 0;
-            padding: 12px 16px;
-            background: linear-gradient(transparent, rgba(0,0,0,0.5));
+            padding: 8px 12px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.4));
             display: flex;
             align-items: center;
             justify-content: space-between;
             opacity: 0;
-            transition: opacity 0.25s;
+            transition: opacity 0.2s;
         }
         .prompt-card:hover .overlay {
             opacity: 1;
         }
         .prompt-card .overlay .stats {
             display: flex;
-            gap: 16px;
+            gap: 12px;
             color: white;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
         }
         .prompt-card .overlay .stats span {
@@ -275,11 +268,17 @@
             align-items: center;
             gap: 4px;
         }
+        .prompt-card .overlay .stats svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
 
+        /* ===== LOADER ===== */
         .loader {
             text-align: center;
             padding: 40px 0 60px;
-            color: #64748b;
+            color: #666;
             font-size: 15px;
             grid-column: 1 / -1;
         }
@@ -287,7 +286,7 @@
             display: inline-block;
             width: 24px;
             height: 24px;
-            border: 3px solid #e2e8f0;
+            border: 3px solid #e0e0e0;
             border-top-color: #4f46e5;
             border-radius: 50%;
             animation: spin 0.7s linear infinite;
@@ -296,19 +295,21 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
+        /* ===== EMPTY ===== */
         .empty {
             text-align: center;
             padding: 40px 24px;
-            color: #64748b;
+            color: #666;
             grid-column: 1 / -1;
         }
         .empty .icon { font-size: 48px; margin-bottom: 12px; }
 
+        /* ===== POPUP ===== */
         .popup-overlay {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(15,23,42,0.5);
+            background: rgba(0,0,0,0.4);
             backdrop-filter: blur(4px);
             z-index: 1000;
             align-items: center;
@@ -317,21 +318,21 @@
         .popup-overlay.active { display: flex; }
         .popup {
             background: white;
-            border-radius: 20px;
+            border-radius: 16px;
             padding: 32px 40px;
             max-width: 400px;
             width: 92%;
             text-align: center;
             box-shadow: 0 20px 60px rgba(0,0,0,0.15);
         }
-        .popup h2 { font-size: 22px; font-weight: 700; color: #111827; }
-        .popup p { color: #64748b; font-size: 15px; margin: 8px 0 24px; }
+        .popup h2 { font-size: 22px; font-weight: 700; color: #1a1a1a; }
+        .popup p { color: #666; font-size: 15px; margin: 8px 0 24px; }
         .popup .btn-primary {
             padding: 12px 32px;
             background: #4f46e5;
             color: white;
             border: none;
-            border-radius: 12px;
+            border-radius: 8px;
             font-weight: 600;
             font-size: 15px;
             cursor: pointer;
@@ -340,65 +341,118 @@
         .popup .btn-primary:hover { background: #4338ca; }
         .popup .btn-secondary {
             padding: 12px 32px;
-            background: #f1f5f9;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
+            background: #e0e0e0;
+            border: none;
+            border-radius: 8px;
             font-weight: 500;
             font-size: 15px;
             cursor: pointer;
-            margin-left: 12px;
+            margin-left: 10px;
             transition: background 0.2s;
         }
-        .popup .btn-secondary:hover { background: #e2e8f0; }
+        .popup .btn-secondary:hover { background: #d0d0d0; }
 
-        /* ===== LOGOUT BUTTON ===== */
-        .logout-wrap {
-            margin-top: 32px;
-            text-align: center;
+        /* ===== STICKY LOGOUT BUTTON ===== */
+        .logout-sticky {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 12px 20px;
+            border-top: 1px solid #d0d0d0;
+            display: flex;
+            justify-content: center;
+            z-index: 999;
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.06);
         }
-        .logout-btn {
-            padding: 12px 32px;
+        .logout-sticky .btn-logout {
+            padding: 10px 32px;
             background: #fee2e2;
             color: #dc2626;
             border: none;
-            border-radius: 12px;
+            border-radius: 8px;
             font-weight: 600;
             font-size: 15px;
             cursor: pointer;
             transition: background 0.2s;
-            font-family: inherit;
+            width: 100%;
+            max-width: 400px;
         }
-        .logout-btn:hover {
+        .logout-sticky .btn-logout:hover {
             background: #fecaca;
         }
 
-        @media (max-width: 768px) {
-            .prompt-grid { grid-template-columns: repeat(2, 1fr); }
-            .profile-header .top { flex-direction: column; align-items: center; text-align: center; }
-            .profile-header .actions { margin-left: 0; justify-content: center; }
-            .stats-row { justify-content: center; }
+        /* ===== RESPONSIVE ===== */
+        @media (min-width: 600px) {
+            .profile-header .avatar-wrap .avatar {
+                width: 120px;
+                height: 120px;
+                font-size: 44px;
+            }
+            .profile-header .stats-row .stat .value {
+                font-size: 24px;
+            }
+            .prompt-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 6px;
+            }
         }
-        @media (max-width: 480px) {
-            .prompt-grid { grid-template-columns: 1fr; }
+
+        @media (max-width: 500px) {
+            .profile-header {
+                gap: 16px;
+            }
+            .profile-header .stats-row {
+                gap: 20px;
+            }
+            .profile-header .stats-row .stat .value {
+                font-size: 18px;
+            }
+            .profile-header .stats-row .stat .label {
+                font-size: 12px;
+            }
+            .back {
+                font-size: 20px;
+            }
+            .profile-actions .btn-follow,
+            .profile-actions .btn-edit {
+                padding: 6px 16px;
+                font-size: 13px;
+            }
+            .profile-actions .btn-more {
+                width: 36px;
+                height: 36px;
+                font-size: 18px;
+            }
+            .tabs .tab {
+                font-size: 13px;
+                padding: 8px 0;
+            }
+        }
+
+        @media (min-width: 900px) {
+            .profile-header {
+                gap: 40px;
+            }
+            .profile-header .stats-row {
+                gap: 48px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <a href="/feed/" class="back">← Back to Feed</a>
+        <a href="/feed/" class="back">‹</a>
         <div id="content">
             <div class="loading" id="loading">
                 <div class="spinner"></div>
                 <p>Loading profile...</p>
             </div>
         </div>
-
-        <!-- Logout Button (visible only when logged in) -->
-        <div class="logout-wrap" id="logoutWrap" style="display:none;">
-            <button class="logout-btn" id="logoutBtn">Sign Out</button>
-        </div>
     </div>
 
+    <!-- POPUP -->
     <div class="popup-overlay" id="popup">
         <div class="popup">
             <h2>🔒 Sign in to interact</h2>
@@ -408,7 +462,15 @@
         </div>
     </div>
 
+    <!-- STICKY LOGOUT -->
+    <div class="logout-sticky" id="logoutSticky" style="display:none;">
+        <button class="btn-logout" id="logoutBtn">Sign Out</button>
+    </div>
+
     <script>
+        // ============================================================
+        //  STATE
+        // ============================================================
         const token = localStorage.getItem('user_token');
         let currentUser = null;
         let profileUser = null;
@@ -421,10 +483,16 @@
         let hasMore = true;
         let isOwnProfile = false;
 
+        // ============================================================
+        //  DOM
+        // ============================================================
         const container = document.getElementById('content');
         const popup = document.getElementById('popup');
-        const logoutWrap = document.getElementById('logoutWrap');
+        const logoutSticky = document.getElementById('logoutSticky');
 
+        // ============================================================
+        //  VERIFY USER
+        // ============================================================
         async function verifyUser() {
             if (!token) return null;
             try {
@@ -445,6 +513,9 @@
             }
         }
 
+        // ============================================================
+        //  LOAD PROFILE
+        // ============================================================
         async function loadProfile() {
             profileUsername = window.location.pathname.split('/').pop().replace(/^@/, '');
             if (!profileUsername) {
@@ -468,9 +539,9 @@
                 isFollowing = data.isFollowing || false;
                 isOwnProfile = currentUser && currentUser.username === profileUser.username;
 
-                // Show logout button only if viewing own profile
+                // Show logout sticky only for own profile
                 if (isOwnProfile) {
-                    logoutWrap.style.display = 'block';
+                    logoutSticky.style.display = 'flex';
                 }
 
                 renderProfile(data);
@@ -481,17 +552,16 @@
             }
         }
 
+        // ============================================================
+        //  RENDER PROFILE
+        // ============================================================
         function renderProfile(data) {
             const p = data.profile;
             const stats = data.stats;
 
-            const avatarUrl = p.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(p.username) + '&background=4f46e5&color=fff&size=96';
+            const avatarUrl = p.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(p.username) + '&background=e0e0e0&color=4f46e5&size=120';
             const displayName = p.display_name || p.username;
             const joined = new Date(p.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-
-            let badgesHtml = '';
-            if (p.is_premium) badgesHtml += `<span class="premium-badge">⭐</span>`;
-            if (p.is_owner) badgesHtml += `<span class="premium-badge">👑</span>`;
 
             let actionsHtml = '';
             if (isOwnProfile) {
@@ -503,49 +573,30 @@
                     <button class="btn-follow ${isFollowing ? 'following' : ''}" id="followBtn">
                         ${isFollowing ? 'Following' : 'Follow'}
                     </button>
-                    <button class="btn-report" id="reportBtn" title="Report this user">⚠️</button>
+                    <button class="btn-more" id="moreBtn">•••</button>
                 `;
             } else {
                 actionsHtml = `
                     <button class="btn-follow" id="followBtn">Follow</button>
-                    <button class="btn-report" id="reportBtn" title="Report this user">⚠️</button>
+                    <button class="btn-more" id="moreBtn">•••</button>
                 `;
             }
 
+            // SVG icons for stats overlay (no emojis)
+            const heartIcon = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+            const bookmarkIcon = `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>`;
+
             container.innerHTML = `
                 <div class="profile-header">
-                    <div class="top">
-                        <div class="avatar-wrap">
-                            <div class="avatar" style="background-image:url(${avatarUrl});background-size:cover;">
-                                ${!p.avatar_url ? displayName.charAt(0).toUpperCase() : ''}
-                            </div>
-                            ${p.is_premium ? `<div class="badge">⭐</div>` : ''}
-                            ${p.is_owner ? `<div class="badge owner">👑</div>` : ''}
-                        </div>
-                        <div class="info">
-                            <div class="username">
-                                @${p.username} ${badgesHtml}
-                            </div>
-                            <div class="display-name">${displayName}</div>
-                            ${p.bio ? `<div class="bio">${p.bio}</div>` : ''}
-                            <div class="joined">Joined ${joined}</div>
-                        </div>
-                        <div class="actions">
-                            ${actionsHtml}
+                    <div class="avatar-wrap">
+                        <div class="avatar" style="background-image:url(${avatarUrl});background-size:cover;">
+                            ${!p.avatar_url ? displayName.charAt(0).toUpperCase() : ''}
                         </div>
                     </div>
                     <div class="stats-row">
                         <div class="stat">
                             <div class="value">${stats.likes || 0}</div>
-                            <div class="label">Likes</div>
-                        </div>
-                        <div class="stat">
-                            <div class="value">${stats.saves || 0}</div>
-                            <div class="label">Saves</div>
-                        </div>
-                        <div class="stat">
-                            <div class="value">${stats.comments || 0}</div>
-                            <div class="label">Comments</div>
+                            <div class="label">Loves</div>
                         </div>
                         <div class="stat">
                             <div class="value">${stats.followers || 0}</div>
@@ -558,10 +609,19 @@
                     </div>
                 </div>
 
+                <div class="profile-info">
+                    <div class="display-name">${displayName}</div>
+                    ${p.bio ? `<div class="bio">${p.bio}</div>` : ''}
+                </div>
+
+                <div class="profile-actions">
+                    ${actionsHtml}
+                </div>
+
                 <div class="tabs">
-                    <button class="tab active" data-tab="liked">❤️ Liked</button>
-                    <button class="tab" data-tab="saved">💾 Saved</button>
-                    <button class="tab" data-tab="comments">💬 Comments</button>
+                    <button class="tab active" data-tab="liked">Loved</button>
+                    <button class="tab" data-tab="saved">Saved</button>
+                    <button class="tab" data-tab="comments">Comments</button>
                 </div>
 
                 <div class="prompt-grid" id="promptGrid">
@@ -572,6 +632,7 @@
                 </div>
             `;
 
+            // --- Tabs ---
             document.querySelectorAll('.tab').forEach(tab => {
                 tab.addEventListener('click', () => {
                     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -587,17 +648,39 @@
                 });
             });
 
+            // --- Follow ---
             const followBtn = document.getElementById('followBtn');
             if (followBtn) {
                 followBtn.addEventListener('click', handleFollow);
             }
 
-            const reportBtn = document.getElementById('reportBtn');
-            if (reportBtn) {
-                reportBtn.addEventListener('click', handleReport);
+            // --- More button (Report) ---
+            const moreBtn = document.getElementById('moreBtn');
+            if (moreBtn) {
+                moreBtn.addEventListener('click', () => {
+                    if (!currentUser) {
+                        popup.classList.add('active');
+                        return;
+                    }
+                    // Simple report prompt (no emoji)
+                    const reason = prompt('Report this user — reason:');
+                    if (reason && reason.trim()) {
+                        fetch('/api/reports?action=submit', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({ targetUserId: profileUser.id, reason: reason.trim() })
+                        }).then(() => alert('Report submitted. Thank you!'));
+                    }
+                });
             }
         }
 
+        // ============================================================
+        //  LOAD PROMPTS
+        // ============================================================
         async function loadPrompts(tab, reset = false) {
             if (loading || (!hasMore && !reset)) return;
             loading = true;
@@ -637,6 +720,10 @@
                     return;
                 }
 
+                // SVG icons for stats overlay
+                const heartIcon = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+                const bookmarkIcon = `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>`;
+
                 items.forEach(item => {
                     const p = item.prompts || item;
                     const card = document.createElement('div');
@@ -650,8 +737,8 @@
                              alt="${p.title}" />
                         <div class="overlay">
                             <div class="stats">
-                                <span>❤️ ${likes}</span>
-                                <span>💾 ${saves}</span>
+                                <span>${heartIcon} ${likes}</span>
+                                <span>${bookmarkIcon} ${saves}</span>
                             </div>
                         </div>
                     `;
@@ -671,6 +758,9 @@
             }
         }
 
+        // ============================================================
+        //  FOLLOW / UNFOLLOW
+        // ============================================================
         async function handleFollow() {
             if (!currentUser) {
                 popup.classList.add('active');
@@ -703,36 +793,17 @@
             }
         }
 
-        async function handleReport() {
-            if (!currentUser) {
-                popup.classList.add('active');
-                return;
-            }
-            const reason = prompt('Why are you reporting this user?');
-            if (reason && reason.trim()) {
-                try {
-                    await fetch('/api/reports?action=submit', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({ targetUserId: profileUser.id, reason: reason.trim() })
-                    });
-                    alert('Report submitted. Thank you!');
-                } catch (err) {
-                    console.error(err);
-                    alert('Failed to submit report.');
-                }
-            }
-        }
-
-        // --- Logout ---
+        // ============================================================
+        //  LOGOUT
+        // ============================================================
         document.getElementById('logoutBtn').addEventListener('click', () => {
             localStorage.removeItem('user_token');
             window.location.href = '/';
         });
 
+        // ============================================================
+        //  POPUP
+        // ============================================================
         document.getElementById('popupLoginBtn').addEventListener('click', () => {
             window.location.href = '/';
         });
@@ -743,6 +814,9 @@
             if (e.target === e.currentTarget) popup.classList.remove('active');
         });
 
+        // ============================================================
+        //  INIT
+        // ============================================================
         async function init() {
             await verifyUser();
             loadProfile();
