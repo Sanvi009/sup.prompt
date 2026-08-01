@@ -63,9 +63,13 @@ export default async function handler(req, res) {
 
   const { action } = req.query;
 
+  // ================================================================
+  //  PERSONALIZED FEED (Logged-in users)
+  // ================================================================
   if (req.method === 'GET' && action === 'feed') {
     const { limit = 50, offset = 0 } = req.query;
 
+    // 1. Get boosted prompts
     let query = supabaseAdmin
       .from('prompts')
       .select('*', { count: 'exact' })
@@ -79,6 +83,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: boostError.message });
     }
 
+    // 2. Get regular prompts (non-boosted)
     let regularQuery = supabaseAdmin
       .from('prompts')
       .select('*', { count: 'exact' })
@@ -95,6 +100,7 @@ export default async function handler(req, res) {
 
     let allPrompts = [...boosted, ...regular];
 
+    // 3. Personalize for logged-in users
     if (userId && userCategories.length > 0) {
       const { data: userLikes } = await supabaseAdmin
         .from('likes')
@@ -145,6 +151,7 @@ export default async function handler(req, res) {
       allPrompts = allPrompts.slice(0, Number(limit));
     }
 
+    // 4. Get likes/saves/comments for each prompt
     const promptsWithCounts = await Promise.all(
       allPrompts.map(async (prompt) => {
         const { count: likes } = await supabaseAdmin
@@ -194,6 +201,20 @@ export default async function handler(req, res) {
       })
     );
 
+    // 🔥 BULK VIEW COUNT UPDATE
+    if (allPrompts.length > 0) {
+      const promptIds = allPrompts.map(p => p.id);
+      try {
+        await supabaseAdmin
+          .from('prompts')
+          .update({ view_count: supabaseAdmin.sql`view_count + 1` })
+          .in('id', promptIds);
+      } catch (err) {
+        // Silently fail — views are non-critical
+        console.warn('View count update failed:', err.message);
+      }
+    }
+
     return res.status(200).json({
       prompts: promptsWithCounts,
       total: promptsWithCounts.length,
@@ -201,6 +222,9 @@ export default async function handler(req, res) {
     });
   }
 
+  // ================================================================
+  //  SEARCH
+  // ================================================================
   if (req.method === 'GET' && action === 'search') {
     const { q, limit = 20, offset = 0 } = req.query;
 
@@ -267,6 +291,9 @@ export default async function handler(req, res) {
     });
   }
 
+  // ================================================================
+  //  EXPLORE (Guest feed)
+  // ================================================================
   if (req.method === 'GET' && action === 'explore') {
     const { limit = 50, offset = 0 } = req.query;
 
@@ -300,6 +327,20 @@ export default async function handler(req, res) {
         };
       })
     );
+
+    // 🔥 BULK VIEW COUNT UPDATE
+    if (prompts.length > 0) {
+      const promptIds = prompts.map(p => p.id);
+      try {
+        await supabaseAdmin
+          .from('prompts')
+          .update({ view_count: supabaseAdmin.sql`view_count + 1` })
+          .in('id', promptIds);
+      } catch (err) {
+        // Silently fail — views are non-critical
+        console.warn('View count update failed:', err.message);
+      }
+    }
 
     return res.status(200).json({
       prompts: promptsWithCounts,
