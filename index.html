@@ -8,138 +8,241 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
     <style>
+        /* ===== RESET & BASE ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Inter', -apple-system, sans-serif;
-            background: #f8fafc;
-            color: #111827;
+            background: #e8ecf1;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 20px;
         }
+
         .container {
-            max-width: 900px;
             width: 100%;
-            padding: 24px;
+            max-width: 520px;
+            padding: 10px;
         }
+
+        /* ===== SKEOUOMORPHIC CARD ===== */
         .card {
-            background: white;
-            border-radius: 24px;
-            border: 1px solid #e2e8f0;
-            padding: 48px 40px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+            background: #e8ecf1;
+            border-radius: 32px;
+            padding: 48px 40px 44px;
+            box-shadow: 
+                12px 12px 24px rgba(0,0,0,0.08),
+                -12px -12px 24px rgba(255,255,255,0.7);
+            position: relative;
+            transition: all 0.2s;
             text-align: center;
         }
+
         .card .logo {
-            font-size: 48px;
-            margin-bottom: 8px;
+            font-size: 52px;
+            margin-bottom: 6px;
+            display: inline-block;
+            filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.05));
         }
+
         .card h1 {
-            font-size: 32px;
+            font-size: 30px;
             font-weight: 700;
-            color: #111827;
+            color: #1e293b;
             letter-spacing: -0.025em;
+            margin-bottom: 2px;
         }
-        .card p.sub {
+
+        .card .sub {
             color: #64748b;
-            font-size: 16px;
-            margin-top: 4px;
+            font-size: 15px;
+            margin-bottom: 28px;
+            font-weight: 500;
         }
-        .card .auth-box {
-            margin-top: 32px;
+
+        /* ===== PROFILE ICON (top-right) ===== */
+        .profile-icon {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #e8ecf1;
+            box-shadow: 
+                4px 4px 8px rgba(0,0,0,0.06),
+                -4px -4px 8px rgba(255,255,255,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.15s;
+            color: #4f46e5;
+            border: none;
+        }
+        .profile-icon:hover {
+            transform: scale(1.04);
+            box-shadow: 
+                4px 4px 10px rgba(0,0,0,0.08),
+                -4px -4px 10px rgba(255,255,255,0.9);
+        }
+
+        /* ===== AUTH BOX ===== */
+        .auth-box {
             display: flex;
             flex-direction: column;
             gap: 16px;
             max-width: 360px;
-            margin-left: auto;
-            margin-right: auto;
+            margin: 0 auto;
         }
-        .card .auth-box input {
+
+        .auth-box .mode-label {
+            font-weight: 600;
+            font-size: 18px;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+
+        /* ===== INPUTS (skeuomorphic) ===== */
+        .input-group {
+            position: relative;
             width: 100%;
-            padding: 12px 16px;
-            border: 1px solid #d1d5db;
-            border-radius: 12px;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 14px 18px;
+            border: none;
+            border-radius: 16px;
             font-size: 15px;
             font-family: inherit;
-            background: #f9fafb;
-            transition: all 0.2s;
-        }
-        .card .auth-box input:focus {
+            background: #e8ecf1;
+            box-shadow: 
+                inset 4px 4px 8px rgba(0,0,0,0.06),
+                inset -4px -4px 8px rgba(255,255,255,0.7);
+            transition: all 0.15s;
+            color: #1e293b;
             outline: none;
-            border-color: #4f46e5;
-            box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
-            background: white;
         }
-        .card .auth-box .btn-primary {
+        .input-group input:focus {
+            box-shadow: 
+                inset 6px 6px 10px rgba(0,0,0,0.08),
+                inset -6px -6px 10px rgba(255,255,255,0.9),
+                0 0 0 2px #4f46e5;
+        }
+        .input-group input::placeholder {
+            color: #94a3b8;
+            font-weight: 400;
+        }
+
+        /* ===== BUTTONS (skeuomorphic) ===== */
+        .btn-primary {
             padding: 14px;
             background: #4f46e5;
             color: white;
             border: none;
-            border-radius: 12px;
+            border-radius: 16px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.15s;
+            box-shadow: 
+                4px 4px 10px rgba(79,70,229,0.25),
+                -2px -2px 6px rgba(255,255,255,0.3);
+            letter-spacing: 0.3px;
         }
-        .card .auth-box .btn-primary:hover {
-            background: #4338ca;
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                6px 6px 14px rgba(79,70,229,0.3),
+                -2px -2px 8px rgba(255,255,255,0.4);
         }
-        .card .auth-box .btn-primary:disabled {
+        .btn-primary:active {
+            transform: translateY(0px);
+            box-shadow: 
+                2px 2px 6px rgba(79,70,229,0.2),
+                -2px -2px 4px rgba(255,255,255,0.2);
+        }
+        .btn-primary:disabled {
             opacity: 0.6;
             cursor: not-allowed;
+            transform: none;
         }
-        .card .auth-box .btn-secondary {
+
+        .btn-secondary {
             padding: 14px;
-            background: #f1f5f9;
-            color: #111827;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
+            background: #e8ecf1;
+            color: #1e293b;
+            border: none;
+            border-radius: 16px;
             font-size: 16px;
             font-weight: 500;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.15s;
+            box-shadow: 
+                4px 4px 10px rgba(0,0,0,0.06),
+                -4px -4px 10px rgba(255,255,255,0.7);
         }
-        .card .auth-box .btn-secondary:hover {
-            background: #e2e8f0;
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                6px 6px 14px rgba(0,0,0,0.08),
+                -6px -6px 14px rgba(255,255,255,0.8);
         }
-        .card .auth-box .btn-guest {
+        .btn-secondary:active {
+            transform: translateY(0px);
+        }
+
+        .btn-guest {
             padding: 14px;
-            background: #f8fafc;
+            background: transparent;
             color: #4f46e5;
-            border: 1px solid #4f46e5;
-            border-radius: 12px;
+            border: 1.5px solid #4f46e5;
+            border-radius: 16px;
             font-size: 16px;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.15s;
         }
-        .card .auth-box .btn-guest:hover {
+        .btn-guest:hover {
             background: #4f46e5;
             color: white;
+            box-shadow: 4px 4px 12px rgba(79,70,229,0.2);
         }
-        .card .auth-box .divider {
+        .btn-guest:active {
+            transform: scale(0.98);
+        }
+
+        /* ===== DIVIDER ===== */
+        .divider {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
             color: #94a3b8;
             font-size: 13px;
+            font-weight: 500;
+            margin: 4px 0;
         }
-        .card .auth-box .divider::before,
-        .card .auth-box .divider::after {
+        .divider::before,
+        .divider::after {
             content: '';
             flex: 1;
-            height: 1px;
-            background: #e2e8f0;
+            height: 1.5px;
+            background: #d1d5db;
+            border-radius: 2px;
         }
-        .card .auth-box .mode-toggle {
+
+        /* ===== MODE TOGGLE ===== */
+        .mode-toggle {
             display: flex;
-            gap: 8px;
             justify-content: center;
+            gap: 6px;
             font-size: 14px;
             color: #64748b;
+            font-weight: 500;
         }
-        .card .auth-box .mode-toggle button {
+        .mode-toggle button {
             background: none;
             border: none;
             color: #4f46e5;
@@ -147,47 +250,48 @@
             cursor: pointer;
             font-size: 14px;
             font-family: inherit;
+            transition: color 0.2s;
         }
-        .card .auth-box .mode-toggle button:hover {
+        .mode-toggle button:hover {
+            color: #4338ca;
             text-decoration: underline;
         }
-        .card .auth-box .error-msg {
-            color: #dc2626;
+
+        /* ===== MESSAGES ===== */
+        .msg-box {
+            min-height: 24px;
             font-size: 14px;
-            min-height: 20px;
-        }
-        .card .auth-box .success-msg {
-            color: #16a34a;
-            font-size: 14px;
-            min-height: 20px;
-        }
-        .card .profile-icon {
-            position: absolute;
-            top: 24px;
-            right: 24px;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: #eef2ff;
-            border: 2px solid #e2e8f0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 20px;
+            font-weight: 500;
+            padding: 4px 0;
+            border-radius: 8px;
             transition: all 0.2s;
+        }
+        .msg-box.error {
+            color: #dc2626;
+        }
+        .msg-box.success {
+            color: #16a34a;
+        }
+        .msg-box.info {
             color: #4f46e5;
         }
-        .card .profile-icon:hover {
-            background: #e0e7ff;
-            transform: scale(1.05);
-        }
-        .card {
-            position: relative;
-        }
-        @media (max-width: 640px) {
-            .card { padding: 32px 20px; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 600px) {
+            .card { padding: 32px 24px 28px; border-radius: 24px; }
             .card h1 { font-size: 26px; }
+            .card .logo { font-size: 44px; }
+            .profile-icon { top: 16px; right: 16px; width: 38px; height: 38px; font-size: 17px; }
+            .btn-primary, .btn-secondary, .btn-guest { font-size: 15px; padding: 12px; }
+            .input-group input { font-size: 14px; padding: 12px 16px; }
+            .auth-box .mode-label { font-size: 16px; }
+        }
+
+        @media (max-width: 420px) {
+            .card { padding: 24px 16px 20px; }
+            .card h1 { font-size: 22px; }
+            .card .logo { font-size: 36px; }
+            .auth-box { gap: 12px; }
         }
     </style>
 </head>
@@ -198,17 +302,23 @@
             <h1>Prompt Library</h1>
             <p class="sub">Discover, save, and share AI prompts</p>
 
-            <div class="profile-icon" id="profileIcon" style="display:none;" title="Profile">
+            <!-- Profile Icon (visible only when logged in) -->
+            <button class="profile-icon" id="profileIcon" style="display:none;" title="Profile">
                 👤
-            </div>
+            </button>
 
+            <!-- Auth Box -->
             <div class="auth-box" id="authBox">
-                <div id="modeLabel" style="font-weight:600;font-size:18px;color:#111827;">Welcome</div>
-                <div id="errorMsg" class="error-msg"></div>
-                <div id="successMsg" class="success-msg" style="display:none;"></div>
+                <div class="mode-label" id="modeLabel">Welcome</div>
 
-                <input type="text" id="usernameInput" placeholder="Username" autocomplete="off" />
-                <input type="password" id="passwordInput" placeholder="Password" />
+                <div class="msg-box" id="msgBox"></div>
+
+                <div class="input-group">
+                    <input type="text" id="usernameInput" placeholder="Username" autocomplete="off" />
+                </div>
+                <div class="input-group">
+                    <input type="password" id="passwordInput" placeholder="Password" />
+                </div>
 
                 <button class="btn-primary" id="actionBtn">Log In</button>
 
@@ -225,20 +335,28 @@
     </div>
 
     <script>
+        // ============================================================
+        //  STATE
+        // ============================================================
         let isLoginMode = true;
         const token = localStorage.getItem('user_token');
 
+        // ============================================================
+        //  DOM
+        // ============================================================
         const usernameInput = document.getElementById('usernameInput');
         const passwordInput = document.getElementById('passwordInput');
         const actionBtn = document.getElementById('actionBtn');
         const toggleModeBtn = document.getElementById('toggleModeBtn');
         const modeText = document.getElementById('modeText');
         const modeLabel = document.getElementById('modeLabel');
-        const errorMsg = document.getElementById('errorMsg');
-        const successMsg = document.getElementById('successMsg');
+        const msgBox = document.getElementById('msgBox');
         const guestBtn = document.getElementById('guestBtn');
         const profileIcon = document.getElementById('profileIcon');
 
+        // ============================================================
+        //  AUTO-REDIRECT IF ALREADY LOGGED IN
+        // ============================================================
         if (token) {
             fetch('/api/auth?action=verify', {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -256,10 +374,13 @@
             });
         }
 
+        // ============================================================
+        //  TOGGLE LOGIN / REGISTER
+        // ============================================================
         toggleModeBtn.addEventListener('click', () => {
             isLoginMode = !isLoginMode;
-            errorMsg.textContent = '';
-            successMsg.style.display = 'none';
+            msgBox.textContent = '';
+            msgBox.className = 'msg-box';
 
             if (isLoginMode) {
                 modeLabel.textContent = 'Welcome';
@@ -274,20 +395,31 @@
             }
         });
 
+        // ============================================================
+        //  SET MESSAGE HELPER
+        // ============================================================
+        function setMessage(text, type = 'error') {
+            msgBox.textContent = text;
+            msgBox.className = 'msg-box ' + type;
+        }
+
+        // ============================================================
+        //  LOGIN / REGISTER
+        // ============================================================
         actionBtn.addEventListener('click', async () => {
             const username = usernameInput.value.trim();
             const password = passwordInput.value.trim();
 
-            errorMsg.textContent = '';
-            successMsg.style.display = 'none';
+            setMessage('', 'info');
 
             if (!username || !password) {
-                errorMsg.textContent = 'Username and password required.';
+                setMessage('Please enter both username and password.', 'error');
                 return;
             }
 
             actionBtn.disabled = true;
             actionBtn.textContent = isLoginMode ? 'Logging in...' : 'Creating account...';
+            setMessage('', 'info');
 
             const action = isLoginMode ? 'login' : 'register';
 
@@ -301,32 +433,57 @@
                 const data = await res.json();
 
                 if (data.success) {
+                    // Check if banned
                     if (data.user.is_banned) {
-                        errorMsg.textContent = 'Account banned: ' + (data.user.ban_note || '');
+                        setMessage(
+                            'Sorry, this account has been banned. ' + (data.user.ban_note || ''),
+                            'error'
+                        );
                         actionBtn.disabled = false;
                         actionBtn.textContent = isLoginMode ? 'Log In' : 'Sign Up';
                         return;
                     }
 
+                    // Store token
                     localStorage.setItem('user_token', data.token);
 
-                    successMsg.textContent = isLoginMode ? 'Logged in! Redirecting...' : 'Account created! Redirecting...';
-                    successMsg.style.display = 'block';
+                    // Success message
+                    const successText = isLoginMode
+                        ? 'Welcome back! Redirecting...'
+                        : 'Account created! Redirecting...';
+                    setMessage(successText, 'success');
 
+                    // Redirect after short delay
                     setTimeout(() => {
                         window.location.href = '/feed/';
                     }, 1000);
                 } else {
-                    errorMsg.textContent = data.error || 'Something went wrong.';
+                    // Professional error messages
+                    let errorMsg = 'Something went wrong. Please try again.';
+                    if (data.error) {
+                        if (data.error.includes('credentials')) {
+                            errorMsg = 'Wrong username or password. Please try again.';
+                        } else if (data.error.includes('taken')) {
+                            errorMsg = 'This username is already taken. Please choose another.';
+                        } else if (data.error.includes('banned')) {
+                            errorMsg = 'Sorry, this account has been banned.';
+                        } else {
+                            errorMsg = data.error;
+                        }
+                    }
+                    setMessage(errorMsg, 'error');
                 }
             } catch (err) {
-                errorMsg.textContent = 'Connection error. Please try again.';
+                setMessage('Unable to connect. Please check your internet and try again.', 'error');
             }
 
             actionBtn.disabled = false;
             actionBtn.textContent = isLoginMode ? 'Log In' : 'Sign Up';
         });
 
+        // ============================================================
+        //  ENTER KEY SUPPORT
+        // ============================================================
         passwordInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') actionBtn.click();
         });
@@ -334,10 +491,16 @@
             if (e.key === 'Enter') actionBtn.click();
         });
 
+        // ============================================================
+        //  GUEST ENTRY
+        // ============================================================
         guestBtn.addEventListener('click', () => {
             window.location.href = '/feed/';
         });
 
+        // ============================================================
+        //  PROFILE ICON (if already logged in)
+        // ============================================================
         if (token) {
             profileIcon.style.display = 'flex';
             profileIcon.addEventListener('click', () => {
