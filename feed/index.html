@@ -9,23 +9,26 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+        /* ===== RESET & BASE ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Inter', -apple-system, sans-serif;
-            background: #f8fafc;
-            color: #111827;
+            background: #e8ecf1;
+            color: #1e293b;
             -webkit-font-smoothing: antialiased;
         }
+
         .container {
             max-width: 1280px;
             margin: 0 auto;
             padding: 24px 24px 80px;
         }
 
+        /* ===== HEADER (Skeuomorphic) ===== */
         header {
-            background: white;
-            border-bottom: 1px solid #e2e8f0;
-            padding: 14px 24px;
+            background: #e8ecf1;
+            border-bottom: none;
+            padding: 16px 28px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -34,11 +37,15 @@
             z-index: 100;
             flex-wrap: wrap;
             gap: 12px;
+            box-shadow: 
+                0 4px 12px rgba(0,0,0,0.04),
+                inset 0 1px 0 rgba(255,255,255,0.6);
+            backdrop-filter: blur(6px);
         }
         header .brand {
             font-size: 22px;
             font-weight: 700;
-            color: #111827;
+            color: #1e293b;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -57,41 +64,55 @@
             justify-content: flex-end;
         }
         header .controls input {
-            padding: 10px 16px;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
+            padding: 12px 18px;
+            border: none;
+            border-radius: 16px;
             font-size: 15px;
             font-family: inherit;
-            background: #f9fafb;
-            transition: all 0.2s;
+            background: #e8ecf1;
+            box-shadow: 
+                inset 4px 4px 8px rgba(0,0,0,0.06),
+                inset -4px -4px 8px rgba(255,255,255,0.7);
+            transition: all 0.15s;
             width: 100%;
             max-width: 280px;
+            color: #1e293b;
+            outline: none;
         }
         header .controls input:focus {
-            outline: none;
-            border-color: #4f46e5;
-            box-shadow: 0 0 0 4px rgba(79,70,229,0.08);
-            background: white;
+            box-shadow: 
+                inset 6px 6px 10px rgba(0,0,0,0.08),
+                inset -6px -6px 10px rgba(255,255,255,0.9),
+                0 0 0 2px #4f46e5;
+        }
+        header .controls input::placeholder {
+            color: #94a3b8;
+            font-weight: 400;
         }
         header .controls .profile-btn {
-            width: 40px;
-            height: 40px;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
-            background: #eef2ff;
-            border: 2px solid #e2e8f0;
+            background: #e8ecf1;
+            box-shadow: 
+                4px 4px 8px rgba(0,0,0,0.06),
+                -4px -4px 8px rgba(255,255,255,0.8);
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             font-size: 18px;
             color: #4f46e5;
-            transition: all 0.2s;
+            transition: all 0.15s;
             flex-shrink: 0;
             text-decoration: none;
+            border: none;
         }
         header .controls .profile-btn:hover {
-            background: #e0e7ff;
-            transform: scale(1.05);
+            transform: scale(1.04);
+            box-shadow: 
+                4px 4px 10px rgba(0,0,0,0.08),
+                -4px -4px 10px rgba(255,255,255,0.9);
         }
         header .controls .profile-btn img {
             width: 36px;
@@ -100,26 +121,32 @@
             object-fit: cover;
         }
 
+        /* ===== GRID ===== */
         .grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
+            gap: 18px;
         }
 
+        /* ===== CARD (Skeuomorphic + always‑visible stats) ===== */
         .card {
             position: relative;
             width: 100%;
             padding-bottom: 100%;
-            border-radius: 12px;
+            border-radius: 20px;
             overflow: hidden;
             cursor: pointer;
-            background: #f1f5f9;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-            transition: transform 0.2s, box-shadow 0.2s;
+            background: #e8ecf1;
+            box-shadow: 
+                6px 6px 14px rgba(0,0,0,0.08),
+                -6px -6px 14px rgba(255,255,255,0.7);
+            transition: all 0.2s;
         }
         .card:hover {
             transform: scale(1.02);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+            box-shadow: 
+                8px 8px 18px rgba(0,0,0,0.10),
+                -8px -8px 18px rgba(255,255,255,0.8);
         }
         .card img {
             position: absolute;
@@ -130,64 +157,87 @@
             object-fit: cover;
             display: block;
         }
-        .card .overlay {
+
+        /* ===== STATS OVERLAY (always visible) ===== */
+        .stats-overlay {
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
-            padding: 12px 16px;
-            background: linear-gradient(transparent, rgba(0,0,0,0.5));
+            padding: 14px 16px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.55));
             display: flex;
             align-items: center;
             justify-content: space-between;
-            opacity: 0;
-            transition: opacity 0.25s;
+            gap: 8px;
+            flex-wrap: wrap;
         }
-        .card:hover .overlay {
-            opacity: 1;
-        }
-        .card .overlay .stats {
+        .stats-overlay .left {
             display: flex;
-            gap: 16px;
+            gap: 12px;
             color: white;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
+            flex-wrap: wrap;
         }
-        .card .overlay .stats span {
+        .stats-overlay .left span {
             display: flex;
             align-items: center;
             gap: 4px;
+            background: rgba(0,0,0,0.25);
+            padding: 4px 10px 4px 8px;
+            border-radius: 20px;
+            backdrop-filter: blur(2px);
         }
-        .card .overlay .actions {
+        .stats-overlay .left svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+            flex-shrink: 0;
+        }
+        .stats-overlay .actions {
             display: flex;
-            gap: 8px;
+            gap: 6px;
         }
-        .card .overlay .actions button {
-            background: rgba(255,255,255,0.2);
+        .stats-overlay .actions button {
+            background: rgba(255,255,255,0.15);
             backdrop-filter: blur(4px);
             border: none;
             border-radius: 50%;
-            width: 34px;
-            height: 34px;
+            width: 32px;
+            height: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: all 0.2s;
-            font-size: 16px;
             color: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         }
-        .card .overlay .actions button:hover {
-            background: rgba(255,255,255,0.4);
+        .stats-overlay .actions button:hover {
+            background: rgba(255,255,255,0.3);
             transform: scale(1.1);
         }
-        .card .overlay .actions button.liked {
+        .stats-overlay .actions button.liked {
             color: #ef4444;
         }
-        .card .overlay .actions button.saved {
-            color: #111827;
+        .stats-overlay .actions button.liked svg {
+            fill: #ef4444;
+        }
+        .stats-overlay .actions button.saved {
+            color: #fff;
+        }
+        .stats-overlay .actions button.saved svg {
+            fill: #fff;
+        }
+        .stats-overlay .actions svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+            transition: fill 0.2s;
         }
 
+        /* ===== LOADER ===== */
         .loader {
             text-align: center;
             padding: 40px 0 60px;
@@ -205,9 +255,11 @@
             animation: spin 0.7s linear infinite;
             margin-right: 10px;
             vertical-align: middle;
+            box-shadow: inset 2px 2px 4px rgba(0,0,0,0.04);
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
+        /* ===== EMPTY ===== */
         .empty {
             text-align: center;
             padding: 80px 24px;
@@ -216,16 +268,7 @@
         }
         .empty .icon { font-size: 56px; margin-bottom: 16px; }
 
-        @media (max-width: 1024px) { .grid { grid-template-columns: repeat(3, 1fr); } }
-        @media (max-width: 768px) { .grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 480px) { .grid { grid-template-columns: repeat(1, 1fr); } }
-
-        @media (max-width: 640px) {
-            header { padding: 12px 16px; flex-direction: column; align-items: stretch; }
-            header .controls { max-width: 100%; justify-content: stretch; }
-            header .controls input { max-width: 100%; }
-        }
-
+        /* ===== POPUP ===== */
         .popup-overlay {
             display: none;
             position: fixed;
@@ -238,40 +281,78 @@
         }
         .popup-overlay.active { display: flex; }
         .popup {
-            background: white;
-            border-radius: 20px;
+            background: #e8ecf1;
+            border-radius: 24px;
             padding: 32px 40px;
             max-width: 400px;
             width: 92%;
             text-align: center;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            box-shadow: 
+                12px 12px 24px rgba(0,0,0,0.08),
+                -12px -12px 24px rgba(255,255,255,0.6);
         }
-        .popup h2 { font-size: 22px; font-weight: 700; color: #111827; }
+        .popup h2 { font-size: 22px; font-weight: 700; color: #1e293b; }
         .popup p { color: #64748b; font-size: 15px; margin: 8px 0 24px; }
         .popup .btn-primary {
             padding: 12px 32px;
             background: #4f46e5;
             color: white;
             border: none;
-            border-radius: 12px;
+            border-radius: 16px;
             font-weight: 600;
             font-size: 15px;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.15s;
+            box-shadow: 
+                4px 4px 10px rgba(79,70,229,0.25),
+                -2px -2px 6px rgba(255,255,255,0.3);
         }
-        .popup .btn-primary:hover { background: #4338ca; }
+        .popup .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                6px 6px 14px rgba(79,70,229,0.3),
+                -2px -2px 8px rgba(255,255,255,0.4);
+        }
         .popup .btn-secondary {
             padding: 12px 32px;
-            background: #f1f5f9;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
+            background: #e8ecf1;
+            color: #1e293b;
+            border: none;
+            border-radius: 16px;
             font-weight: 500;
             font-size: 15px;
             cursor: pointer;
-            margin-left: 12px;
-            transition: background 0.2s;
+            box-shadow: 
+                4px 4px 10px rgba(0,0,0,0.06),
+                -4px -4px 10px rgba(255,255,255,0.7);
         }
-        .popup .btn-secondary:hover { background: #e2e8f0; }
+        .popup .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                6px 6px 14px rgba(0,0,0,0.08),
+                -6px -6px 14px rgba(255,255,255,0.8);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1024px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 768px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 480px) { .grid { grid-template-columns: repeat(1, 1fr); } }
+
+        @media (max-width: 640px) {
+            header { padding: 12px 16px; flex-direction: column; align-items: stretch; }
+            header .controls { max-width: 100%; justify-content: stretch; }
+            header .controls input { max-width: 100%; }
+            .stats-overlay .left { font-size: 12px; gap: 8px; }
+            .stats-overlay .left span { padding: 3px 8px 3px 6px; }
+            .stats-overlay .left svg { width: 14px; height: 14px; }
+            .stats-overlay .actions button { width: 28px; height: 28px; }
+            .stats-overlay .actions svg { width: 16px; height: 16px; }
+        }
+        @media (max-width: 420px) {
+            .stats-overlay { padding: 10px 12px; flex-direction: column; align-items: stretch; gap: 6px; }
+            .stats-overlay .left { justify-content: center; }
+            .stats-overlay .actions { justify-content: center; }
+        }
     </style>
 </head>
 <body>
@@ -279,7 +360,7 @@
         <a href="/feed/" class="brand">📚 <span>Prompt</span> Library</a>
         <div class="controls">
             <input type="text" id="searchInput" placeholder="Search users & prompts..." />
-            <a href="/profile" class="profile-btn" id="profileBtn">👤</a>
+            <button class="profile-btn" id="profileBtn">👤</button>
         </div>
     </header>
 
@@ -293,13 +374,16 @@
     <div class="popup-overlay" id="popup">
         <div class="popup">
             <h2>🔒 Sign in to interact</h2>
-            <p>You need to log in or create an account to like, save, or comment.</p>
+            <p>You need to log in or create an account to like or save.</p>
             <button class="btn-primary" id="popupLoginBtn">Log In / Sign Up</button>
             <button class="btn-secondary" id="popupCloseBtn">Cancel</button>
         </div>
     </div>
 
     <script>
+        // ============================================================
+        //  STATE
+        // ============================================================
         const token = localStorage.getItem('user_token');
         let user = null;
         let page = 0;
@@ -309,11 +393,17 @@
         let searchTimeout = null;
         let currentSearch = '';
 
+        // ============================================================
+        //  DOM
+        // ============================================================
         const grid = document.getElementById('grid');
         const loader = document.getElementById('loader');
         const searchInput = document.getElementById('searchInput');
         const profileBtn = document.getElementById('profileBtn');
 
+        // ============================================================
+        //  VERIFY USER
+        // ============================================================
         async function verifyUser() {
             if (!token) return null;
             try {
@@ -339,6 +429,9 @@
             }
         }
 
+        // ============================================================
+        //  LOAD FEED
+        // ============================================================
         async function loadFeed(reset = false) {
             if (loading || (!hasMore && !reset)) return;
             loading = true;
@@ -374,25 +467,36 @@
                     card.dataset.liked = p.liked || false;
                     card.dataset.saved = p.saved || false;
 
-                    const likeIcon = p.liked ? '❤️' : '🤍';
-                    const saveIcon = p.saved ? '💾' : '💿';
+                    // SVG Icons (no emojis)
+                    const likeIcon = p.liked
+                        ? `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`
+                        : `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+                    const saveIcon = p.saved
+                        ? `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>`
+                        : `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>`;
+                    const likeClass = p.liked ? 'liked' : '';
+                    const saveClass = p.saved ? 'saved' : '';
+
+                    const eyeIcon = `<svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5 5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3 1.34 3 3-1.34-3-3-3z"/></svg>`;
+                    const commentIcon = `<svg viewBox="0 0 24 24"><path d="M21 6h-2v2h-2V6h-2V4h2V2h2v2h2v2zm-10 3c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm0 4c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>`;
 
                     card.innerHTML = `
                         <img src="${p.image_main}" 
                              loading="lazy"
                              onerror="this.src='https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=400&h=400&fit=crop&auto=format'" 
                              alt="${p.title}" />
-                        <div class="overlay">
-                            <div class="stats">
-                                <span>❤️ ${p.like_count || 0}</span>
-                                <span>💾 ${p.save_count || 0}</span>
-                                <span>👁️ ${p.view_count || 0}</span>
+                        <div class="stats-overlay">
+                            <div class="left">
+                                <span>${eyeIcon} ${p.view_count || 0}</span>
+                                <span>${likeIcon} ${p.like_count || 0}</span>
+                                <span>${saveIcon} ${p.save_count || 0}</span>
+                                <span>${commentIcon} ${p.comment_count || 0}</span>
                             </div>
                             <div class="actions">
-                                <button class="like-btn" data-id="${p.id}" data-liked="${p.liked || false}">
+                                <button class="like-btn ${likeClass}" data-id="${p.id}" data-liked="${p.liked || false}">
                                     ${likeIcon}
                                 </button>
-                                <button class="save-btn" data-id="${p.id}" data-saved="${p.saved || false}">
+                                <button class="save-btn ${saveClass}" data-id="${p.id}" data-saved="${p.saved || false}">
                                     ${saveIcon}
                                 </button>
                             </div>
@@ -421,6 +525,9 @@
             loading = false;
         }
 
+        // ============================================================
+        //  INFINITE SCROLL
+        // ============================================================
         let scrollTimeout;
         window.addEventListener('scroll', () => {
             clearTimeout(scrollTimeout);
@@ -434,6 +541,9 @@
             }, 100);
         });
 
+        // ============================================================
+        //  SEARCH
+        // ============================================================
         searchInput.addEventListener('input', () => {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
@@ -444,10 +554,14 @@
             }, 500);
         });
 
+        // ============================================================
+        //  LIKE / SAVE INTERACTIONS
+        // ============================================================
         document.addEventListener('click', async (e) => {
             const likeBtn = e.target.closest('.like-btn');
             const saveBtn = e.target.closest('.save-btn');
 
+            // --- Like ---
             if (likeBtn) {
                 e.stopPropagation();
                 if (!token) {
@@ -471,10 +585,13 @@
                     const data = await res.json();
                     if (data.success) {
                         likeBtn.dataset.liked = !liked;
-                        likeBtn.textContent = !liked ? '❤️' : '🤍';
-                        const statsSpan = likeBtn.closest('.card').querySelector('.stats span:first-child');
+                        likeBtn.innerHTML = !liked
+                            ? `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`
+                            : `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+                        likeBtn.classList.toggle('liked', !liked);
+                        const statsSpan = likeBtn.closest('.card').querySelector('.left span:nth-child(2)');
                         const current = parseInt(statsSpan.textContent.split(' ')[1]);
-                        statsSpan.textContent = `❤️ ${current + (liked ? -1 : 1)}`;
+                        statsSpan.innerHTML = `${liked ? `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>` : `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`} ${current + (liked ? -1 : 1)}`;
                     }
                 } catch (err) {
                     console.error('Like error:', err);
@@ -482,6 +599,7 @@
                 return;
             }
 
+            // --- Save ---
             if (saveBtn) {
                 e.stopPropagation();
                 if (!token) {
@@ -505,10 +623,13 @@
                     const data = await res.json();
                     if (data.success) {
                         saveBtn.dataset.saved = !saved;
-                        saveBtn.textContent = !saved ? '💾' : '💿';
-                        const statsSpan = saveBtn.closest('.card').querySelector('.stats span:nth-child(2)');
+                        saveBtn.innerHTML = !saved
+                            ? `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>`
+                            : `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>`;
+                        saveBtn.classList.toggle('saved', !saved);
+                        const statsSpan = saveBtn.closest('.card').querySelector('.left span:nth-child(3)');
                         const current = parseInt(statsSpan.textContent.split(' ')[1]);
-                        statsSpan.textContent = `💾 ${current + (saved ? -1 : 1)}`;
+                        statsSpan.innerHTML = `${saved ? `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>` : `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>`} ${current + (saved ? -1 : 1)}`;
                     }
                 } catch (err) {
                     console.error('Save error:', err);
@@ -517,6 +638,9 @@
             }
         });
 
+        // ============================================================
+        //  POPUP CONTROLS
+        // ============================================================
         document.getElementById('popupLoginBtn').addEventListener('click', () => {
             window.location.href = '/';
         });
@@ -529,6 +653,9 @@
             }
         });
 
+        // ============================================================
+        //  PROFILE BUTTON
+        // ============================================================
         profileBtn.addEventListener('click', (e) => {
             e.preventDefault();
             if (user) {
@@ -538,6 +665,9 @@
             }
         });
 
+        // ============================================================
+        //  INIT
+        // ============================================================
         async function init() {
             await verifyUser();
             loadFeed();
