@@ -351,6 +351,27 @@
         }
         .popup .btn-secondary:hover { background: #e2e8f0; }
 
+        /* ===== LOGOUT BUTTON ===== */
+        .logout-wrap {
+            margin-top: 32px;
+            text-align: center;
+        }
+        .logout-btn {
+            padding: 12px 32px;
+            background: #fee2e2;
+            color: #dc2626;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-family: inherit;
+        }
+        .logout-btn:hover {
+            background: #fecaca;
+        }
+
         @media (max-width: 768px) {
             .prompt-grid { grid-template-columns: repeat(2, 1fr); }
             .profile-header .top { flex-direction: column; align-items: center; text-align: center; }
@@ -370,6 +391,11 @@
                 <div class="spinner"></div>
                 <p>Loading profile...</p>
             </div>
+        </div>
+
+        <!-- Logout Button (visible only when logged in) -->
+        <div class="logout-wrap" id="logoutWrap" style="display:none;">
+            <button class="logout-btn" id="logoutBtn">Sign Out</button>
         </div>
     </div>
 
@@ -397,6 +423,7 @@
 
         const container = document.getElementById('content');
         const popup = document.getElementById('popup');
+        const logoutWrap = document.getElementById('logoutWrap');
 
         async function verifyUser() {
             if (!token) return null;
@@ -419,7 +446,7 @@
         }
 
         async function loadProfile() {
-            profileUsername = window.location.pathname.split('/').pop().replace(/^@/, ''); // <-- add .replace(/^@/, '')
+            profileUsername = window.location.pathname.split('/').pop().replace(/^@/, '');
             if (!profileUsername) {
                 container.innerHTML = `<div class="loading">❌ User not found</div>`;
                 return;
@@ -440,6 +467,11 @@
                 profileUser = data.profile;
                 isFollowing = data.isFollowing || false;
                 isOwnProfile = currentUser && currentUser.username === profileUser.username;
+
+                // Show logout button only if viewing own profile
+                if (isOwnProfile) {
+                    logoutWrap.style.display = 'block';
+                }
 
                 renderProfile(data);
                 loadPrompts('liked', true);
@@ -694,6 +726,12 @@
                 }
             }
         }
+
+        // --- Logout ---
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('user_token');
+            window.location.href = '/';
+        });
 
         document.getElementById('popupLoginBtn').addEventListener('click', () => {
             window.location.href = '/';
