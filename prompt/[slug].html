@@ -192,14 +192,23 @@
             gap: 4px;
         }
 
-        /* ===== POST TITLE ===== */
+        /* ===== TITLE & DESCRIPTION ===== */
         .post-title {
-            padding: 0 18px 6px;
-            font-size: 22px;
+            padding: 0 18px 4px;
+        }
+        .post-title h1 {
+            font-size: 24px;
             font-weight: 700;
             color: #050505;
             letter-spacing: -0.4px;
             line-height: 1.3;
+            margin-bottom: 4px;
+        }
+        .post-title h2 {
+            font-size: 16px;
+            font-weight: 400;
+            color: #65676b;
+            line-height: 1.5;
         }
 
         /* ===== POST IMAGE ===== */
@@ -354,6 +363,7 @@
             display: flex;
             gap: 10px;
             margin-bottom: 16px;
+            flex-wrap: wrap;
         }
         .comment-input-wrap .avatar-small {
             width: 32px;
@@ -371,6 +381,7 @@
         }
         .comment-input-wrap input {
             flex: 1;
+            min-width: 160px;
             padding: 10px 16px;
             border: 1px solid #e4e6eb;
             border-radius: 24px;
@@ -395,6 +406,7 @@
             font-size: 14px;
             cursor: pointer;
             transition: background 0.2s, transform 0.1s;
+            flex-shrink: 0;
         }
         .comment-input-wrap .btn-submit:hover {
             background: #166fe5;
@@ -699,7 +711,9 @@
             .container { padding: 12px 8px 60px; }
             .post-header { padding: 14px 14px 8px; gap: 10px; }
             .post-header .avatar { width: 38px; height: 38px; font-size: 16px; }
-            .post-title { padding: 0 14px 4px; font-size: 19px; }
+            .post-title { padding: 0 14px 4px; }
+            .post-title h1 { font-size: 20px; }
+            .post-title h2 { font-size: 14px; }
             .action-bar { padding: 10px 14px; gap: 4px; }
             .action-bar .left { gap: 8px; }
             .action-bar button { font-size: 13px; padding: 4px 6px; }
@@ -715,11 +729,17 @@
             .popup h2 { font-size: 20px; }
             .comment-item .replies { margin-left: 28px; }
             .comment-item .reply-input-wrap { margin-left: 28px; }
+            .comment-input-wrap { gap: 6px; }
+            .comment-input-wrap input { min-width: 120px; padding: 8px 14px; }
+            .comment-input-wrap .btn-submit { padding: 8px 16px; font-size: 13px; }
         }
         @media (max-width: 400px) {
             .action-bar .left { gap: 4px; }
             .action-bar button { font-size: 12px; padding: 4px; }
             .action-bar button svg { width: 16px; height: 16px; }
+            .comment-input-wrap { flex-direction: column; }
+            .comment-input-wrap input { width: 100%; }
+            .comment-input-wrap .btn-submit { width: 100%; }
         }
     </style>
 </head>
@@ -905,8 +925,11 @@
                         </div>
                     </div>
 
-                    <!-- Title -->
-                    <div class="post-title">${p.title}</div>
+                    <!-- Title & Description -->
+                    <div class="post-title">
+                        <h1>${p.title}</h1>
+                        ${p.description ? `<h2>${p.description}</h2>` : ''}
+                    </div>
 
                     <!-- Image + View Count -->
                     <div class="post-image-wrap">
