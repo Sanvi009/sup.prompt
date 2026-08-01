@@ -304,7 +304,7 @@
         }
         .empty .icon { font-size: 48px; margin-bottom: 12px; }
 
-        /* ===== POPUP ===== */
+        /* ===== AUTH POPUP ===== */
         .popup-overlay {
             display: none;
             position: fixed;
@@ -351,6 +351,99 @@
             transition: background 0.2s;
         }
         .popup .btn-secondary:hover { background: #d0d0d0; }
+
+        /* ===== REPORT MODAL ===== */
+        .report-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(4px);
+            z-index: 1001;
+            align-items: center;
+            justify-content: center;
+        }
+        .report-modal-overlay.active { display: flex; }
+
+        .report-modal {
+            background: #e8ecf1;
+            border-radius: 20px;
+            padding: 28px 32px;
+            max-width: 420px;
+            width: 92%;
+            box-shadow: 
+                12px 12px 24px rgba(0,0,0,0.08),
+                -12px -12px 24px rgba(255,255,255,0.6);
+        }
+        .report-modal h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+        .report-modal p {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 16px;
+        }
+        .report-modal textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-family: inherit;
+            background: #e8ecf1;
+            box-shadow: 
+                inset 4px 4px 8px rgba(0,0,0,0.06),
+                inset -4px -4px 8px rgba(255,255,255,0.7);
+            resize: vertical;
+            min-height: 80px;
+            color: #1a1a1a;
+            outline: none;
+            transition: box-shadow 0.2s;
+        }
+        .report-modal textarea:focus {
+            box-shadow: 
+                inset 6px 6px 10px rgba(0,0,0,0.08),
+                inset -6px -6px 10px rgba(255,255,255,0.9),
+                0 0 0 2px #4f46e5;
+        }
+        .report-modal .actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 16px;
+        }
+        .report-modal .actions .btn-cancel {
+            padding: 10px 20px;
+            background: #e0e0e0;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+            box-shadow: 2px 2px 6px rgba(0,0,0,0.06);
+        }
+        .report-modal .actions .btn-cancel:hover {
+            background: #d0d0d0;
+        }
+        .report-modal .actions .btn-submit {
+            padding: 10px 24px;
+            background: #dc2626;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+            box-shadow: 2px 2px 6px rgba(220,38,38,0.2);
+        }
+        .report-modal .actions .btn-submit:hover {
+            background: #b91c1c;
+        }
 
         /* ===== STICKY LOGOUT BUTTON ===== */
         .logout-sticky {
@@ -486,13 +579,26 @@
         </div>
     </div>
 
-    <!-- POPUP -->
+    <!-- AUTH POPUP -->
     <div class="popup-overlay" id="popup">
         <div class="popup">
             <h2>🔒 Sign in to interact</h2>
             <p>You need to log in or create an account to follow or report.</p>
             <button class="btn-primary" id="popupLoginBtn">Log In / Sign Up</button>
             <button class="btn-secondary" id="popupCloseBtn">Cancel</button>
+        </div>
+    </div>
+
+    <!-- REPORT MODAL -->
+    <div class="report-modal-overlay" id="reportModal">
+        <div class="report-modal">
+            <h2>Report User</h2>
+            <p>Tell us why you're reporting <strong id="reportedUsername">this user</strong>.</p>
+            <textarea id="reportReason" placeholder="Describe the issue..."></textarea>
+            <div class="actions">
+                <button class="btn-cancel" id="reportCancelBtn">Cancel</button>
+                <button class="btn-submit" id="reportSubmitBtn">Submit Report</button>
+            </div>
         </div>
     </div>
 
@@ -523,6 +629,7 @@
         const container = document.getElementById('content');
         const popup = document.getElementById('popup');
         const logoutSticky = document.getElementById('logoutSticky');
+        const reportModal = document.getElementById('reportModal');
 
         // ============================================================
         //  VERIFY USER
@@ -548,7 +655,7 @@
         }
 
         // ============================================================
-        //  RENDER SKELETON (Profile + Grid)
+        //  RENDER SKELETON
         // ============================================================
         function renderSkeleton() {
             container.innerHTML = `
@@ -609,7 +716,6 @@
                 return;
             }
 
-            // Show skeleton immediately
             renderSkeleton();
 
             try {
@@ -649,7 +755,6 @@
 
             const avatarUrl = p.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(p.username) + '&background=e0e0e0&color=4f46e5&size=120';
             const displayName = p.display_name || p.username;
-            const joined = new Date(p.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
             let actionsHtml = '';
             if (isOwnProfile) {
@@ -670,7 +775,6 @@
                 `;
             }
 
-            // SVG icons for stats overlay (no emojis)
             const heartIcon = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
             const bookmarkIcon = `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>`;
 
@@ -720,7 +824,6 @@
                 </div>
             `;
 
-            // --- Tabs ---
             document.querySelectorAll('.tab').forEach(tab => {
                 tab.addEventListener('click', () => {
                     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -736,13 +839,11 @@
                 });
             });
 
-            // --- Follow ---
             const followBtn = document.getElementById('followBtn');
             if (followBtn) {
                 followBtn.addEventListener('click', handleFollow);
             }
 
-            // --- More button (Report) ---
             const moreBtn = document.getElementById('moreBtn');
             if (moreBtn) {
                 moreBtn.addEventListener('click', () => {
@@ -750,20 +851,49 @@
                         popup.classList.add('active');
                         return;
                     }
-                    const reason = prompt('Report this user — reason:');
-                    if (reason && reason.trim()) {
-                        fetch('/api/reports?action=submit', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${token}`
-                            },
-                            body: JSON.stringify({ targetUserId: profileUser.id, reason: reason.trim() })
-                        }).then(() => alert('Report submitted. Thank you!'));
-                    }
+                    document.getElementById('reportedUsername').textContent = `@${profileUser.username}`;
+                    document.getElementById('reportReason').value = '';
+                    reportModal.classList.add('active');
                 });
             }
         }
+
+        // ============================================================
+        //  REPORT SUBMIT
+        // ============================================================
+        document.getElementById('reportCancelBtn').addEventListener('click', () => {
+            reportModal.classList.remove('active');
+        });
+
+        document.getElementById('reportSubmitBtn').addEventListener('click', async () => {
+            const reason = document.getElementById('reportReason').value.trim();
+            if (!reason) {
+                alert('Please describe the issue.');
+                return;
+            }
+
+            try {
+                await fetch('/api/reports?action=submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ targetUserId: profileUser.id, reason })
+                });
+                reportModal.classList.remove('active');
+                alert('Report submitted. Thank you!');
+            } catch (err) {
+                console.error(err);
+                alert('Failed to submit report.');
+            }
+        });
+
+        reportModal.addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                reportModal.classList.remove('active');
+            }
+        });
 
         // ============================================================
         //  LOAD PROMPTS
@@ -777,7 +907,6 @@
             }
 
             const grid = document.getElementById('promptGrid');
-            // Show skeleton grid while loading
             if (reset) {
                 grid.innerHTML = `
                     <div class="skeleton-grid" style="grid-column:1/-1;">
@@ -809,7 +938,6 @@
                 const data = await res.json();
                 let items = data.prompts || data.comments || [];
 
-                // Deduplicate comments tab by prompt_id
                 if (tab === 'comments') {
                     const seen = new Set();
                     items = items.filter(item => {
@@ -909,7 +1037,7 @@
         });
 
         // ============================================================
-        //  POPUP
+        //  AUTH POPUP
         // ============================================================
         document.getElementById('popupLoginBtn').addEventListener('click', () => {
             window.location.href = '/';
