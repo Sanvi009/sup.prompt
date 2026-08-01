@@ -399,7 +399,7 @@ export default async function handler(req, res) {
           image_main
         )
       `, { count: 'exact' })
-      .eq('user_id', id)
+      .eq('username', targetUserId)
       .eq('is_hidden', false)
       .order('created_at', { ascending: false })
       .range(Number(offset), Number(offset) + Number(limit) - 1);
