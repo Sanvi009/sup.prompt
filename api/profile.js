@@ -49,7 +49,7 @@ export default async function handler(req, res) {
         last_username_change,
         last_display_name_change
       `)
-      .eq('id', id)
+      .eq('username', targetUserId)
       .single();
 
     if (error || !profile) {
