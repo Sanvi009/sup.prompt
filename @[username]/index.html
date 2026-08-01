@@ -419,7 +419,7 @@
         }
 
         async function loadProfile() {
-            profileUsername = window.location.pathname.split('/').pop();
+            profileUsername = window.location.pathname.split('/').pop().replace(/^@/, ''); // <-- add .replace(/^@/, '')
             if (!profileUsername) {
                 container.innerHTML = `<div class="loading">❌ User not found</div>`;
                 return;
