@@ -25,13 +25,7 @@ export default async function handler(req, res) {
 
     const { data: prompt, error } = await supabaseAdmin
       .from('prompts')
-      .select(`
-        *,
-        categories:category_ids (
-          id,
-          name
-        )
-      `)
+      .select('*')
       .eq('slug', slug)
       .eq('is_published', true)
       .single();
