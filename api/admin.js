@@ -35,6 +35,9 @@ export default async function handler(req, res) {
   const adminId = decoded.id;
   const { action } = req.query;
 
+  // ================================================================
+  // SECTION 1: DASHBOARD STATS
+  // ================================================================
   if (action === 'dashboard') {
     const { count: totalUsers } = await supabaseAdmin
       .from('profiles')
@@ -99,9 +102,13 @@ export default async function handler(req, res) {
     });
   }
 
+  // ================================================================
+  // SECTION 2: USER MANAGEMENT
+  // ================================================================
   if (action === 'users') {
     const subAction = req.query.sub;
 
+    // --- LIST USERS (with filters) ---
     if (subAction === 'list') {
       const { filter, limit = 50, offset = 0 } = req.query;
 
@@ -121,6 +128,7 @@ export default async function handler(req, res) {
           updated_at
         `, { count: 'exact' });
 
+      // Apply filters
       if (filter === 'newest') {
         query = query.order('created_at', { ascending: false });
       } else if (filter === 'oldest') {
@@ -184,6 +192,7 @@ export default async function handler(req, res) {
       });
     }
 
+    // --- SEARCH USERS ---
     if (subAction === 'search') {
       const { q } = req.query;
 
@@ -214,6 +223,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ users });
     }
 
+    // --- BAN USER ---
     if (subAction === 'ban') {
       const { userId, note } = req.body;
 
@@ -266,6 +276,7 @@ export default async function handler(req, res) {
       });
     }
 
+    // --- UNBAN USER ---
     if (subAction === 'unban') {
       const { userId } = req.body;
 
@@ -306,6 +317,7 @@ export default async function handler(req, res) {
       });
     }
 
+    // --- DELETE USER (permanent) ---
     if (subAction === 'delete') {
       const { userId } = req.body;
 
@@ -356,6 +368,7 @@ export default async function handler(req, res) {
       });
     }
 
+    // --- GET USER DETAILS (with likes/saves/comments) ---
     if (subAction === 'details') {
       const { userId } = req.query;
 
@@ -433,6 +446,7 @@ export default async function handler(req, res) {
       });
     }
 
+    // --- REMOVE LIKE FROM USER ---
     if (subAction === 'remove-like') {
       const { userId, promptId } = req.body;
 
@@ -461,6 +475,7 @@ export default async function handler(req, res) {
       });
     }
 
+    // --- REMOVE SAVE FROM USER ---
     if (subAction === 'remove-save') {
       const { userId, promptId } = req.body;
 
@@ -489,6 +504,7 @@ export default async function handler(req, res) {
       });
     }
 
+    // --- HIDE COMMENT ---
     if (subAction === 'hide-comment') {
       const { commentId } = req.body;
 
@@ -511,6 +527,7 @@ export default async function handler(req, res) {
       });
     }
 
+    // --- DELETE COMMENT (permanent) ---
     if (subAction === 'delete-comment') {
       const { commentId } = req.body;
 
@@ -549,9 +566,13 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Invalid sub-action for users' });
   }
 
+  // ================================================================
+  // SECTION 3: PROMPT MANAGEMENT
+  // ================================================================
   if (action === 'prompts') {
     const subAction = req.query.sub;
 
+    // --- LIST PROMPTS (admin view) ---
     if (subAction === 'list') {
       const { limit = 50, offset = 0, published } = req.query;
 
@@ -607,6 +628,7 @@ export default async function handler(req, res) {
       });
     }
 
+    // --- GET SINGLE PROMPT (admin) ---
     if (subAction === 'get') {
       const { promptId } = req.body;
 
@@ -679,6 +701,7 @@ export default async function handler(req, res) {
       });
     }
 
+    // --- EDIT PROMPT ---
     if (subAction === 'edit') {
       const { promptId, title, description, prompt_text, category_ids, image_main, image_optional } = req.body;
 
@@ -711,6 +734,7 @@ export default async function handler(req, res) {
       });
     }
 
+    // --- PUBLISH/UNPUBLISH PROMPT ---
     if (subAction === 'publish') {
       const { promptId, publish } = req.body;
 
@@ -739,6 +763,7 @@ export default async function handler(req, res) {
       });
     }
 
+    // --- BOOST/UNBOOST PROMPT ---
     if (subAction === 'boost') {
       const { promptId, boost } = req.body;
 
@@ -767,6 +792,7 @@ export default async function handler(req, res) {
       });
     }
 
+    // --- DELETE PROMPT (permanent) ---
     if (subAction === 'delete') {
       const { promptId } = req.body;
 
@@ -813,9 +839,13 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Invalid sub-action for prompts' });
   }
 
+  // ================================================================
+  // SECTION 4: PREMIUM MANAGEMENT
+  // ================================================================
   if (action === 'premium') {
     const subAction = req.query.sub;
 
+    // --- LIST ALL PREMIUM USERS ---
     if (subAction === 'list') {
       const { data: premiumUsers, error } = await supabaseAdmin
         .from('premium_users')
@@ -841,6 +871,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ premiumUsers: premiumUsers || [] });
     }
 
+    // --- GRANT PREMIUM/OWNER ---
     if (subAction === 'grant') {
       const { userId, type } = req.body;
 
@@ -852,16 +883,20 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Type must be "premium" or "owner"' });
       }
 
-      const { data: user } = await supabaseAdmin
-        .from('profiles')
-        .select('id')
-        .eq('id', userId)
-        .single();
+      // 🔥 FIX: Skip database lookup if userId is 'admin'
+      if (userId !== 'admin') {
+        const { data: user } = await supabaseAdmin
+          .from('profiles')
+          .select('id')
+          .eq('id', userId)
+          .single();
 
-      if (!user) {
-        return res.status(404).json({ error: 'User not found' });
+        if (!user) {
+          return res.status(404).json({ error: 'User not found' });
+        }
       }
 
+      // Check if already premium
       const { data: existing } = await supabaseAdmin
         .from('premium_users')
         .select('id')
@@ -872,6 +907,7 @@ export default async function handler(req, res) {
         return res.status(409).json({ error: 'User is already premium/owner' });
       }
 
+      // Grant premium
       const { error } = await supabaseAdmin
         .from('premium_users')
         .insert({
@@ -884,6 +920,7 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: error.message });
       }
 
+      // Update profile
       await supabaseAdmin
         .from('profiles')
         .update({
@@ -899,6 +936,7 @@ export default async function handler(req, res) {
       });
     }
 
+    // --- REMOVE PREMIUM/OWNER ---
     if (subAction === 'remove') {
       const { userId } = req.body;
 
