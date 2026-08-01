@@ -29,6 +29,7 @@ export default async function handler(req, res) {
 
   const { action } = req.query;
 
+  // --- LIST COMMENTS ---
   if (req.method === 'GET' && action === 'list') {
     const { promptId, limit = 20, offset = 0 } = req.query;
 
@@ -114,6 +115,7 @@ export default async function handler(req, res) {
     });
   }
 
+  // --- ADD COMMENT ---
   if (req.method === 'POST' && action === 'add') {
     if (!userId) {
       return res.status(401).json({ error: 'Authentication required' });
@@ -197,6 +199,7 @@ export default async function handler(req, res) {
     });
   }
 
+  // --- DELETE COMMENT ---
   if (req.method === 'DELETE' && action === 'delete') {
     if (!userId) {
       return res.status(401).json({ error: 'Authentication required' });
@@ -266,6 +269,7 @@ export default async function handler(req, res) {
     });
   }
 
+  // --- LIKE COMMENT ---
   if (req.method === 'POST' && action === 'like-comment') {
     if (!userId) {
       return res.status(401).json({ error: 'Authentication required' });
@@ -321,6 +325,7 @@ export default async function handler(req, res) {
     });
   }
 
+  // --- UNLIKE COMMENT ---
   if (req.method === 'DELETE' && action === 'unlike-comment') {
     if (!userId) {
       return res.status(401).json({ error: 'Authentication required' });
@@ -375,6 +380,7 @@ export default async function handler(req, res) {
     });
   }
 
+  // --- COMMENTS BY USER ---
   if (req.method === 'GET' && action === 'by-user') {
     const { targetUserId, limit = 20, offset = 0 } = req.query;
     const id = targetUserId || userId;
@@ -399,7 +405,7 @@ export default async function handler(req, res) {
           image_main
         )
       `, { count: 'exact' })
-      .eq('username', targetUserId)
+      .eq('user_id', id)                   // ✅ FIXED: use user_id
       .eq('is_hidden', false)
       .order('created_at', { ascending: false })
       .range(Number(offset), Number(offset) + Number(limit) - 1);
