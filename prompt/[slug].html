@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+        /* ===== RESET & BASE ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Inter', -apple-system, sans-serif;
@@ -16,11 +17,14 @@
             color: #111827;
             -webkit-font-smoothing: antialiased;
         }
+
         .container {
-            max-width: 900px;
+            max-width: 820px;
             margin: 0 auto;
-            padding: 40px 24px 80px;
+            padding: 32px 20px 80px;
         }
+
+        /* ===== BACK BUTTON ===== */
         .back {
             display: inline-flex;
             align-items: center;
@@ -34,36 +38,37 @@
         }
         .back:hover { color: #4338ca; }
 
+        /* ===== PROMPT CARD ===== */
         .prompt-card {
             background: white;
             border-radius: 24px;
             border: 1px solid #e2e8f0;
-            padding: 32px 36px;
+            padding: 28px 32px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.04);
             margin-bottom: 32px;
         }
         .prompt-card .image-wrap {
             width: 100%;
-            max-height: 520px;
+            max-height: 480px;
             overflow: hidden;
             border-radius: 16px;
             background: #f1f5f9;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             position: relative;
         }
         .prompt-card .image-wrap img {
             width: 100%;
             height: auto;
-            max-height: 520px;
+            max-height: 480px;
             object-fit: cover;
             display: block;
         }
         .prompt-card h1 {
-            font-size: 32px;
+            font-size: 30px;
             font-weight: 700;
             color: #111827;
             letter-spacing: -0.025em;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
         .prompt-card .meta {
             display: flex;
@@ -71,7 +76,7 @@
             gap: 12px;
             color: #64748b;
             font-size: 14px;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
             flex-wrap: wrap;
         }
         .prompt-card .meta .dot { color: #d1d5db; }
@@ -81,17 +86,19 @@
             line-height: 1.7;
             margin-bottom: 20px;
         }
-        .prompt-card .interaction-bar {
+
+        /* ===== INTERACTION BAR ===== */
+        .interaction-bar {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 16px;
             padding: 12px 0;
             border-top: 1px solid #f1f5f9;
             border-bottom: 1px solid #f1f5f9;
             margin-bottom: 24px;
             flex-wrap: wrap;
         }
-        .prompt-card .interaction-bar button {
+        .interaction-bar button {
             background: none;
             border: none;
             font-size: 18px;
@@ -103,28 +110,33 @@
             transition: all 0.2s;
             font-family: inherit;
             font-weight: 500;
+            padding: 4px 8px;
+            border-radius: 8px;
         }
-        .prompt-card .interaction-bar button:hover {
+        .interaction-bar button:hover {
             transform: scale(1.05);
+            background: #f1f5f9;
         }
-        .prompt-card .interaction-bar button.liked {
+        .interaction-bar button.liked {
             color: #ef4444;
         }
-        .prompt-card .interaction-bar button.saved {
+        .interaction-bar button.saved {
             color: #111827;
         }
-        .prompt-card .interaction-bar .count {
+        .interaction-bar .count {
             font-size: 15px;
             color: #64748b;
         }
-        .prompt-card .prompt-text-wrap {
+
+        /* ===== PROMPT TEXT ===== */
+        .prompt-text-wrap {
             background: #f9fafb;
             padding: 20px 24px;
             border-radius: 16px;
             border: 1px solid #e2e8f0;
             margin-bottom: 20px;
         }
-        .prompt-card .prompt-text-wrap .label {
+        .prompt-text-wrap .label {
             font-size: 13px;
             font-weight: 600;
             color: #64748b;
@@ -132,14 +144,14 @@
             letter-spacing: 0.025em;
             margin-bottom: 8px;
         }
-        .prompt-card .prompt-text-wrap .text {
+        .prompt-text-wrap .text {
             font-family: 'JetBrains Mono', monospace;
             font-size: 15px;
             white-space: pre-wrap;
             line-height: 1.8;
             color: #1f2937;
         }
-        .prompt-card .copy-btn {
+        .copy-btn {
             padding: 10px 20px;
             background: #4f46e5;
             color: white;
@@ -153,19 +165,20 @@
             align-items: center;
             gap: 8px;
         }
-        .prompt-card .copy-btn:hover {
+        .copy-btn:hover {
             background: #4338ca;
             transform: translateY(-1px);
         }
-        .prompt-card .copy-btn.copied {
+        .copy-btn.copied {
             background: #10b981;
         }
 
+        /* ===== COMMENTS SECTION ===== */
         .comments-section {
             background: white;
             border-radius: 24px;
             border: 1px solid #e2e8f0;
-            padding: 32px 36px;
+            padding: 28px 32px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.04);
             margin-bottom: 32px;
         }
@@ -173,7 +186,7 @@
             font-size: 22px;
             font-weight: 700;
             color: #111827;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
         .comments-section .add-comment {
             display: flex;
@@ -216,8 +229,13 @@
             cursor: not-allowed;
         }
 
+        .comments-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
         .comment-item {
-            padding: 16px 0;
+            padding: 14px 0;
             border-bottom: 1px solid #f1f5f9;
         }
         .comment-item:last-child {
@@ -313,9 +331,7 @@
             cursor: pointer;
         }
 
-        .related-section {
-            margin-top: 32px;
-        }
+        /* ===== RELATED PROMPTS ===== */
         .related-section h2 {
             font-size: 22px;
             font-weight: 700;
@@ -368,6 +384,7 @@
             padding: 20px 0;
         }
 
+        /* ===== LOADING ===== */
         .loading {
             text-align: center;
             padding: 60px;
@@ -384,6 +401,7 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
+        /* ===== POPUP ===== */
         .popup-overlay {
             display: none;
             position: fixed;
@@ -431,17 +449,21 @@
         }
         .popup .btn-secondary:hover { background: #e2e8f0; }
 
+        /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
-            .prompt-card { padding: 24px; }
-            .comments-section { padding: 24px; }
+            .prompt-card { padding: 20px; }
+            .comments-section { padding: 20px; }
             .prompt-card h1 { font-size: 26px; }
             .related-grid { grid-template-columns: repeat(2, 1fr); }
             .comment-item .replies { margin-left: 16px; }
             .comment-item .reply-form { margin-left: 16px; }
+            .interaction-bar { gap: 12px; }
         }
         @media (max-width: 480px) {
             .related-grid { grid-template-columns: 1fr; }
-            .prompt-card .interaction-bar { gap: 12px; }
+            .interaction-bar button { font-size: 16px; }
+            .comments-section .add-comment { flex-direction: column; }
+            .comments-section .add-comment .btn-submit { width: 100%; }
         }
     </style>
 </head>
@@ -454,6 +476,7 @@
         </div>
     </div>
 
+    <!-- POPUP -->
     <div class="popup-overlay" id="popup">
         <div class="popup">
             <h2>🔒 Sign in to interact</h2>
@@ -464,6 +487,9 @@
     </div>
 
     <script>
+        // ============================================================
+        //  STATE
+        // ============================================================
         const token = localStorage.getItem('user_token');
         let user = null;
         let promptId = null;
@@ -471,12 +497,17 @@
         let saved = false;
         let likeCount = 0;
         let saveCount = 0;
-        let commentCount = 0;
         let currentSlug = '';
 
+        // ============================================================
+        //  DOM
+        // ============================================================
         const container = document.getElementById('content');
         const popup = document.getElementById('popup');
 
+        // ============================================================
+        //  VERIFY USER
+        // ============================================================
         async function verifyUser() {
             if (!token) return null;
             try {
@@ -497,6 +528,9 @@
             }
         }
 
+        // ============================================================
+        //  LOAD PROMPT
+        // ============================================================
         async function loadPrompt() {
             const slug = window.location.pathname.split('/').pop();
             currentSlug = slug;
@@ -515,7 +549,6 @@
                 promptId = p.id;
                 likeCount = p.like_count || 0;
                 saveCount = p.save_count || 0;
-                commentCount = p.comment_count || 0;
 
                 if (user) {
                     const statusRes = await fetch(`/api/interactions?action=status&promptId=${promptId}`, {
@@ -536,13 +569,16 @@
             }
         }
 
+        // ============================================================
+        //  RENDER PROMPT
+        // ============================================================
         function renderPrompt(p) {
             const date = new Date(p.created_at).toLocaleDateString('en-US', {
                 month: 'short', day: 'numeric', year: 'numeric'
             });
 
             const likeIcon = liked ? '❤️' : '🤍';
-            const saveIcon = saved ? '💾' : '💿';
+            const saveIcon = saved ? '🔖' : '🔖';
             const likeClass = liked ? 'liked' : '';
             const saveClass = saved ? 'saved' : '';
 
@@ -581,8 +617,23 @@
                     </div>
                     <button class="copy-btn" id="copyBtn">📋 Copy Prompt</button>
                 </div>
+
+                <div class="comments-section" id="commentsSection">
+                    <h2>💬 Comments <span class="comment-count" style="font-size:16px;color:#64748b;font-weight:400;">(0)</span></h2>
+                    <div class="add-comment">
+                        <textarea id="commentInput" placeholder="Write a comment..."></textarea>
+                        <button class="btn-submit comment-submit">Post</button>
+                    </div>
+                    <div class="comments-list"></div>
+                </div>
+
+                <div class="related-section" id="relatedSection">
+                    <h2>🔗 Related Prompts</h2>
+                    <div class="related-grid"></div>
+                </div>
             `;
 
+            // --- Interactions ---
             document.getElementById('copyBtn').addEventListener('click', () => {
                 const text = document.getElementById('promptText').textContent;
                 navigator.clipboard.writeText(text).then(() => {
@@ -602,6 +653,9 @@
             document.getElementById('reportBtn').addEventListener('click', () => handleReport());
         }
 
+        // ============================================================
+        //  INTERACTIONS
+        // ============================================================
         async function handleLike() {
             if (!user) { popup.classList.add('active'); return; }
             const action = liked ? 'unlike' : 'like';
@@ -671,14 +725,14 @@
             const saveBtn = document.getElementById('saveBtn');
             likeBtn.innerHTML = `${liked ? '❤️' : '🤍'} <span class="count">${likeCount}</span>`;
             likeBtn.className = `like-btn ${liked ? 'liked' : ''}`;
-            saveBtn.innerHTML = `${saved ? '💾' : '💿'} <span class="count">${saveCount}</span>`;
+            saveBtn.innerHTML = `${saved ? '🔖' : '🔖'} <span class="count">${saveCount}</span>`;
             saveBtn.className = `save-btn ${saved ? 'saved' : ''}`;
         }
 
+        // ============================================================
+        //  COMMENTS
+        // ============================================================
         async function loadComments() {
-            const section = document.getElementById('commentsSection');
-            if (!section) return;
-
             try {
                 const url = `/api/comments?action=list&promptId=${promptId}&limit=50`;
                 const res = await fetch(url, {
@@ -692,11 +746,10 @@
         }
 
         function renderComments(comments) {
-            const section = document.getElementById('commentsSection');
-            const list = section.querySelector('.comments-list');
-            const countEl = section.querySelector('.comment-count');
+            const list = document.querySelector('.comments-list');
+            const countEl = document.querySelector('.comment-count');
 
-            countEl.textContent = comments.length;
+            if (countEl) countEl.textContent = `(${comments.length})`;
 
             if (comments.length === 0) {
                 list.innerHTML = `<div class="no-comments">No comments yet. Be the first!</div>`;
@@ -709,7 +762,6 @@
         function renderComment(c, isReply = false) {
             const avatar = c.profiles?.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(c.profiles?.username || '?') + '&background=4f46e5&color=fff&size=32';
             const displayName = c.profiles?.display_name || c.profiles?.username || 'Anonymous';
-            const username = c.profiles?.username || 'anonymous';
             const time = new Date(c.created_at).toLocaleDateString();
             const likeIcon = c.liked ? '❤️' : '🤍';
             const likeClass = c.liked ? 'liked' : '';
@@ -747,7 +799,11 @@
             return html;
         }
 
+        // ============================================================
+        //  COMMENT EVENTS (ADD, REPLY, LIKE)
+        // ============================================================
         document.addEventListener('click', async (e) => {
+            // Add top-level comment
             const submitBtn = e.target.closest('.comment-submit');
             if (submitBtn) {
                 e.preventDefault();
@@ -773,6 +829,7 @@
                 submitBtn.disabled = false;
             }
 
+            // Toggle reply form
             const replyToggle = e.target.closest('.reply-toggle');
             if (replyToggle) {
                 const id = replyToggle.dataset.id;
@@ -780,6 +837,7 @@
                 if (form) form.style.display = form.style.display === 'none' ? 'flex' : 'none';
             }
 
+            // Submit reply
             const replySubmit = e.target.closest('.reply-submit');
             if (replySubmit) {
                 if (!user) { popup.classList.add('active'); return; }
@@ -803,6 +861,7 @@
                 } catch (err) { console.error(err); }
             }
 
+            // Like comment
             const likeBtn = e.target.closest('.comment-like-btn');
             if (likeBtn) {
                 if (!user) { popup.classList.add('active'); return; }
@@ -826,14 +885,16 @@
             }
         });
 
+        // ============================================================
+        //  RELATED PROMPTS
+        // ============================================================
         async function loadRelated() {
             try {
                 const res = await fetch(`/api/prompts?action=related&promptId=${promptId}&limit=6`);
                 const data = await res.json();
                 const prompts = data.prompts || [];
-                const section = document.getElementById('relatedSection');
-                if (!section) return;
-                const grid = section.querySelector('.related-grid');
+                const grid = document.querySelector('.related-grid');
+                if (!grid) return;
                 if (prompts.length === 0) {
                     grid.innerHTML = `<div class="no-comments" style="grid-column:1/-1;">No related prompts found.</div>`;
                     return;
@@ -849,6 +910,9 @@
             } catch (err) { console.error(err); }
         }
 
+        // ============================================================
+        //  POPUP
+        // ============================================================
         document.getElementById('popupLoginBtn').addEventListener('click', () => {
             window.location.href = '/';
         });
@@ -859,6 +923,9 @@
             if (e.target === e.currentTarget) popup.classList.remove('active');
         });
 
+        // ============================================================
+        //  INIT
+        // ============================================================
         async function init() {
             await verifyUser();
             loadPrompt();
