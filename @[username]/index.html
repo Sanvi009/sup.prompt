@@ -25,7 +25,6 @@
             padding: 0 16px 20px;
         }
 
-        /* ===== BACK BUTTON ===== */
         .back {
             display: inline-flex;
             align-items: center;
@@ -493,14 +492,8 @@
                 gap: 16px;
             }
             .profile-header .stats-row {
-                gap: 12px;
-                flex-wrap: nowrap;    /* ← forces one line */
-                overflow-x: auto;
-                padding-bottom: 4px;
-                scrollbar-width: none;
-            }
-            .profile-header .stats-row::-webkit-scrollbar {
-                display: none;
+                gap: 12px;           /* ← reduced gap keeps them on one line */
+                flex-wrap: wrap;      /* ← normal wrapping, no horizontal scroll */
             }
             .profile-header .stats-row .stat .value {
                 font-size: 17px;
