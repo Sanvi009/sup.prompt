@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes" />
     <title>Prompt Detail</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -12,10 +12,11 @@
         /* ===== RESET & BASE ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Inter', -apple-system, sans-serif;
+            font-family: 'Inter', -apple-system, system-ui, sans-serif;
             background: #f0f2f5;
             color: #1a1a1a;
             -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         .container {
@@ -28,35 +29,37 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
             color: #65676b;
             text-decoration: none;
             font-weight: 500;
             font-size: 14px;
             transition: color 0.2s;
+            letter-spacing: -0.2px;
         }
         .back:hover { color: #1877f2; }
 
         /* ===== POST CARD ===== */
         .post-card {
             background: white;
-            border-radius: 12px;
+            border-radius: 16px;
             border: 1px solid #e4e6eb;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.08);
-            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            margin-bottom: 20px;
             overflow: hidden;
+            transition: box-shadow 0.2s;
         }
 
         /* ===== POST HEADER ===== */
         .post-header {
-            padding: 14px 16px 10px;
+            padding: 16px 18px 10px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
         .post-header .avatar {
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             background: #e4e6eb;
             object-fit: cover;
@@ -66,7 +69,8 @@
             justify-content: center;
             font-weight: 600;
             color: #1877f2;
-            font-size: 16px;
+            font-size: 18px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
         }
         .post-header .avatar img {
             width: 100%;
@@ -77,10 +81,11 @@
         .post-header .user-info {
             display: flex;
             flex-direction: column;
+            gap: 1px;
         }
         .post-header .user-info .name {
             font-weight: 600;
-            font-size: 14px;
+            font-size: 15px;
             color: #050505;
             display: flex;
             align-items: center;
@@ -91,22 +96,29 @@
             color: white;
             font-size: 10px;
             font-weight: 600;
-            padding: 1px 6px;
-            border-radius: 10px;
-            letter-spacing: 0.3px;
+            padding: 1px 7px;
+            border-radius: 12px;
+            letter-spacing: 0.2px;
         }
         .post-header .user-info .meta {
-            font-size: 12px;
+            font-size: 13px;
             color: #65676b;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .post-header .user-info .meta span {
+            font-weight: 400;
         }
 
         /* ===== POST TITLE ===== */
         .post-title {
-            padding: 0 16px 8px;
-            font-size: 20px;
+            padding: 0 18px 6px;
+            font-size: 22px;
             font-weight: 700;
             color: #050505;
-            letter-spacing: -0.3px;
+            letter-spacing: -0.4px;
+            line-height: 1.3;
         }
 
         /* ===== POST IMAGE ===== */
@@ -118,28 +130,31 @@
         .post-image-wrap img {
             width: 100%;
             height: auto;
-            max-height: 480px;
+            max-height: 500px;
             object-fit: cover;
             display: block;
         }
         .post-image-wrap .view-count {
             position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(0,0,0,0.6);
+            top: 12px;
+            right: 12px;
+            background: rgba(0,0,0,0.55);
             color: white;
-            padding: 4px 12px;
-            border-radius: 16px;
-            font-size: 12px;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 13px;
             font-weight: 500;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
             backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            letter-spacing: 0.2px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
         }
         .post-image-wrap .view-count svg {
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
             fill: currentColor;
         }
 
@@ -148,14 +163,15 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 10px 16px;
+            padding: 12px 18px;
             border-bottom: 1px solid #e4e6eb;
             flex-wrap: wrap;
             gap: 6px;
+            background: #fafbfc;
         }
         .interaction-bar .left {
             display: flex;
-            gap: 14px;
+            gap: 18px;
             flex-wrap: wrap;
         }
         .interaction-bar button {
@@ -164,17 +180,17 @@
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
             color: #65676b;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 500;
             font-family: inherit;
-            transition: all 0.2s;
-            padding: 4px 6px;
-            border-radius: 6px;
+            transition: all 0.15s ease;
+            padding: 6px 8px;
+            border-radius: 8px;
         }
         .interaction-bar button:hover {
-            background: #f0f2f5;
+            background: #e4e6eb;
         }
         .interaction-bar button.liked {
             color: #e74c3c;
@@ -183,66 +199,74 @@
             fill: #e74c3c;
         }
         .interaction-bar button svg {
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
             fill: currentColor;
-            transition: fill 0.2s;
+            transition: fill 0.15s;
         }
         .interaction-bar .count {
-            font-size: 13px;
+            font-size: 14px;
             color: #65676b;
+            font-weight: 500;
         }
 
         /* ===== PROMPT TEXT ===== */
         .prompt-text-wrap {
-            padding: 14px 16px 16px;
+            padding: 16px 18px 20px;
             border-bottom: 1px solid #e4e6eb;
+            background: white;
         }
         .prompt-text-wrap .label {
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 600;
             color: #65676b;
             text-transform: uppercase;
-            letter-spacing: 0.4px;
-            margin-bottom: 4px;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
         }
         .prompt-text-wrap .text {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 14px;
-            line-height: 1.7;
+            font-family: 'JetBrains Mono', 'SF Mono', monospace;
+            font-size: 15px;
+            line-height: 1.8;
             color: #1a1a1a;
             white-space: pre-wrap;
+            background: #f8f9fa;
+            padding: 14px 16px;
+            border-radius: 10px;
+            border: 1px solid #eef0f2;
         }
 
         /* ===== COMMENTS SECTION ===== */
         .comments-section {
-            padding: 12px 16px 16px;
+            padding: 14px 18px 20px;
             border-bottom: 1px solid #e4e6eb;
+            background: white;
         }
         .comments-section .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 14px;
         }
         .comments-section .header h3 {
-            font-size: 15px;
+            font-size: 16px;
             font-weight: 600;
             color: #050505;
         }
         .comments-section .header .count {
-            font-size: 13px;
+            font-size: 14px;
             color: #65676b;
+            font-weight: 500;
         }
 
         .comment-input-wrap {
             display: flex;
-            gap: 8px;
-            margin-bottom: 12px;
+            gap: 10px;
+            margin-bottom: 16px;
         }
         .comment-input-wrap .avatar-small {
-            width: 28px;
-            height: 28px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             background: #e4e6eb;
             flex-shrink: 0;
@@ -252,36 +276,41 @@
             justify-content: center;
             font-weight: 600;
             color: #1877f2;
-            font-size: 12px;
+            font-size: 14px;
         }
         .comment-input-wrap input {
             flex: 1;
-            padding: 8px 14px;
+            padding: 10px 16px;
             border: 1px solid #e4e6eb;
-            border-radius: 20px;
-            font-size: 13px;
+            border-radius: 24px;
+            font-size: 14px;
             font-family: inherit;
             background: #f0f2f5;
-            transition: border 0.2s, background 0.2s;
+            transition: border 0.2s, background 0.2s, box-shadow 0.2s;
         }
         .comment-input-wrap input:focus {
             outline: none;
             border-color: #1877f2;
             background: white;
+            box-shadow: 0 0 0 3px rgba(24, 119, 242, 0.1);
         }
         .comment-input-wrap .btn-submit {
-            padding: 6px 16px;
+            padding: 8px 20px;
             background: #1877f2;
             color: white;
             border: none;
-            border-radius: 20px;
+            border-radius: 24px;
             font-weight: 600;
-            font-size: 13px;
+            font-size: 14px;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: background 0.2s, transform 0.1s;
+            letter-spacing: 0.2px;
         }
         .comment-input-wrap .btn-submit:hover {
             background: #166fe5;
+        }
+        .comment-input-wrap .btn-submit:active {
+            transform: scale(0.96);
         }
         .comment-input-wrap .btn-submit:disabled {
             opacity: 0.5;
@@ -292,15 +321,15 @@
         .comments-list {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
         }
         .comment-item {
             display: flex;
-            gap: 8px;
+            gap: 10px;
         }
         .comment-item .avatar-small {
-            width: 28px;
-            height: 28px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             background: #e4e6eb;
             flex-shrink: 0;
@@ -310,7 +339,7 @@
             justify-content: center;
             font-weight: 600;
             color: #1877f2;
-            font-size: 12px;
+            font-size: 14px;
         }
         .comment-item .avatar-small img {
             width: 100%;
@@ -329,7 +358,7 @@
         }
         .comment-item .body .row .name {
             font-weight: 600;
-            font-size: 13px;
+            font-size: 14px;
             color: #050505;
             cursor: pointer;
         }
@@ -337,36 +366,38 @@
             text-decoration: underline;
         }
         .comment-item .body .row .time {
-            font-size: 11px;
+            font-size: 12px;
             color: #65676b;
         }
         .comment-item .body .content {
-            font-size: 14px;
+            font-size: 15px;
             color: #1a1a1a;
-            line-height: 1.5;
+            line-height: 1.6;
             margin-top: 2px;
         }
         .comment-item .body .actions {
             display: flex;
-            gap: 12px;
-            margin-top: 4px;
-            font-size: 12px;
+            gap: 14px;
+            margin-top: 5px;
+            font-size: 13px;
             color: #65676b;
         }
         .comment-item .body .actions button {
             background: none;
             border: none;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 13px;
             color: #65676b;
             font-family: inherit;
             display: flex;
             align-items: center;
             gap: 4px;
-            transition: color 0.2s;
-            padding: 2px 4px;
+            transition: color 0.15s, background 0.15s;
+            padding: 3px 6px;
+            border-radius: 6px;
         }
         .comment-item .body .actions button:hover {
+            background: #f0f2f5;
             color: #1877f2;
         }
         .comment-item .body .actions button.liked {
@@ -376,50 +407,56 @@
             fill: #e74c3c;
         }
         .comment-item .body .actions svg {
-            width: 12px;
-            height: 12px;
+            width: 14px;
+            height: 14px;
             fill: currentColor;
         }
 
         .comment-item .replies {
-            margin-top: 6px;
-            margin-left: 36px;
+            margin-top: 8px;
+            margin-left: 42px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
         }
         .comment-item .reply-input-wrap {
-            margin-top: 6px;
-            margin-left: 36px;
+            margin-top: 8px;
+            margin-left: 42px;
             display: flex;
-            gap: 6px;
+            gap: 8px;
         }
         .comment-item .reply-input-wrap input {
             flex: 1;
-            padding: 6px 12px;
+            padding: 8px 14px;
             border: 1px solid #e4e6eb;
-            border-radius: 16px;
-            font-size: 12px;
+            border-radius: 20px;
+            font-size: 13px;
             font-family: inherit;
             background: #f0f2f5;
+            transition: border 0.2s, background 0.2s;
         }
         .comment-item .reply-input-wrap input:focus {
             outline: none;
             border-color: #1877f2;
+            background: white;
         }
         .comment-item .reply-input-wrap button {
-            padding: 6px 12px;
+            padding: 8px 16px;
             background: #1877f2;
             color: white;
             border: none;
-            border-radius: 16px;
+            border-radius: 20px;
             font-weight: 500;
-            font-size: 12px;
+            font-size: 13px;
             cursor: pointer;
+            transition: background 0.2s;
+        }
+        .comment-item .reply-input-wrap button:hover {
+            background: #166fe5;
         }
 
         .load-more-comments {
-            margin-top: 10px;
+            margin-top: 14px;
             text-align: center;
         }
         .load-more-comments button {
@@ -427,35 +464,41 @@
             border: none;
             color: #1877f2;
             font-weight: 600;
-            font-size: 13px;
+            font-size: 14px;
             cursor: pointer;
             font-family: inherit;
-            padding: 6px 12px;
-            border-radius: 6px;
+            padding: 8px 20px;
+            border-radius: 8px;
             transition: background 0.2s;
         }
         .load-more-comments button:hover {
             background: #e7f3ff;
         }
 
-        /* ===== COPY BUTTON (after comments) ===== */
+        /* ===== COPY BUTTON ===== */
         .copy-wrap {
-            padding: 12px 16px 16px;
+            padding: 14px 18px 20px;
+            background: white;
         }
         .copy-btn {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             background: #1877f2;
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 15px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
+            letter-spacing: 0.2px;
         }
         .copy-btn:hover {
             background: #166fe5;
+            transform: scale(1.01);
+        }
+        .copy-btn:active {
+            transform: scale(0.98);
         }
         .copy-btn.copied {
             background: #10b981;
@@ -463,21 +506,22 @@
 
         /* ===== RELATED PROMPTS ===== */
         .related-section {
-            margin-top: 16px;
+            margin-top: 20px;
         }
         .related-section h3 {
-            font-size: 16px;
+            font-size: 17px;
             font-weight: 600;
             color: #050505;
-            margin-bottom: 10px;
+            margin-bottom: 14px;
+            letter-spacing: -0.3px;
         }
         .related-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
+            gap: 14px;
         }
         .related-card {
-            border-radius: 10px;
+            border-radius: 14px;
             overflow: hidden;
             cursor: pointer;
             background: white;
@@ -485,10 +529,11 @@
             transition: transform 0.2s, box-shadow 0.2s;
             position: relative;
             padding-bottom: 100%;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
         }
         .related-card:hover {
-            transform: scale(1.01);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transform: scale(1.02);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
         }
         .related-card img {
             position: absolute;
@@ -503,27 +548,30 @@
             bottom: 0;
             left: 0;
             right: 0;
-            padding: 10px 12px;
-            background: linear-gradient(transparent, rgba(0,0,0,0.6));
+            padding: 14px 16px;
+            background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
             color: white;
-            font-size: 13px;
-            font-weight: 500;
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.4;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            letter-spacing: -0.2px;
         }
 
         /* ===== LOADING ===== */
         .loading {
             text-align: center;
-            padding: 60px;
+            padding: 80px 20px;
             color: #65676b;
         }
         .loading .spinner {
             display: inline-block;
-            width: 28px;
-            height: 28px;
+            width: 32px;
+            height: 32px;
             border: 3px solid #e4e6eb;
             border-top-color: #1877f2;
             border-radius: 50%;
-            animation: spin 0.7s linear infinite;
+            animation: spin 0.8s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -532,8 +580,9 @@
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.45);
             backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
             z-index: 1000;
             align-items: center;
             justify-content: center;
@@ -541,56 +590,67 @@
         .popup-overlay.active { display: flex; }
         .popup {
             background: white;
-            border-radius: 16px;
-            padding: 32px 36px;
-            max-width: 400px;
+            border-radius: 20px;
+            padding: 40px 44px;
+            max-width: 420px;
             width: 92%;
             text-align: center;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.2);
         }
-        .popup h2 { font-size: 20px; font-weight: 700; color: #050505; }
-        .popup p { color: #65676b; font-size: 15px; margin: 8px 0 24px; }
+        .popup h2 { font-size: 22px; font-weight: 700; color: #050505; letter-spacing: -0.3px; }
+        .popup p { color: #65676b; font-size: 16px; margin: 10px 0 28px; line-height: 1.5; }
         .popup .btn-primary {
-            padding: 10px 28px;
+            padding: 12px 32px;
             background: #1877f2;
             color: white;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             font-weight: 600;
-            font-size: 15px;
+            font-size: 16px;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: background 0.2s, transform 0.1s;
         }
         .popup .btn-primary:hover { background: #166fe5; }
+        .popup .btn-primary:active { transform: scale(0.96); }
         .popup .btn-secondary {
-            padding: 10px 28px;
+            padding: 12px 32px;
             background: #e4e6eb;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             font-weight: 500;
-            font-size: 15px;
+            font-size: 16px;
             cursor: pointer;
-            margin-left: 10px;
+            margin-left: 12px;
             transition: background 0.2s;
         }
         .popup .btn-secondary:hover { background: #d8dadf; }
 
         /* ===== RESPONSIVE ===== */
         @media (max-width: 640px) {
-            .container { padding: 12px 10px 60px; }
-            .post-header { padding: 10px 12px; }
-            .post-title { padding: 0 12px 6px; font-size: 18px; }
-            .interaction-bar { padding: 8px 12px; gap: 4px; }
+            .container { padding: 12px 8px 60px; }
+            .post-header { padding: 14px 14px 8px; gap: 10px; }
+            .post-header .avatar { width: 38px; height: 38px; font-size: 16px; }
+            .post-title { padding: 0 14px 4px; font-size: 19px; }
+            .interaction-bar { padding: 10px 14px; gap: 4px; }
             .interaction-bar .left { gap: 8px; }
-            .interaction-bar button { font-size: 12px; }
+            .interaction-bar button { font-size: 13px; padding: 4px 6px; }
+            .interaction-bar button svg { width: 18px; height: 18px; }
+            .prompt-text-wrap { padding: 12px 14px 16px; }
+            .prompt-text-wrap .text { font-size: 14px; padding: 12px 14px; }
+            .comments-section { padding: 10px 14px 16px; }
+            .copy-wrap { padding: 12px 14px 16px; }
+            .related-grid { grid-template-columns: 1fr; gap: 12px; }
+            .post-image-wrap .view-count { font-size: 12px; padding: 4px 12px; top: 8px; right: 8px; }
+            .post-image-wrap .view-count svg { width: 16px; height: 16px; }
+            .popup { padding: 32px 24px; }
+            .popup h2 { font-size: 20px; }
+            .comment-item .replies { margin-left: 28px; }
+            .comment-item .reply-input-wrap { margin-left: 28px; }
+        }
+        @media (max-width: 400px) {
+            .interaction-bar .left { gap: 4px; }
+            .interaction-bar button { font-size: 12px; padding: 4px; }
             .interaction-bar button svg { width: 16px; height: 16px; }
-            .prompt-text-wrap { padding: 10px 12px 14px; }
-            .prompt-text-wrap .text { font-size: 13px; }
-            .comments-section { padding: 10px 12px 14px; }
-            .copy-wrap { padding: 10px 12px 14px; }
-            .related-grid { grid-template-columns: 1fr; }
-            .post-image-wrap .view-count { font-size: 11px; padding: 4px 10px; }
-            .post-image-wrap .view-count svg { width: 14px; height: 14px; }
         }
     </style>
 </head>
@@ -606,7 +666,7 @@
     <!-- POPUP -->
     <div class="popup-overlay" id="popup">
         <div class="popup">
-            <h2>🔒 Sign in to interact</h2>
+            <h2>Sign in to interact</h2>
             <p>You need to log in or create an account to like, save, or comment.</p>
             <button class="btn-primary" id="popupLoginBtn">Log In / Sign Up</button>
             <button class="btn-secondary" id="popupCloseBtn">Cancel</button>
@@ -615,7 +675,7 @@
 
     <script>
         // ============================================================
-        //  STATE
+        //  STATE – unchanged core logic
         // ============================================================
         const token = localStorage.getItem('user_token');
         let user = null;
@@ -701,7 +761,7 @@
         }
 
         // ============================================================
-        //  RENDER PROMPT
+        //  RENDER PROMPT – UI polished
         // ============================================================
         function renderPrompt(p) {
             const date = new Date(p.created_at).toLocaleDateString('en-US', {
@@ -728,7 +788,7 @@
                         </div>
                         <div class="user-info">
                             <div class="name">
-                                CEO &amp; Founder
+                                CEO & Founder
                                 <span class="badge">✓</span>
                             </div>
                             <div class="meta">${date} · ${p.view_count || 0} views</div>
@@ -790,28 +850,28 @@
                         </div>
                     </div>
 
-                    <!-- Copy Button (after comments) -->
+                    <!-- Copy Button -->
                     <div class="copy-wrap">
-                        <button class="copy-btn" id="copyBtn">📋 Copy Prompt</button>
+                        <button class="copy-btn" id="copyBtn">Copy Prompt</button>
                     </div>
                 </div>
 
                 <!-- Related Prompts -->
                 <div class="related-section" id="relatedSection">
-                    <h3>More from CEO &amp; Founder</h3>
+                    <h3>More from CEO & Founder</h3>
                     <div class="related-grid"></div>
                 </div>
             `;
 
-            // --- Interactions ---
+            // --- Interactions (unchanged logic) ---
             document.getElementById('copyBtn').addEventListener('click', () => {
                 const text = document.getElementById('promptText').textContent;
                 navigator.clipboard.writeText(text).then(() => {
                     const btn = document.getElementById('copyBtn');
-                    btn.textContent = '✅ Copied!';
+                    btn.textContent = 'Copied!';
                     btn.classList.add('copied');
                     setTimeout(() => {
-                        btn.textContent = '📋 Copy Prompt';
+                        btn.textContent = 'Copy Prompt';
                         btn.classList.remove('copied');
                     }, 2000);
                 });
@@ -822,14 +882,13 @@
             document.getElementById('shareBtn').addEventListener('click', () => handleShare());
             document.getElementById('reportBtn').addEventListener('click', () => handleReport());
 
-            // Comment load more
             document.getElementById('loadMoreBtn').addEventListener('click', () => {
                 loadComments(false);
             });
         }
 
         // ============================================================
-        //  INTERACTIONS
+        //  INTERACTIONS (unchanged)
         // ============================================================
         async function handleLike() {
             if (!user) { popup.classList.add('active'); return; }
@@ -905,39 +964,26 @@
         }
 
         // ============================================================
-        //  COMMENTS
+        //  COMMENTS (unchanged core)
         // ============================================================
         async function loadComments(reset = false) {
             if (loadingComments) return;
             if (!reset && !hasMoreComments) return;
             loadingComments = true;
-
-            if (reset) {
-                commentOffset = 0;
-                hasMoreComments = true;
-            }
-
+            if (reset) { commentOffset = 0; hasMoreComments = true; }
             try {
                 const url = `/api/comments?action=list&promptId=${promptId}&limit=${commentLimit}&offset=${commentOffset}`;
                 const res = await fetch(url, {
                     headers: user ? { 'Authorization': `Bearer ${token}` } : {}
                 });
                 const data = await res.json();
-
-                if (reset) {
-                    document.getElementById('commentsList').innerHTML = '';
-                }
-
+                if (reset) { document.getElementById('commentsList').innerHTML = ''; }
                 renderComments(data.comments || [], reset);
                 commentOffset += data.comments.length;
                 hasMoreComments = data.hasMore;
-
                 document.getElementById('loadMoreWrap').style.display = hasMoreComments ? 'block' : 'none';
                 document.getElementById('commentCount').textContent = data.total || 0;
-
-            } catch (err) {
-                console.error(err);
-            }
+            } catch (err) { console.error(err); }
             loadingComments = false;
         }
 
@@ -945,7 +991,7 @@
             const list = document.getElementById('commentsList');
             if (reset) list.innerHTML = '';
             if (comments.length === 0 && reset) {
-                list.innerHTML = `<div style="text-align:center;color:#65676b;padding:12px 0;">No comments yet. Be the first!</div>`;
+                list.innerHTML = `<div style="text-align:center;color:#65676b;padding:16px 0;">No comments yet. Be the first!</div>`;
                 return;
             }
             comments.forEach(c => {
@@ -960,7 +1006,6 @@
             const time = new Date(c.created_at).toLocaleDateString();
             const likeIcon = c.liked ? `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>` : `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
             const likeClass = c.liked ? 'liked' : '';
-
             let html = `
                 <div class="comment-item">
                     <div class="avatar-small" style="background-image:url(${avatar});background-size:cover;background-position:center;">
@@ -980,11 +1025,9 @@
                             ${!isReply ? `<button class="reply-toggle" data-id="${c.id}">Reply</button>` : ''}
                         </div>
             `;
-
             if (!isReply && c.replies && c.replies.length > 0) {
                 html += `<div class="replies">${c.replies.map(r => renderComment(r, true)).join('')}</div>`;
             }
-
             if (!isReply) {
                 html += `
                     <div class="reply-input-wrap" id="replyForm_${c.id}" style="display:none;">
@@ -993,16 +1036,14 @@
                     </div>
                 `;
             }
-
             html += `</div></div>`;
             return html;
         }
 
         // ============================================================
-        //  COMMENT EVENTS
+        //  COMMENT EVENTS (unchanged)
         // ============================================================
         document.addEventListener('click', async (e) => {
-            // Add top-level comment
             const submitBtn = e.target.closest('.comment-submit');
             if (submitBtn) {
                 e.preventDefault();
@@ -1020,15 +1061,11 @@
                         },
                         body: JSON.stringify({ promptId, content })
                     });
-                    if (res.ok) {
-                        input.value = '';
-                        loadComments(true);
-                    }
+                    if (res.ok) { input.value = ''; loadComments(true); }
                 } catch (err) { console.error(err); }
                 submitBtn.disabled = false;
             }
 
-            // Toggle reply form
             const replyToggle = e.target.closest('.reply-toggle');
             if (replyToggle) {
                 const id = replyToggle.dataset.id;
@@ -1036,7 +1073,6 @@
                 if (form) form.style.display = form.style.display === 'none' ? 'flex' : 'none';
             }
 
-            // Submit reply
             const replySubmit = e.target.closest('.reply-submit');
             if (replySubmit) {
                 if (!user) { popup.classList.add('active'); return; }
@@ -1053,14 +1089,10 @@
                         },
                         body: JSON.stringify({ promptId, content, parentId: id })
                     });
-                    if (res.ok) {
-                        input.value = '';
-                        loadComments(true);
-                    }
+                    if (res.ok) { input.value = ''; loadComments(true); }
                 } catch (err) { console.error(err); }
             }
 
-            // Like comment
             const likeBtn = e.target.closest('.comment-like-btn');
             if (likeBtn) {
                 if (!user) { popup.classList.add('active'); return; }
@@ -1077,15 +1109,13 @@
                         },
                         body: JSON.stringify({ commentId })
                     });
-                    if (res.ok) {
-                        loadComments(true);
-                    }
+                    if (res.ok) { loadComments(true); }
                 } catch (err) { console.error(err); }
             }
         });
 
         // ============================================================
-        //  RELATED PROMPTS
+        //  RELATED (unchanged)
         // ============================================================
         async function loadRelated() {
             try {
@@ -1110,7 +1140,7 @@
         }
 
         // ============================================================
-        //  POPUP
+        //  POPUP (unchanged)
         // ============================================================
         document.getElementById('popupLoginBtn').addEventListener('click', () => {
             window.location.href = '/';
