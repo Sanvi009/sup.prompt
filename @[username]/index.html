@@ -16,7 +16,7 @@
             background: #f0f0f0;
             color: #1a1a1a;
             -webkit-font-smoothing: antialiased;
-            padding-bottom: 80px; /* space for sticky logout */
+            padding-bottom: 80px;
         }
 
         .container {
@@ -383,61 +383,98 @@
             background: #fecaca;
         }
 
-        /* ===== RESPONSIVE ===== */
+        /* ============================================================ */
+        /* ===== SKELETON LOADING ANIMATIONS ===== */
+        /* ============================================================ */
+        .skeleton {
+            background: linear-gradient(90deg, #e8ecf1 25%, #d5d9e0 50%, #e8ecf1 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .skeleton-avatar {
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+        }
+        .skeleton-text {
+            height: 16px;
+            border-radius: 8px;
+            margin: 4px 0;
+        }
+        .skeleton-text.short { width: 80px; }
+        .skeleton-text.medium { width: 140px; }
+        .skeleton-text.long { width: 200px; }
+
+        .skeleton-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        .skeleton-stat .value {
+            width: 40px;
+            height: 24px;
+            border-radius: 8px;
+        }
+        .skeleton-stat .label {
+            width: 60px;
+            height: 14px;
+            border-radius: 8px;
+        }
+
+        .skeleton-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 4px;
+        }
+        .skeleton-card {
+            width: 100%;
+            padding-bottom: 100%;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #e8ecf1 25%, #d5d9e0 50%, #e8ecf1 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        .skeleton-profile-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+        .skeleton-profile-actions .btn-skel {
+            height: 36px;
+            border-radius: 8px;
+            flex: 1;
+            min-width: 80px;
+        }
+        .skeleton-profile-actions .btn-skel.small {
+            flex: 0 0 40px;
+        }
+
+        .skeleton-tabs {
+            display: flex;
+            gap: 0;
+            margin: 16px 0 12px;
+            border-bottom: 1px solid #d0d0d0;
+        }
+        .skeleton-tabs .tab-skel {
+            flex: 1;
+            height: 36px;
+            border-radius: 8px;
+            margin: 0 4px;
+        }
+
         @media (min-width: 600px) {
-            .profile-header .avatar-wrap .avatar {
-                width: 120px;
-                height: 120px;
-                font-size: 44px;
-            }
-            .profile-header .stats-row .stat .value {
-                font-size: 24px;
-            }
-            .prompt-grid {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 6px;
-            }
-        }
-
-        @media (max-width: 500px) {
-            .profile-header {
-                gap: 16px;
-            }
-            .profile-header .stats-row {
-                gap: 20px;
-            }
-            .profile-header .stats-row .stat .value {
-                font-size: 18px;
-            }
-            .profile-header .stats-row .stat .label {
-                font-size: 12px;
-            }
-            .back {
-                font-size: 20px;
-            }
-            .profile-actions .btn-follow,
-            .profile-actions .btn-edit {
-                padding: 6px 16px;
-                font-size: 13px;
-            }
-            .profile-actions .btn-more {
-                width: 36px;
-                height: 36px;
-                font-size: 18px;
-            }
-            .tabs .tab {
-                font-size: 13px;
-                padding: 8px 0;
-            }
-        }
-
-        @media (min-width: 900px) {
-            .profile-header {
-                gap: 40px;
-            }
-            .profile-header .stats-row {
-                gap: 48px;
-            }
+            .skeleton-avatar { width: 120px; height: 120px; }
+            .skeleton-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
         }
     </style>
 </head>
@@ -445,10 +482,7 @@
     <div class="container">
         <a href="/feed/" class="back">‹</a>
         <div id="content">
-            <div class="loading" id="loading">
-                <div class="spinner"></div>
-                <p>Loading profile...</p>
-            </div>
+            <!-- Skeleton loading will be rendered here by JavaScript -->
         </div>
     </div>
 
@@ -514,6 +548,58 @@
         }
 
         // ============================================================
+        //  RENDER SKELETON (Profile + Grid)
+        // ============================================================
+        function renderSkeleton() {
+            container.innerHTML = `
+                <div class="profile-header">
+                    <div class="avatar-wrap">
+                        <div class="skeleton skeleton-avatar"></div>
+                    </div>
+                    <div class="stats-row">
+                        <div class="skeleton-stat">
+                            <div class="skeleton skeleton-stat value"></div>
+                            <div class="skeleton skeleton-stat label"></div>
+                        </div>
+                        <div class="skeleton-stat">
+                            <div class="skeleton skeleton-stat value"></div>
+                            <div class="skeleton skeleton-stat label"></div>
+                        </div>
+                        <div class="skeleton-stat">
+                            <div class="skeleton skeleton-stat value"></div>
+                            <div class="skeleton skeleton-stat label"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-info">
+                    <div class="skeleton skeleton-text medium"></div>
+                    <div class="skeleton skeleton-text long"></div>
+                </div>
+
+                <div class="skeleton-profile-actions">
+                    <div class="skeleton btn-skel"></div>
+                    <div class="skeleton btn-skel small"></div>
+                </div>
+
+                <div class="skeleton-tabs">
+                    <div class="skeleton tab-skel"></div>
+                    <div class="skeleton tab-skel"></div>
+                    <div class="skeleton tab-skel"></div>
+                </div>
+
+                <div class="skeleton-grid">
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                </div>
+            `;
+        }
+
+        // ============================================================
         //  LOAD PROFILE
         // ============================================================
         async function loadProfile() {
@@ -522,6 +608,9 @@
                 container.innerHTML = `<div class="loading">❌ User not found</div>`;
                 return;
             }
+
+            // Show skeleton immediately
+            renderSkeleton();
 
             try {
                 const url = `/api/profile?targetUserId=${profileUsername}`;
@@ -539,7 +628,6 @@
                 isFollowing = data.isFollowing || false;
                 isOwnProfile = currentUser && currentUser.username === profileUser.username;
 
-                // Show logout sticky only for own profile
                 if (isOwnProfile) {
                     logoutSticky.style.display = 'flex';
                 }
@@ -662,7 +750,6 @@
                         popup.classList.add('active');
                         return;
                     }
-                    // Simple report prompt (no emoji)
                     const reason = prompt('Report this user — reason:');
                     if (reason && reason.trim()) {
                         fetch('/api/reports?action=submit', {
@@ -690,8 +777,18 @@
             }
 
             const grid = document.getElementById('promptGrid');
+            // Show skeleton grid while loading
             if (reset) {
-                grid.innerHTML = `<div class="loader"><div class="spinner"></div><p>Loading...</p></div>`;
+                grid.innerHTML = `
+                    <div class="skeleton-grid" style="grid-column:1/-1;">
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                    </div>
+                `;
             }
 
             let url = '';
@@ -712,7 +809,7 @@
                 const data = await res.json();
                 let items = data.prompts || data.comments || [];
 
-                // ✅ FIX: Deduplicate comments tab by prompt_id
+                // Deduplicate comments tab by prompt_id
                 if (tab === 'comments') {
                     const seen = new Set();
                     items = items.filter(item => {
@@ -731,7 +828,6 @@
                     return;
                 }
 
-                // SVG icons for stats overlay
                 const heartIcon = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
                 const bookmarkIcon = `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>`;
 
