@@ -319,7 +319,7 @@ export default async function handler(req, res) {
           created_at
         )
       `, { count: 'exact' })
-      .eq('user_id', id)
+      .eq('username', targetUserId)
       .order('created_at', { ascending: false })
       .range(Number(offset), Number(offset) + Number(limit) - 1);
 
@@ -354,7 +354,7 @@ export default async function handler(req, res) {
           created_at
         )
       `, { count: 'exact' })
-      .eq('user_id', id)
+      .eq('username', targetUserId)
       .order('created_at', { ascending: false })
       .range(Number(offset), Number(offset) + Number(limit) - 1);
 
