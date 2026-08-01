@@ -304,21 +304,14 @@ export default async function handler(req, res) {
     });
   }
 
-  // --- LIKED PROMPTS (FIXED) ---
+  // --- LIKED PROMPTS (REPLACED) ---
   if (req.method === 'GET' && action === 'liked-prompts') {
     const { targetUserId, limit = 20, offset = 0 } = req.query;
     const id = targetUserId || userId;
 
-    // ✅ Validate user exists before querying likes
-    const { data: user } = await supabaseAdmin
-      .from('profiles')
-      .select('id')
-      .eq('id', id)
-      .single();
-
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
+    // Force numbers to prevent NaN crash
+    const offsetNum = Number(offset) || 0;
+    const limitNum = Number(limit) || 20;
 
     const { data: likedPrompts, error, count } = await supabaseAdmin
       .from('likes')
@@ -336,9 +329,9 @@ export default async function handler(req, res) {
           created_at
         )
       `, { count: 'exact' })
-      .eq('user_id', user.id)
+      .eq('user_id', id)
       .order('created_at', { ascending: false })
-      .range(Number(offset), Number(offset) + Number(limit) - 1);
+      .range(offsetNum, offsetNum + limitNum - 1); // ✅ FIXED
 
     if (error) {
       return res.status(500).json({ error: error.message });
@@ -347,25 +340,18 @@ export default async function handler(req, res) {
     return res.status(200).json({
       prompts: likedPrompts.map(item => item.prompts),
       total: count || 0,
-      hasMore: (Number(offset) + Number(limit)) < (count || 0)
+      hasMore: (offsetNum + limitNum) < (count || 0)
     });
   }
 
-  // --- SAVED PROMPTS (FIXED) ---
+  // --- SAVED PROMPTS (REPLACED) ---
   if (req.method === 'GET' && action === 'saved-prompts') {
     const { targetUserId, limit = 20, offset = 0 } = req.query;
     const id = targetUserId || userId;
 
-    // ✅ Validate user exists before querying saves
-    const { data: user } = await supabaseAdmin
-      .from('profiles')
-      .select('id')
-      .eq('id', id)
-      .single();
-
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
+    // Force numbers to prevent NaN crash
+    const offsetNum = Number(offset) || 0;
+    const limitNum = Number(limit) || 20;
 
     const { data: savedPrompts, error, count } = await supabaseAdmin
       .from('saves')
@@ -383,9 +369,9 @@ export default async function handler(req, res) {
           created_at
         )
       `, { count: 'exact' })
-      .eq('user_id', user.id)
+      .eq('user_id', id)
       .order('created_at', { ascending: false })
-      .range(Number(offset), Number(offset) + Number(limit) - 1);
+      .range(offsetNum, offsetNum + limitNum - 1); // ✅ FIXED
 
     if (error) {
       return res.status(500).json({ error: error.message });
@@ -394,7 +380,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       prompts: savedPrompts.map(item => item.prompts),
       total: count || 0,
-      hasMore: (Number(offset) + Number(limit)) < (count || 0)
+      hasMore: (offsetNum + limitNum) < (count || 0)
     });
   }
 
