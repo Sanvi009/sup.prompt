@@ -158,7 +158,7 @@
             display: block;
         }
 
-        /* ===== STATS OVERLAY (always visible) ===== */
+        /* ===== STATS OVERLAY (always visible, no buttons) ===== */
         .stats-overlay {
             position: absolute;
             bottom: 0;
@@ -172,7 +172,7 @@
             gap: 8px;
             flex-wrap: wrap;
         }
-        .stats-overlay .left {
+        .stats-overlay .stats {
             display: flex;
             gap: 12px;
             color: white;
@@ -180,7 +180,7 @@
             font-weight: 500;
             flex-wrap: wrap;
         }
-        .stats-overlay .left span {
+        .stats-overlay .stats span {
             display: flex;
             align-items: center;
             gap: 4px;
@@ -189,52 +189,11 @@
             border-radius: 20px;
             backdrop-filter: blur(2px);
         }
-        .stats-overlay .left svg {
+        .stats-overlay .stats svg {
             width: 16px;
             height: 16px;
             fill: currentColor;
             flex-shrink: 0;
-        }
-        .stats-overlay .actions {
-            display: flex;
-            gap: 6px;
-        }
-        .stats-overlay .actions button {
-            background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(4px);
-            border: none;
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: white;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-        }
-        .stats-overlay .actions button:hover {
-            background: rgba(255,255,255,0.3);
-            transform: scale(1.1);
-        }
-        .stats-overlay .actions button.liked {
-            color: #ef4444;
-        }
-        .stats-overlay .actions button.liked svg {
-            fill: #ef4444;
-        }
-        .stats-overlay .actions button.saved {
-            color: #fff;
-        }
-        .stats-overlay .actions button.saved svg {
-            fill: #fff;
-        }
-        .stats-overlay .actions svg {
-            width: 18px;
-            height: 18px;
-            fill: currentColor;
-            transition: fill 0.2s;
         }
 
         /* ===== LOADER ===== */
@@ -342,16 +301,13 @@
             header { padding: 12px 16px; flex-direction: column; align-items: stretch; }
             header .controls { max-width: 100%; justify-content: stretch; }
             header .controls input { max-width: 100%; }
-            .stats-overlay .left { font-size: 12px; gap: 8px; }
-            .stats-overlay .left span { padding: 3px 8px 3px 6px; }
-            .stats-overlay .left svg { width: 14px; height: 14px; }
-            .stats-overlay .actions button { width: 28px; height: 28px; }
-            .stats-overlay .actions svg { width: 16px; height: 16px; }
+            .stats-overlay .stats { font-size: 12px; gap: 8px; }
+            .stats-overlay .stats span { padding: 3px 8px 3px 6px; }
+            .stats-overlay .stats svg { width: 14px; height: 14px; }
         }
         @media (max-width: 420px) {
             .stats-overlay { padding: 10px 12px; flex-direction: column; align-items: stretch; gap: 6px; }
-            .stats-overlay .left { justify-content: center; }
-            .stats-overlay .actions { justify-content: center; }
+            .stats-overlay .stats { justify-content: center; }
         }
     </style>
 </head>
@@ -464,19 +420,10 @@
                     card.className = 'card';
                     card.dataset.id = p.id;
                     card.dataset.slug = p.slug;
-                    card.dataset.liked = p.liked || false;
-                    card.dataset.saved = p.saved || false;
 
-                    // SVG Icons (no emojis)
-                    const likeIcon = p.liked
-                        ? `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`
-                        : `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
-                    const saveIcon = p.saved
-                        ? `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>`
-                        : `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>`;
-                    const likeClass = p.liked ? 'liked' : '';
-                    const saveClass = p.saved ? 'saved' : '';
-
+                    // SVG Icons (display only)
+                    const heartIcon = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+                    const bookmarkIcon = `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>`;
                     const eyeIcon = `<svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5 5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3 1.34 3 3-1.34-3-3-3z"/></svg>`;
                     const commentIcon = `<svg viewBox="0 0 24 24"><path d="M21 6h-2v2h-2V6h-2V4h2V2h2v2h2v2zm-10 3c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm0 4c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>`;
 
@@ -486,25 +433,16 @@
                              onerror="this.src='https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=400&h=400&fit=crop&auto=format'" 
                              alt="${p.title}" />
                         <div class="stats-overlay">
-                            <div class="left">
+                            <div class="stats">
                                 <span>${eyeIcon} ${p.view_count || 0}</span>
-                                <span>${likeIcon} ${p.like_count || 0}</span>
-                                <span>${saveIcon} ${p.save_count || 0}</span>
+                                <span>${heartIcon} ${p.like_count || 0}</span>
+                                <span>${bookmarkIcon} ${p.save_count || 0}</span>
                                 <span>${commentIcon} ${p.comment_count || 0}</span>
-                            </div>
-                            <div class="actions">
-                                <button class="like-btn ${likeClass}" data-id="${p.id}" data-liked="${p.liked || false}">
-                                    ${likeIcon}
-                                </button>
-                                <button class="save-btn ${saveClass}" data-id="${p.id}" data-saved="${p.saved || false}">
-                                    ${saveIcon}
-                                </button>
                             </div>
                         </div>
                     `;
 
-                    card.addEventListener('click', (e) => {
-                        if (e.target.closest('.actions')) return;
+                    card.addEventListener('click', () => {
                         window.location.href = `/prompt/${p.slug}`;
                     });
 
@@ -552,90 +490,6 @@
                     window.location.href = `/search/?q=${encodeURIComponent(q)}`;
                 }
             }, 500);
-        });
-
-        // ============================================================
-        //  LIKE / SAVE INTERACTIONS
-        // ============================================================
-        document.addEventListener('click', async (e) => {
-            const likeBtn = e.target.closest('.like-btn');
-            const saveBtn = e.target.closest('.save-btn');
-
-            // --- Like ---
-            if (likeBtn) {
-                e.stopPropagation();
-                if (!token) {
-                    document.getElementById('popup').classList.add('active');
-                    return;
-                }
-                const id = likeBtn.dataset.id;
-                const liked = likeBtn.dataset.liked === 'true';
-                const action = liked ? 'unlike' : 'like';
-                const method = liked ? 'DELETE' : 'POST';
-
-                try {
-                    const res = await fetch(`/api/interactions?action=${action}`, {
-                        method,
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({ promptId: id })
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                        likeBtn.dataset.liked = !liked;
-                        likeBtn.innerHTML = !liked
-                            ? `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`
-                            : `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
-                        likeBtn.classList.toggle('liked', !liked);
-                        const statsSpan = likeBtn.closest('.card').querySelector('.left span:nth-child(2)');
-                        const current = parseInt(statsSpan.textContent.split(' ')[1]);
-                        statsSpan.innerHTML = `${liked ? `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>` : `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`} ${current + (liked ? -1 : 1)}`;
-                    }
-                } catch (err) {
-                    console.error('Like error:', err);
-                }
-                return;
-            }
-
-            // --- Save ---
-            if (saveBtn) {
-                e.stopPropagation();
-                if (!token) {
-                    document.getElementById('popup').classList.add('active');
-                    return;
-                }
-                const id = saveBtn.dataset.id;
-                const saved = saveBtn.dataset.saved === 'true';
-                const action = saved ? 'unsave' : 'save';
-                const method = saved ? 'DELETE' : 'POST';
-
-                try {
-                    const res = await fetch(`/api/interactions?action=${action}`, {
-                        method,
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({ promptId: id })
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                        saveBtn.dataset.saved = !saved;
-                        saveBtn.innerHTML = !saved
-                            ? `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>`
-                            : `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>`;
-                        saveBtn.classList.toggle('saved', !saved);
-                        const statsSpan = saveBtn.closest('.card').querySelector('.left span:nth-child(3)');
-                        const current = parseInt(statsSpan.textContent.split(' ')[1]);
-                        statsSpan.innerHTML = `${saved ? `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>` : `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>`} ${current + (saved ? -1 : 1)}`;
-                    }
-                } catch (err) {
-                    console.error('Save error:', err);
-                }
-                return;
-            }
         });
 
         // ============================================================
