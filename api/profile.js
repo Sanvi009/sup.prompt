@@ -41,7 +41,7 @@ export default async function handler(req, res) {
     // If no targetUserId is provided, fall back to the authenticated user
     const id = targetUserId || userId;
 
-    const { data: profile, error } = await supabaseAdmin
+    let { data: profile, error } = await supabaseAdmin
       .from('profiles')
       .select(`
         id,
