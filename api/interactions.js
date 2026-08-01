@@ -304,10 +304,21 @@ export default async function handler(req, res) {
     });
   }
 
-  // --- LIKED PROMPTS ---
+  // --- LIKED PROMPTS (FIXED) ---
   if (req.method === 'GET' && action === 'liked-prompts') {
     const { targetUserId, limit = 20, offset = 0 } = req.query;
     const id = targetUserId || userId;
+
+    // ✅ Validate user exists before querying likes
+    const { data: user } = await supabaseAdmin
+      .from('profiles')
+      .select('id')
+      .eq('id', id)
+      .single();
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
 
     const { data: likedPrompts, error, count } = await supabaseAdmin
       .from('likes')
@@ -325,7 +336,7 @@ export default async function handler(req, res) {
           created_at
         )
       `, { count: 'exact' })
-      .eq('user_id', id)                   // ✅ FIXED: use user_id
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .range(Number(offset), Number(offset) + Number(limit) - 1);
 
@@ -340,10 +351,21 @@ export default async function handler(req, res) {
     });
   }
 
-  // --- SAVED PROMPTS ---
+  // --- SAVED PROMPTS (FIXED) ---
   if (req.method === 'GET' && action === 'saved-prompts') {
     const { targetUserId, limit = 20, offset = 0 } = req.query;
     const id = targetUserId || userId;
+
+    // ✅ Validate user exists before querying saves
+    const { data: user } = await supabaseAdmin
+      .from('profiles')
+      .select('id')
+      .eq('id', id)
+      .single();
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
 
     const { data: savedPrompts, error, count } = await supabaseAdmin
       .from('saves')
@@ -361,7 +383,7 @@ export default async function handler(req, res) {
           created_at
         )
       `, { count: 'exact' })
-      .eq('user_id', id)                   // ✅ FIXED: use user_id
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .range(Number(offset), Number(offset) + Number(limit) - 1);
 
