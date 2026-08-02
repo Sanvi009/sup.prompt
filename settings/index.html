@@ -243,6 +243,141 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
+        /* ===== AVATAR PICKER MODAL ===== */
+        .picker-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .picker-overlay.active { display: flex; }
+
+        .picker-modal {
+            background: #e8ecf1;
+            border-radius: 24px;
+            padding: 24px 28px;
+            max-width: 520px;
+            width: 94%;
+            max-height: 85vh;
+            box-shadow: 
+                16px 16px 32px rgba(0,0,0,0.10),
+                -16px -16px 32px rgba(255,255,255,0.6);
+            display: flex;
+            flex-direction: column;
+        }
+        .picker-modal h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 4px;
+        }
+        .picker-modal p {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 16px;
+        }
+
+        .picker-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            overflow-y: auto;
+            padding: 4px 2px 12px;
+            flex: 1;
+        }
+        .picker-grid .avatar-option {
+            position: relative;
+            width: 100%;
+            padding-bottom: 100%;
+            border-radius: 50%;
+            overflow: hidden;
+            cursor: pointer;
+            background: #e8ecf1;
+            border: 3px solid transparent;
+            box-shadow: inset 2px 2px 4px rgba(0,0,0,0.04);
+            transition: all 0.15s;
+        }
+        .picker-grid .avatar-option img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .picker-grid .avatar-option:hover {
+            transform: scale(1.04);
+        }
+        .picker-grid .avatar-option.selected {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79,70,229,0.15);
+        }
+
+        .picker-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #d0d0d0;
+        }
+        .picker-actions .btn-secondary {
+            padding: 10px 20px;
+            background: #e0e0e0;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 2px 2px 6px rgba(0,0,0,0.06);
+        }
+        .picker-actions .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+        .picker-actions .btn-primary {
+            padding: 10px 24px;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 2px 2px 6px rgba(79,70,229,0.2);
+        }
+        .picker-actions .btn-primary:hover {
+            background: #4338ca;
+        }
+        .picker-actions .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .picker-loading {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 12px 0;
+        }
+        .picker-loading .skeleton-opt {
+            width: calc(25% - 9px);
+            padding-bottom: calc(25% - 9px);
+            border-radius: 50%;
+            background: linear-gradient(90deg, #e0e0e0 25%, #d0d0d0 50%, #e0e0e0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.2s infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
         /* ===== RESPONSIVE ===== */
         @media (max-width: 600px) {
             .card { padding: 20px; }
@@ -251,12 +386,14 @@
             .form-actions { flex-direction: column; }
             .form-actions .btn-secondary,
             .form-actions .btn-primary { width: 100%; text-align: center; }
+            .picker-grid { grid-template-columns: repeat(4, 1fr); gap: 10px; }
+            .picker-modal { padding: 20px; }
         }
-
         @media (max-width: 420px) {
             .container { padding: 16px 10px 60px; }
             .card { padding: 16px; }
             .card h1 { font-size: 20px; }
+            .picker-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
         }
     </style>
 </head>
@@ -271,20 +408,50 @@
         </div>
     </div>
 
+    <!-- ===== AVATAR PICKER MODAL ===== -->
+    <div class="picker-overlay" id="pickerOverlay">
+        <div class="picker-modal">
+            <h2>Choose Avatar</h2>
+            <p>Select an avatar from the collection below.</p>
+            <div id="pickerGrid" class="picker-grid">
+                <div class="picker-loading" id="pickerLoading">
+                    <div class="skeleton-opt"></div>
+                    <div class="skeleton-opt"></div>
+                    <div class="skeleton-opt"></div>
+                    <div class="skeleton-opt"></div>
+                    <div class="skeleton-opt"></div>
+                    <div class="skeleton-opt"></div>
+                    <div class="skeleton-opt"></div>
+                    <div class="skeleton-opt"></div>
+                </div>
+            </div>
+            <div class="picker-actions">
+                <button class="btn-secondary" id="pickerCancelBtn">Cancel</button>
+                <button class="btn-primary" id="pickerSelectBtn" disabled>Select</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // ============================================================
-        //  STATE
+        //  STATE (unchanged)
         // ============================================================
         const token = localStorage.getItem('user_token');
         let currentUser = null;
+        let selectedAvatarUrl = null;
 
         // ============================================================
         //  DOM
         // ============================================================
         const container = document.getElementById('content');
+        const pickerOverlay = document.getElementById('pickerOverlay');
+        const pickerGrid = document.getElementById('pickerGrid');
+        const pickerLoading = document.getElementById('pickerLoading');
+        const pickerSelectBtn = document.getElementById('pickerSelectBtn');
+        const pickerCancelBtn = document.getElementById('pickerCancelBtn');
 
         // ============================================================
-        //  VERIFY USER
+        //  VERIFY USER (unchanged)
         // ============================================================
         async function verifyUser() {
             if (!token) {
@@ -310,7 +477,7 @@
         }
 
         // ============================================================
-        //  LOAD PROFILE
+        //  LOAD PROFILE (unchanged)
         // ============================================================
         async function loadProfile() {
             try {
@@ -332,7 +499,7 @@
         }
 
         // ============================================================
-        //  RENDER SETTINGS FORM
+        //  RENDER SETTINGS FORM (unchanged except button label)
         // ============================================================
         function renderSettings(profile) {
             const avatarUrl = profile.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(profile.username) + '&background=e0e0e0&color=4f46e5&size=80';
@@ -347,9 +514,8 @@
                             ${profile.avatar_url ? `<img src="${avatarUrl}" alt="Avatar" />` : displayName.charAt(0).toUpperCase()}
                         </div>
                         <div class="avatar-actions">
-                            <button class="btn btn-primary" id="avatarUploadBtn">Upload New</button>
+                            <button class="btn btn-primary" id="chooseAvatarBtn">Choose Avatar</button>
                             ${profile.avatar_url ? `<button class="btn btn-danger" id="avatarRemoveBtn">Remove</button>` : ''}
-                            <input type="file" id="avatarFileInput" accept="image/*" style="display:none;" />
                         </div>
                     </div>
 
@@ -380,18 +546,14 @@
                 </div>
             `;
 
-            // --- Event listeners ---
+            // --- Event listeners (unchanged + picker) ---
             document.getElementById('cancelBtn').addEventListener('click', () => {
                 window.location.href = `/@${currentUser.username}`;
             });
 
             document.getElementById('saveBtn').addEventListener('click', handleSave);
 
-            document.getElementById('avatarUploadBtn').addEventListener('click', () => {
-                document.getElementById('avatarFileInput').click();
-            });
-
-            document.getElementById('avatarFileInput').addEventListener('change', handleAvatarUpload);
+            document.getElementById('chooseAvatarBtn').addEventListener('click', openAvatarPicker);
 
             const removeBtn = document.getElementById('avatarRemoveBtn');
             if (removeBtn) {
@@ -400,7 +562,146 @@
         }
 
         // ============================================================
-        //  HANDLE SAVE
+        //  OPEN AVATAR PICKER
+        // ============================================================
+        async function openAvatarPicker() {
+            selectedAvatarUrl = null;
+            pickerSelectBtn.disabled = true;
+            pickerOverlay.classList.add('active');
+
+            // Show loading
+            pickerLoading.style.display = 'flex';
+            pickerGrid.innerHTML = '';
+            pickerGrid.appendChild(pickerLoading);
+
+            try {
+                const configRes = await fetch('/api/supabase-config');
+                const config = await configRes.json();
+                const s = supabase.createClient(config.url, config.anonKey);
+
+                const { data: fileList, error } = await s.storage
+                    .from('user_avatars')
+                    .list('', { limit: 100, offset: 0 });
+
+                if (error) throw error;
+                if (!fileList || fileList.length === 0) {
+                    pickerLoading.style.display = 'none';
+                    pickerGrid.innerHTML = `<p style="grid-column:1/-1;text-align:center;color:#666;padding:20px 0;">No avatars available.</p>`;
+                    return;
+                }
+
+                pickerLoading.style.display = 'none';
+                pickerGrid.innerHTML = '';
+
+                const currentAvatarUrl = document.getElementById('avatarPreview').querySelector('img')?.src || null;
+
+                fileList.forEach(file => {
+                    const publicUrl = s.storage
+                        .from('user_avatars')
+                        .getPublicUrl(file.name).data.publicUrl;
+
+                    const div = document.createElement('div');
+                    div.className = 'avatar-option';
+                    if (currentAvatarUrl && currentAvatarUrl === publicUrl) {
+                        div.classList.add('selected');
+                        selectedAvatarUrl = publicUrl;
+                        pickerSelectBtn.disabled = false;
+                    }
+                    div.dataset.url = publicUrl;
+
+                    div.innerHTML = `<img src="${publicUrl}" alt="Avatar" loading="lazy" onerror="this.parentElement.remove();" />`;
+
+                    div.addEventListener('click', () => {
+                        document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
+                        div.classList.add('selected');
+                        selectedAvatarUrl = publicUrl;
+                        pickerSelectBtn.disabled = false;
+                    });
+
+                    pickerGrid.appendChild(div);
+                });
+
+            } catch (err) {
+                pickerLoading.style.display = 'none';
+                pickerGrid.innerHTML = `<p style="grid-column:1/-1;text-align:center;color:#dc2626;padding:20px 0;">Error loading avatars.</p>`;
+                console.error(err);
+            }
+        }
+
+        // ============================================================
+        //  PICKER CANCEL
+        // ============================================================
+        pickerCancelBtn.addEventListener('click', () => {
+            pickerOverlay.classList.remove('active');
+            selectedAvatarUrl = null;
+            pickerSelectBtn.disabled = true;
+        });
+
+        // Close on backdrop click
+        pickerOverlay.addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                pickerOverlay.classList.remove('active');
+                selectedAvatarUrl = null;
+                pickerSelectBtn.disabled = true;
+            }
+        });
+
+        // ============================================================
+        //  PICKER SELECT (saves chosen avatar URL via PUT)
+        // ============================================================
+        pickerSelectBtn.addEventListener('click', async () => {
+            if (!selectedAvatarUrl) return;
+            pickerSelectBtn.disabled = true;
+            pickerSelectBtn.textContent = 'Saving...';
+
+            try {
+                const res = await fetch('/api/profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ avatar_url: selectedAvatarUrl })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    pickerOverlay.classList.remove('active');
+                    // Update preview
+                    const preview = document.getElementById('avatarPreview');
+                    preview.innerHTML = `<img src="${selectedAvatarUrl}" alt="Avatar" />`;
+                    // Update current user
+                    currentUser.avatar_url = selectedAvatarUrl;
+                    // Re‑render avatar actions (show Remove button)
+                    const actions = document.querySelector('.avatar-actions');
+                    if (!actions.querySelector('#avatarRemoveBtn')) {
+                        const removeBtn = document.createElement('button');
+                        removeBtn.className = 'btn btn-danger';
+                        removeBtn.id = 'avatarRemoveBtn';
+                        removeBtn.textContent = 'Remove';
+                        removeBtn.addEventListener('click', handleAvatarRemove);
+                        actions.appendChild(removeBtn);
+                    }
+                    // Show success
+                    document.getElementById('successBox').textContent = '✅ Avatar updated successfully!';
+                    document.getElementById('successBox').style.display = 'block';
+                    setTimeout(() => {
+                        document.getElementById('successBox').style.display = 'none';
+                    }, 3000);
+                } else {
+                    alert(data.error || 'Failed to save avatar.');
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+
+            pickerSelectBtn.disabled = false;
+            pickerSelectBtn.textContent = 'Select';
+            selectedAvatarUrl = null;
+        });
+
+        // ============================================================
+        //  HANDLE SAVE (unchanged)
         // ============================================================
         async function handleSave() {
             const saveBtn = document.getElementById('saveBtn');
@@ -417,7 +718,6 @@
             const username = document.getElementById('username').value.trim();
 
             try {
-                // If username changed, send separate request
                 if (username !== currentUser.username) {
                     const res = await fetch('/api/profile?action=change-username', {
                         method: 'POST',
@@ -434,12 +734,10 @@
                         saveBtn.textContent = 'Save Changes';
                         return;
                     }
-                    // Update token
                     localStorage.setItem('user_token', data.token);
                     currentUser.username = username;
                 }
 
-                // Update display name and bio
                 const res = await fetch('/api/profile', {
                     method: 'PUT',
                     headers: {
@@ -453,7 +751,6 @@
                 if (data.success) {
                     successBox.style.display = 'block';
                     errorBox.textContent = '';
-                    // Update current user
                     currentUser.display_name = displayName;
                     currentUser.bio = bio;
                 } else {
@@ -468,69 +765,7 @@
         }
 
         // ============================================================
-        //  HANDLE AVATAR UPLOAD
-        // ============================================================
-        async function handleAvatarUpload(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const errorBox = document.getElementById('errorBox');
-            const successBox = document.getElementById('successBox');
-            errorBox.textContent = '';
-            successBox.style.display = 'none';
-
-            try {
-                // 1. Get Supabase config
-                const configRes = await fetch('/api/supabase-config');
-                const config = await configRes.json();
-
-                // 2. Create Supabase client
-                const s = supabase.createClient(config.url, config.anonKey);
-
-                // 3. Generate unique filename
-                const ext = file.name.split('.').pop();
-                const filename = `${currentUser.id}_avatar_${Date.now()}.${ext}`;
-
-                // 4. Upload to user_avatars bucket
-                const { error } = await s.storage
-                    .from('user_avatars')
-                    .upload(filename, file, { upsert: true });
-
-                if (error) throw error;
-
-                // 5. Get public URL
-                const { data: urlData } = s.storage
-                    .from('user_avatars')
-                    .getPublicUrl(filename);
-
-                const avatarUrl = urlData.publicUrl;
-
-                // 6. Update profile via API
-                const res = await fetch('/api/profile', {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ avatar_url: avatarUrl })
-                });
-
-                const data = await res.json();
-
-                if (data.success) {
-                    successBox.textContent = '✅ Avatar uploaded successfully!';
-                    successBox.style.display = 'block';
-                    setTimeout(() => location.reload(), 1500);
-                } else {
-                    errorBox.textContent = data.error || 'Failed to update profile with avatar';
-                }
-            } catch (err) {
-                errorBox.textContent = 'Error uploading avatar: ' + err.message;
-            }
-        }
-
-        // ============================================================
-        //  HANDLE AVATAR REMOVE
+        //  HANDLE AVATAR REMOVE (unchanged)
         // ============================================================
         async function handleAvatarRemove() {
             if (!confirm('Are you sure you want to remove your avatar?')) return;
@@ -550,7 +785,16 @@
                 if (data.success) {
                     successBox.textContent = '✅ Avatar removed successfully!';
                     successBox.style.display = 'block';
-                    setTimeout(() => location.reload(), 1500);
+                    // Remove avatar from preview
+                    const preview = document.getElementById('avatarPreview');
+                    preview.innerHTML = currentUser.username.charAt(0).toUpperCase();
+                    currentUser.avatar_url = null;
+                    // Remove the Remove button itself
+                    const removeBtn = document.getElementById('avatarRemoveBtn');
+                    if (removeBtn) removeBtn.remove();
+                    setTimeout(() => {
+                        successBox.style.display = 'none';
+                    }, 3000);
                 } else {
                     errorBox.textContent = data.error || 'Failed to remove avatar';
                 }
@@ -560,7 +804,7 @@
         }
 
         // ============================================================
-        //  INIT
+        //  INIT (unchanged)
         // ============================================================
         async function init() {
             await verifyUser();
