@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Reels — Prompt Library</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* ===== RESET & BASE ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #000;
+            color: #fff;
+            -webkit-font-smoothing: antialiased;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+        /* ===== REELS CONTAINER (Full Screen Vertical Scroll) ===== */
+        .reels-container {
+            height: 100vh;
+            width: 100vw;
+            overflow-y: scroll;
+            overflow-x: hidden;
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+            position: relative;
+        }
+        .reels-container::-webkit-scrollbar { display: none; }
+
+        /* ===== SKELETON LOADING ===== */
+        .skeleton-reel {
+            height: 100vh;
+            width: 100vw;
+            scroll-snap-align: start;
+            position: relative;
+            background: #121212;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .skeleton-reel .skeleton-image {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        .skeleton-reel .bottom-overlay {
+            position: absolute;
+            bottom: 40px;
+            left: 20px;
+            right: 80px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .skeleton-reel .bottom-overlay .avatar-line {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .skeleton-reel .bottom-overlay .avatar-line .circle {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        .skeleton-reel .bottom-overlay .avatar-line .line {
+            height: 16px; width: 120px; border-radius: 8px;
+            background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        .skeleton-reel .bottom-overlay .line.long {
+            height: 14px; width: 80%; border-radius: 8px;
+            background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        .skeleton-reel .right-actions {
+            position: absolute;
+            bottom: 40px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+        .skeleton-reel .right-actions .btn {
+            width: 30px; height: 30px; border-radius: 50%;
+            background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* ===== REEL ITEM ===== */
+        .reel-item {
+            height: 100vh;
+            width: 100vw;
+            scroll-snap-align: start;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: #000;
+        }
+        .reel-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0; left: 0;
+            z-index: 1;
+        }
+        .reel-item .gradient-overlay {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 60%;
+            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* ===== TOP RIGHT PROFILE ===== */
+        .top-profile {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 50;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.2s;
+            color: #fff;
+            font-size: 18px;
+        }
+        .top-profile:hover { transform: scale(1.05); background: rgba(255,255,255,0.2); }
+        .top-profile img {
+            width: 36px; height: 36px; border-radius: 50%; object-fit: cover;
+        }
+
+        /* ===== BOTTOM LEFT INFO ===== */
+        .bottom-info {
+            position: absolute;
+            bottom: 50px;
+            left: 20px;
+            right: 90px;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            pointer-events: none;
+        }
+        .bottom-info .user-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            pointer-events: auto;
+            cursor: pointer;
+        }
+        .bottom-info .user-row:hover .username { text-decoration: underline; }
+        .bottom-info .user-row .avatar {
+            width: 36px; height: 36px; border-radius: 50%; object-fit: cover;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .bottom-info .user-row .username {
+            font-weight: 600; font-size: 15px; color: #fff;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .bottom-info .user-row .badge { width: 16px; height: 16px; object-fit: contain; }
+        .bottom-info .reel-title {
+            font-weight: 700; font-size: 18px; color: #fff; line-height: 1.3;
+            margin-top: 2px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            pointer-events: auto;
+        }
+        .bottom-info .reel-desc {
+            font-size: 14px; color: rgba(255,255,255,0.8); line-height: 1.4;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            pointer-events: auto;
+        }
+
+        /* ===== RIGHT ACTION BAR ===== */
+        .right-actions {
+            position: absolute;
+            bottom: 50px;
+            right: 16px;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
+            pointer-events: none;
+        }
+        .right-actions button {
+            background: none; border: none; cursor: pointer;
+            display: flex; flex-direction: column; align-items: center; gap: 2px;
+            color: #fff; font-size: 12px; font-weight: 500; font-family: inherit;
+            pointer-events: auto;
+            transition: transform 0.15s;
+        }
+        .right-actions button:active { transform: scale(0.85); }
+        .right-actions button svg {
+            width: 28px; height: 28px; fill: #fff; stroke: #fff; stroke-width: 1.5;
+            transition: fill 0.15s, stroke 0.15s;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+        /* State styles */
+        .right-actions button.liked { color: #ff3040; }
+        .right-actions button.liked svg { fill: #ff3040; stroke: #ff3040; }
+        .right-actions button.saved { color: #fff; }
+        .right-actions button.saved svg { fill: #fff; stroke: #fff; }
+        .right-actions button .count { font-size: 12px; font-weight: 500; text-shadow: 0 2px 4px rgba(0,0,0,0.4); }
+
+        /* Specific icon customizations */
+        .right-actions .comment-btn svg { stroke-width: 2; fill: none; }
+        .right-actions .share-btn svg { stroke-width: 2; fill: none; }
+
+        /* ===== BOTTOM SHEET COMMENT MODAL (70% Height) ===== */
+        .comment-sheet-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(6px);
+            z-index: 1000;
+            align-items: flex-end;
+            justify-content: center;
+        }
+        .comment-sheet-overlay.active { display: flex; }
+
+        .comment-sheet {
+            background: #1a1a1a;
+            border-radius: 20px 20px 0 0;
+            width: 100%;
+            max-width: 500px;
+            height: 70vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            animation: slideUp 0.3s ease-out;
+            position: relative;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .comment-sheet .handle {
+            width: 40px; height: 4px; border-radius: 2px; background: #555;
+            margin: 12px auto 8px; cursor: pointer;
+        }
+        .comment-sheet .header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 16px 12px; border-bottom: 1px solid #2a2a2a;
+        }
+        .comment-sheet .header h3 { font-size: 18px; font-weight: 700; color: #fff; }
+        .comment-sheet .header .close-btn {
+            background: none; border: none; color: #aaa; font-size: 24px; cursor: pointer;
+            padding: 4px 8px; border-radius: 50%; transition: background 0.2s;
+        }
+        .comment-sheet .header .close-btn:hover { background: #2a2a2a; }
+
+        .comment-sheet .scroll-content {
+            flex: 1; overflow-y: auto; padding: 12px 16px 8px;
+        }
+        .comment-sheet .scroll-content::-webkit-scrollbar { width: 4px; }
+        .comment-sheet .scroll-content::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+
+        /* Prompt details inside sheet */
+        .sheet-prompt-title { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+        .sheet-prompt-desc {
+            font-size: 15px; color: #bbb; line-height: 1.5; margin-bottom: 6px;
+        }
+        .sheet-prompt-desc.collapsed {
+            display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+        }
+        .sheet-see-more {
+            background: none; border: none; color: #0095f6; font-weight: 600; font-size: 14px;
+            cursor: pointer; font-family: inherit; padding: 2px 0; margin-bottom: 10px; display: block;
+        }
+        .sheet-prompt-text-wrap {
+            background: #252525; border-radius: 12px; padding: 14px 16px; margin: 6px 0 10px;
+            border: 1px solid #333;
+        }
+        .sheet-prompt-text-wrap .label { font-size: 12px; font-weight: 600; color: #888; text-transform: uppercase; margin-bottom: 4px; }
+        .sheet-prompt-text-wrap .text {
+            font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #eee; line-height: 1.7; white-space: pre-wrap;
+        }
+        .sheet-copy-btn {
+            width: 100%; padding: 10px; background: #0095f6; color: #fff; border: none;
+            border-radius: 10px; font-weight: 600; font-size: 15px; cursor: pointer;
+            transition: background 0.2s; margin-bottom: 16px;
+        }
+        .sheet-copy-btn:hover { background: #0077c9; }
+        .sheet-copy-btn.copied { background: #10b981; }
+
+        .sheet-comments-label { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 10px; }
+
+        /* Comments inside sheet */
+        .sheet-comment-item {
+            display: flex; gap: 10px; margin-bottom: 14px;
+        }
+        .sheet-comment-item .avatar {
+            width: 32px; height: 32px; border-radius: 50%; background: #333; flex-shrink: 0; object-fit: cover;
+        }
+        .sheet-comment-item .body { flex: 1; }
+        .sheet-comment-item .body .row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+        .sheet-comment-item .body .row .name { font-weight: 600; font-size: 14px; color: #fff; cursor: pointer; }
+        .sheet-comment-item .body .row .name:hover { text-decoration: underline; }
+        .sheet-comment-item .body .row .time { font-size: 12px; color: #888; }
+        .sheet-comment-item .body .content { font-size: 14px; color: #eee; line-height: 1.5; margin-top: 2px; }
+        .sheet-comment-item .body .actions {
+            display: flex; gap: 14px; margin-top: 4px; font-size: 13px; color: #888;
+        }
+        .sheet-comment-item .body .actions button {
+            background: none; border: none; cursor: pointer; font-size: 13px; color: #888;
+            font-family: inherit; display: flex; align-items: center; gap: 4px; padding: 2px 4px; border-radius: 4px;
+        }
+        .sheet-comment-item .body .actions button:hover { color: #fff; background: #2a2a2a; }
+        .sheet-comment-item .body .actions button.liked { color: #ff3040; }
+        .sheet-comment-item .body .actions button.liked svg { fill: #ff3040; }
+        .sheet-comment-item .body .actions svg { width: 14px; height: 14px; fill: currentColor; }
+        .sheet-comment-item .replies { margin-top: 8px; margin-left: 42px; display: flex; flex-direction: column; gap: 10px; }
+        .sheet-comment-item .reply-input-wrap {
+            margin-top: 8px; margin-left: 42px; display: flex; gap: 8px;
+        }
+        .sheet-comment-item .reply-input-wrap input {
+            flex: 1; padding: 8px 14px; border: 1px solid #333; border-radius: 20px; font-size: 13px;
+            font-family: inherit; background: #252525; color: #fff; transition: border 0.2s;
+        }
+        .sheet-comment-item .reply-input-wrap input:focus { outline: none; border-color: #0095f6; }
+        .sheet-comment-item .reply-input-wrap button {
+            padding: 8px 16px; background: #0095f6; color: #fff; border: none; border-radius: 20px;
+            font-weight: 500; font-size: 13px; cursor: pointer; transition: background 0.2s;
+        }
+        .sheet-comment-item .reply-input-wrap button:hover { background: #0077c9; }
+
+        /* Input bar at bottom of sheet */
+        .sheet-input-wrap {
+            display: flex; gap: 10px; padding: 12px 16px 16px;
+            border-top: 1px solid #2a2a2a; background: #1a1a1a;
+        }
+        .sheet-input-wrap .avatar {
+            width: 32px; height: 32px; border-radius: 50%; background: #333; flex-shrink: 0; object-fit: cover;
+            display: flex; align-items: center; justify-content: center; font-weight: 600; color: #fff; font-size: 14px;
+        }
+        .sheet-input-wrap .avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+        .sheet-input-wrap input {
+            flex: 1; padding: 10px 16px; border: 1px solid #333; border-radius: 24px; font-size: 14px;
+            font-family: inherit; background: #252525; color: #fff; transition: border 0.2s;
+        }
+        .sheet-input-wrap input:focus { outline: none; border-color: #0095f6; }
+        .sheet-input-wrap button {
+            padding: 8px 20px; background: #0095f6; color: #fff; border: none; border-radius: 24px;
+            font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s;
+        }
+        .sheet-input-wrap button:hover { background: #0077c9; }
+        .sheet-input-wrap button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* ===== AUTH POPUP ===== */
+        .popup-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 2000;
+            align-items: center; justify-content: center;
+        }
+        .popup-overlay.active { display: flex; }
+        .popup {
+            background: #1a1a1a; border-radius: 20px; padding: 32px 40px; max-width: 400px; width: 92%;
+            text-align: center; border: 1px solid #333;
+        }
+        .popup h2 { font-size: 22px; font-weight: 700; color: #fff; }
+        .popup p { color: #aaa; font-size: 16px; margin: 10px 0 28px; line-height: 1.5; }
+        .popup .btn-primary {
+            padding: 12px 32px; background: #0095f6; color: #fff; border: none; border-radius: 12px;
+            font-weight: 600; font-size: 16px; cursor: pointer; transition: background 0.2s;
+        }
+        .popup .btn-primary:hover { background: #0077c9; }
+        .popup .btn-secondary {
+            padding: 12px 32px; background: #2a2a2a; border: none; border-radius: 12px; font-weight: 500;
+            font-size: 16px; cursor: pointer; margin-left: 12px; color: #fff; transition: background 0.2s;
+        }
+        .popup .btn-secondary:hover { background: #3a3a3a; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 640px) {
+            .right-actions { bottom: 30px; right: 12px; gap: 14px; }
+            .right-actions button svg { width: 24px; height: 24px; }
+            .bottom-info { bottom: 30px; left: 16px; right: 70px; }
+            .bottom-info .user-row .avatar { width: 32px; height: 32px; }
+            .bottom-info .user-row .username { font-size: 14px; }
+            .bottom-info .reel-title { font-size: 16px; }
+            .comment-sheet { max-width: 100%; height: 75vh; border-radius: 16px 16px 0 0; }
+            .top-profile { top: 16px; right: 16px; width: 38px; height: 38px; font-size: 16px; }
+            .top-profile img { width: 32px; height: 32px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TOP RIGHT PROFILE ICON -->
+    <div class="top-profile" id="topProfile">👤</div>
+
+    <!-- REELS CONTAINER -->
+    <div class="reels-container" id="reelsContainer">
+        <!-- Skeleton will be rendered here -->
+    </div>
+
+    <!-- BOTTOM SHEET COMMENT MODAL -->
+    <div class="comment-sheet-overlay" id="commentSheet">
+        <div class="comment-sheet">
+            <div class="handle" id="sheetHandle"></div>
+            <div class="header">
+                <h3>Comments</h3>
+                <button class="close-btn" id="closeSheetBtn">✕</button>
+            </div>
+            <div class="scroll-content" id="sheetContent">
+                <!-- Prompt details + comments rendered here -->
+            </div>
+            <div class="sheet-input-wrap">
+                <div class="avatar" id="sheetUserAvatar">?</div>
+                <input type="text" id="sheetCommentInput" placeholder="Add a comment..." />
+                <button id="sheetCommentSubmit">Post</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AUTH POPUP -->
+    <div class="popup-overlay" id="popup">
+        <div class="popup">
+            <h2>🔒 Sign in to interact</h2>
+            <p>You need to log in or create an account to like, save, or comment.</p>
+            <button class="btn-primary" id="popupLoginBtn">Log In / Sign Up</button>
+            <button class="btn-secondary" id="popupCloseBtn">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        //  STATE
+        // ============================================================
+        const token = localStorage.getItem('user_token');
+        let user = null;
+        let page = 0;
+        const pageSize = 10;
+        let loading = false;
+        let hasMore = true;
+        let currentPromptIdForComments = null;
+        let currentReelData = null; // Store current prompt data for sheet
+
+        // Local state trackers for debounced optimistic updates
+        let localLikes = {};
+        let localSaves = {};
+        let likeDebounceTimers = {};
+        let saveDebounceTimers = {};
+        let commentLikeTimers = {};
+
+        // ============================================================
+        //  DOM
+        // ============================================================
+        const container = document.getElementById('reelsContainer');
+        const topProfile = document.getElementById('topProfile');
+        const popup = document.getElementById('popup');
+        const commentSheet = document.getElementById('commentSheet');
+        const sheetContent = document.getElementById('sheetContent');
+        const sheetInput = document.getElementById('sheetCommentInput');
+        const sheetSubmit = document.getElementById('sheetCommentSubmit');
+        const sheetAvatar = document.getElementById('sheetUserAvatar');
+
+        // ============================================================
+        //  VERIFY USER
+        // ============================================================
+        async function verifyUser() {
+            if (!token) return null;
+            try {
+                const res = await fetch('/api/auth?action=verify', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    user = data.user;
+                    if (user.avatar_url) {
+                        topProfile.innerHTML = `<img src="${user.avatar_url}" />`;
+                        sheetAvatar.innerHTML = `<img src="${user.avatar_url}" />`;
+                    } else {
+                        topProfile.textContent = user.username.charAt(0).toUpperCase();
+                        sheetAvatar.textContent = user.username.charAt(0).toUpperCase();
+                        sheetAvatar.style.backgroundImage = 'none';
+                    }
+                    return user;
+                } else {
+                    localStorage.removeItem('user_token');
+                    return null;
+                }
+            } catch {
+                localStorage.removeItem('user_token');
+                return null;
+            }
+        }
+
+        // ============================================================
+        //  RENDER SKELETON (Reels)
+        // ============================================================
+        function renderSkeletons(count = 2) {
+            let html = '';
+            for (let i = 0; i < count; i++) {
+                html += `
+                    <div class="skeleton-reel">
+                        <div class="skeleton-image"></div>
+                        <div class="bottom-overlay">
+                            <div class="avatar-line">
+                                <div class="circle"></div>
+                                <div class="line"></div>
+                            </div>
+                            <div class="line long"></div>
+                        </div>
+                        <div class="right-actions">
+                            <div class="btn"></div>
+                            <div class="btn"></div>
+                            <div class="btn"></div>
+                            <div class="btn"></div>
+                        </div>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        }
+
+        // ============================================================
+        //  LOAD REELS
+        // ============================================================
+        async function loadReels(reset = false) {
+            if (loading || (!hasMore && !reset)) return;
+            loading = true;
+            if (reset) {
+                page = 0;
+                hasMore = true;
+                localLikes = {};
+                localSaves = {};
+                renderSkeletons();
+            }
+
+            const action = token ? 'feed' : 'explore';
+            const url = `/api/feed?action=${action}&limit=${pageSize}&offset=${page * pageSize}`;
+
+            try {
+                const res = await fetch(url, {
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                });
+                const data = await res.json();
+                const prompts = data.prompts || [];
+
+                if (reset) container.innerHTML = '';
+
+                if (prompts.length === 0 && page === 0) {
+                    container.innerHTML = `<div style="height:100vh;display:flex;align-items:center;justify-content:center;color:#888;font-size:18px;">No reels found.</div>`;
+                    loading = false;
+                    return;
+                }
+
+                prompts.forEach(p => {
+                    localLikes[p.id] = { count: p.like_count || 0, liked: p.liked || false };
+                    localSaves[p.id] = { count: p.save_count || 0, saved: p.saved || false };
+                    container.appendChild(createReelElement(p));
+                });
+
+                hasMore = data.hasMore;
+                page++;
+
+            } catch (err) {
+                console.error('Reels error:', err);
+                if (page === 0) {
+                    container.innerHTML = `<div style="height:100vh;display:flex;align-items:center;justify-content:center;color:#ff3040;font-size:18px;">Error loading reels.</div>`;
+                }
+            }
+            loading = false;
+        }
+
+        // ============================================================
+        //  CREATE REEL ELEMENT (TikTok Style)
+        // ============================================================
+        function createReelElement(p) {
+            const reel = document.createElement('div');
+            reel.className = 'reel-item';
+            reel.dataset.id = p.id;
+            reel.dataset.slug = p.slug;
+
+            // SVG Icons
+            const heartIcon = `<svg viewBox="0 0 24 24" stroke="currentColor" fill="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+            const heartFilled = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+            const bookmarkIcon = `<svg viewBox="0 0 24 24" stroke="currentColor" fill="none"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>`;
+            const bookmarkFilled = `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>`;
+            const commentIcon = `<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
+            const shareIcon = `<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>`;
+
+            const localLike = localLikes[p.id] || { count: p.like_count || 0, liked: p.liked || false };
+            const localSave = localSaves[p.id] || { count: p.save_count || 0, saved: p.saved || false };
+            const likeClass = localLike.liked ? 'liked' : '';
+            const saveClass = localSave.saved ? 'saved' : '';
+            const likeIconHtml = localLike.liked ? heartFilled : heartIcon;
+            const saveIconHtml = localSave.saved ? bookmarkFilled : bookmarkIcon;
+
+            const date = new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+            reel.innerHTML = `
+                <img src="${p.image_main}" 
+                     onerror="this.src='https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=600&h=800&fit=crop&auto=format'" 
+                     alt="${p.title}" />
+                <div class="gradient-overlay"></div>
+
+                <div class="bottom-info">
+                    <div class="user-row" onclick="window.location.href='/@raafiiih'">
+                        <img src="/raafiiih/profile.png" class="avatar" onerror="this.src='https://ui-avatars.com/api/?name=R&background=4f46e5&color=fff'" alt="RAAFIIIH" />
+                        <span class="username">
+                            RAAFIIIH
+                            <img src="/badge.png" class="badge" onerror="this.style.display='none'" alt="Verified" />
+                        </span>
+                    </div>
+                    <div class="reel-title">${p.title}</div>
+                    ${p.description ? `<div class="reel-desc">${p.description}</div>` : ''}
+                </div>
+
+                <div class="right-actions">
+                    <button class="like-btn ${likeClass}" data-id="${p.id}">
+                        ${likeIconHtml}
+                        <span class="count">${localLike.count}</span>
+                    </button>
+                    <button class="comment-btn" data-id="${p.id}">
+                        ${commentIcon}
+                        <span class="count">${p.comment_count || 0}</span>
+                    </button>
+                    <button class="save-btn ${saveClass}" data-id="${p.id}">
+                        ${saveIconHtml}
+                        <span class="count">${localSave.count}</span>
+                    </button>
+                    <button class="share-btn" data-id="${p.id}">
+                        ${shareIcon}
+                    </button>
+                </div>
+            `;
+
+            // --- Event Listeners ---
+            reel.querySelector('.like-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                handleLike(e.currentTarget, p.id);
+            });
+
+            reel.querySelector('.save-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                handleSave(e.currentTarget, p.id);
+            });
+
+            reel.querySelector('.share-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                navigator.clipboard.writeText(window.location.origin + '/prompt/' + p.slug);
+                alert('Link copied to clipboard!');
+            });
+
+            reel.querySelector('.comment-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (!user) { popup.classList.add('active'); return; }
+                openCommentSheet(p.id);
+            });
+
+            return reel;
+        }
+
+        // ============================================================
+        //  INTERACTIONS (Optimistic + Debounced) - Exact same as feed
+        // ============================================================
+        function updateLikeUI(btn, promptId, newCount, newLikedState) {
+            const heartFilled = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+            const heartIcon = `<svg viewBox="0 0 24 24" stroke="currentColor" fill="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+            if (newLikedState) {
+                btn.classList.add('liked');
+                btn.innerHTML = `${heartFilled} <span class="count">${newCount}</span>`;
+            } else {
+                btn.classList.remove('liked');
+                btn.innerHTML = `${heartIcon} <span class="count">${newCount}</span>`;
+            }
+        }
+
+        function handleLike(btn, promptId) {
+            if (!user) { popup.classList.add('active'); return; }
+            const current = localLikes[promptId] || { count: 0, liked: false };
+            const newLiked = !current.liked;
+            const newCount = newLiked ? current.count + 1 : current.count - 1;
+            localLikes[promptId] = { count: newCount, liked: newLiked };
+            updateLikeUI(btn, promptId, newCount, newLiked);
+
+            if (likeDebounceTimers[promptId]) clearTimeout(likeDebounceTimers[promptId]);
+            likeDebounceTimers[promptId] = setTimeout(async () => {
+                const finalState = localLikes[promptId];
+                if (!finalState) return;
+                const action = finalState.liked ? 'like' : 'unlike';
+                const method = finalState.liked ? 'POST' : 'DELETE';
+                try {
+                    const res = await fetch(`/api/interactions?action=${action}`, {
+                        method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ promptId })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        localLikes[promptId] = { count: data.like_count, liked: finalState.liked };
+                        document.querySelectorAll(`.like-btn[data-id="${promptId}"]`).forEach(el => {
+                            updateLikeUI(el, promptId, data.like_count, finalState.liked);
+                        });
+                    } else {
+                        const revertedLiked = !finalState.liked;
+                        const revertedCount = revertedLiked ? finalState.count + 1 : finalState.count - 1;
+                        localLikes[promptId] = { count: revertedCount, liked: revertedLiked };
+                        document.querySelectorAll(`.like-btn[data-id="${promptId}"]`).forEach(el => {
+                            updateLikeUI(el, promptId, revertedCount, revertedLiked);
+                        });
+                    }
+                } catch {
+                    const revertedLiked = !finalState.liked;
+                    const revertedCount = revertedLiked ? finalState.count + 1 : finalState.count - 1;
+                    localLikes[promptId] = { count: revertedCount, liked: revertedLiked };
+                    document.querySelectorAll(`.like-btn[data-id="${promptId}"]`).forEach(el => {
+                        updateLikeUI(el, promptId, revertedCount, revertedLiked);
+                    });
+                }
+                delete likeDebounceTimers[promptId];
+            }, 800);
+        }
+
+        function updateSaveUI(btn, promptId, newCount, newSavedState) {
+            const bookmarkFilled = `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>`;
+            const bookmarkIcon = `<svg viewBox="0 0 24 24" stroke="currentColor" fill="none"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>`;
+            if (newSavedState) {
+                btn.classList.add('saved');
+                btn.innerHTML = `${bookmarkFilled} <span class="count">${newCount}</span>`;
+            } else {
+                btn.classList.remove('saved');
+                btn.innerHTML = `${bookmarkIcon} <span class="count">${newCount}</span>`;
+            }
+        }
+
+        function handleSave(btn, promptId) {
+            if (!user) { popup.classList.add('active'); return; }
+            const current = localSaves[promptId] || { count: 0, saved: false };
+            const newSaved = !current.saved;
+            const newCount = newSaved ? current.count + 1 : current.count - 1;
+            localSaves[promptId] = { count: newCount, saved: newSaved };
+            updateSaveUI(btn, promptId, newCount, newSaved);
+
+            if (saveDebounceTimers[promptId]) clearTimeout(saveDebounceTimers[promptId]);
+            saveDebounceTimers[promptId] = setTimeout(async () => {
+                const finalState = localSaves[promptId];
+                if (!finalState) return;
+                const action = finalState.saved ? 'save' : 'unsave';
+                const method = finalState.saved ? 'POST' : 'DELETE';
+                try {
+                    const res = await fetch(`/api/interactions?action=${action}`, {
+                        method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ promptId })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        localSaves[promptId] = { count: data.save_count, saved: finalState.saved };
+                        document.querySelectorAll(`.save-btn[data-id="${promptId}"]`).forEach(el => {
+                            updateSaveUI(el, promptId, data.save_count, finalState.saved);
+                        });
+                    } else {
+                        const revertedSaved = !finalState.saved;
+                        const revertedCount = revertedSaved ? finalState.count + 1 : finalState.count - 1;
+                        localSaves[promptId] = { count: revertedCount, saved: revertedSaved };
+                        document.querySelectorAll(`.save-btn[data-id="${promptId}"]`).forEach(el => {
+                            updateSaveUI(el, promptId, revertedCount, revertedSaved);
+                        });
+                    }
+                } catch {
+                    const revertedSaved = !finalState.saved;
+                    const revertedCount = revertedSaved ? finalState.count + 1 : finalState.count - 1;
+                    localSaves[promptId] = { count: revertedCount, saved: revertedSaved };
+                    document.querySelectorAll(`.save-btn[data-id="${promptId}"]`).forEach(el => {
+                        updateSaveUI(el, promptId, revertedCount, revertedSaved);
+                    });
+                }
+                delete saveDebounceTimers[promptId];
+            }, 800);
+        }
+
+        // ============================================================
+        //  BOTTOM SHEET COMMENT MODAL
+        // ============================================================
+        async function openCommentSheet(promptId) {
+            currentPromptIdForComments = promptId;
+            commentSheet.classList.add('active');
+            sheetInput.value = '';
+
+            // Show loading skeleton inside sheet
+            sheetContent.innerHTML = `
+                <div style="display:flex;flex-direction:column;gap:12px;padding:8px 0;">
+                    <div class="skeleton" style="height:24px;width:70%;border-radius:6px;"></div>
+                    <div class="skeleton" style="height:16px;width:90%;border-radius:6px;"></div>
+                    <div class="skeleton" style="height:60px;width:100%;border-radius:8px;"></div>
+                    <div class="skeleton" style="height:14px;width:40%;border-radius:6px;"></div>
+                    <div class="skeleton" style="height:14px;width:80%;border-radius:6px;"></div>
+                    <div class="skeleton" style="height:14px;width:60%;border-radius:6px;"></div>
+                </div>
+            `;
+
+            try {
+                // 1. Fetch prompt details
+                const promptRes = await fetch(`/api/prompts?action=by-id&id=${promptId}`, {
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                });
+                const promptData = await promptRes.json();
+                currentReelData = promptData.prompt;
+
+                // 2. Fetch comments
+                const commentRes = await fetch(`/api/comments?action=list&promptId=${promptId}&limit=50&offset=0`, {
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                });
+                const commentData = await commentRes.json();
+
+                renderSheetContent(promptData.prompt, commentData.comments || []);
+
+            } catch (err) {
+                sheetContent.innerHTML = `<div style="text-align:center;padding:20px;color:#dc2626;">Error loading content.</div>`;
+            }
+        }
+
+        function renderSheetContent(prompt, comments) {
+            const isLongDesc = prompt.description && prompt.description.length > 120;
+            let html = `
+                <div class="sheet-prompt-title">${prompt.title}</div>
+                ${prompt.description ? `
+                    <div class="sheet-prompt-desc ${isLongDesc ? 'collapsed' : ''}" id="sheetDescText">${prompt.description}</div>
+                    ${isLongDesc ? `<button class="sheet-see-more" id="sheetSeeMore">See more</button>` : ''}
+                ` : ''}
+                <div class="sheet-prompt-text-wrap">
+                    <div class="label">Prompt</div>
+                    <div class="text" id="sheetPromptText">${prompt.prompt_text}</div>
+                </div>
+                <button class="sheet-copy-btn" id="sheetCopyBtn">Copy Prompt</button>
+                <div class="sheet-comments-label">Comments (${comments.length})</div>
+                <div id="sheetCommentsList">
+            `;
+
+            if (comments.length === 0) {
+                html += `<div style="text-align:center;padding:10px 0;color:#888;">No comments yet. Be the first!</div>`;
+            } else {
+                comments.forEach(c => {
+                    html += createSheetCommentHTML(c);
+                });
+            }
+
+            html += `</div>`;
+            sheetContent.innerHTML = html;
+
+            // Attach event listeners
+            const seeMoreBtn = document.getElementById('sheetSeeMore');
+            if (seeMoreBtn) {
+                seeMoreBtn.addEventListener('click', () => {
+                    const descText = document.getElementById('sheetDescText');
+                    const isCollapsed = descText.classList.contains('collapsed');
+                    descText.classList.toggle('collapsed');
+                    seeMoreBtn.textContent = isCollapsed ? 'See less' : 'See more';
+                });
+            }
+
+            document.getElementById('sheetCopyBtn').addEventListener('click', () => {
+                const text = document.getElementById('sheetPromptText').textContent;
+                navigator.clipboard.writeText(text).then(() => {
+                    const btn = document.getElementById('sheetCopyBtn');
+                    btn.textContent = 'Copied!';
+                    btn.classList.add('copied');
+                    setTimeout(() => { btn.textContent = 'Copy Prompt'; btn.classList.remove('copied'); }, 2000);
+                });
+            });
+
+            // Attach comment like/reply events
+            document.querySelectorAll('.sheet-comment-like-btn').forEach(btn => {
+                btn.addEventListener('click', () => handleSheetCommentLike(btn));
+            });
+            document.querySelectorAll('.sheet-reply-toggle').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const form = document.getElementById(`sheetReplyForm_${btn.dataset.id}`);
+                    if (form) form.style.display = form.style.display === 'none' ? 'flex' : 'none';
+                });
+            });
+            document.querySelectorAll('.sheet-reply-submit').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    if (!user) { popup.classList.add('active'); return; }
+                    const input = document.getElementById(`sheetReplyInput_${btn.dataset.id}`);
+                    const content = input.value.trim();
+                    if (!content) return;
+                    try {
+                        const res = await fetch('/api/comments?action=add', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                            body: JSON.stringify({ promptId: currentPromptIdForComments, content, parentId: btn.dataset.id })
+                        });
+                        if (res.ok) { input.value = ''; openCommentSheet(currentPromptIdForComments); }
+                    } catch (err) { console.error(err); }
+                });
+            });
+        }
+
+        function createSheetCommentHTML(c, isReply = false) {
+            const avatar = c.profiles?.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(c.profiles?.username || '?') + '&background=333&color=fff&size=32';
+            const displayName = c.profiles?.display_name || c.profiles?.username || 'Anonymous';
+            const username = c.profiles?.username || 'anonymous';
+            const time = timeAgo(c.created_at);
+            const likeIcon = c.liked ? `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>` : `<svg viewBox="0 0 24 24" stroke="currentColor" fill="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+            const likeClass = c.liked ? 'liked' : '';
+
+            let html = `
+                <div class="sheet-comment-item">
+                    <img src="${avatar}" class="avatar" />
+                    <div class="body">
+                        <div class="row">
+                            <span class="name" onclick="window.location.href='/@${username}'">${displayName}</span>
+                            <span class="time">${time}</span>
+                        </div>
+                        <div class="content">${c.content}</div>
+                        <div class="actions">
+                            <button class="sheet-comment-like-btn ${likeClass}" data-id="${c.id}" data-count="${c.likes_count || 0}">
+                                ${likeIcon} ${c.likes_count || 0}
+                            </button>
+                            <span style="color:#333;">·</span>
+                            ${!isReply ? `<button class="sheet-reply-toggle" data-id="${c.id}">Reply</button>` : ''}
+                        </div>
+            `;
+
+            if (!isReply && c.replies && c.replies.length > 0) {
+                html += `<div class="replies">`;
+                c.replies.forEach(r => { html += createSheetCommentHTML(r, true); });
+                html += `</div>`;
+            }
+
+            if (!isReply) {
+                html += `
+                    <div class="reply-input-wrap" id="sheetReplyForm_${c.id}" style="display:none;">
+                        <input type="text" placeholder="Write a reply..." id="sheetReplyInput_${c.id}" />
+                        <button class="sheet-reply-submit" data-id="${c.id}">Reply</button>
+                    </div>
+                `;
+            }
+
+            html += `</div></div>`;
+            return html;
+        }
+
+        // ============================================================
+        //  SHEET COMMENT LIKE (Debounced Optimistic)
+        // ============================================================
+        function handleSheetCommentLike(btn) {
+            if (!user) { popup.classList.add('active'); return; }
+            const commentId = btn.dataset.id;
+            const currentCount = parseInt(btn.dataset.count) || 0;
+            const isLiked = btn.classList.contains('liked');
+            const newLiked = !isLiked;
+            const newCount = newLiked ? currentCount + 1 : currentCount - 1;
+            btn.dataset.count = newCount;
+
+            const likeIcon = `<svg viewBox="0 0 24 24" stroke="currentColor" fill="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+            const likeFilled = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+            if (newLiked) {
+                btn.classList.add('liked');
+                btn.innerHTML = `${likeFilled} ${newCount}`;
+            } else {
+                btn.classList.remove('liked');
+                btn.innerHTML = `${likeIcon} ${newCount}`;
+            }
+
+            if (commentLikeTimers[commentId]) clearTimeout(commentLikeTimers[commentId]);
+            commentLikeTimers[commentId] = setTimeout(async () => {
+                const finalLiked = btn.classList.contains('liked');
+                const action = finalLiked ? 'like-comment' : 'unlike-comment';
+                const method = finalLiked ? 'POST' : 'DELETE';
+                try {
+                    const res = await fetch(`/api/comments?action=${action}`, {
+                        method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ commentId })
+                    });
+                    if (!res.ok) {
+                        const revertLiked = !finalLiked;
+                        const revertCount = revertLiked ? parseInt(btn.dataset.count) + 1 : parseInt(btn.dataset.count) - 1;
+                        btn.dataset.count = revertCount;
+                        if (revertLiked) {
+                            btn.classList.add('liked');
+                            btn.innerHTML = `${likeFilled} ${revertCount}`;
+                        } else {
+                            btn.classList.remove('liked');
+                            btn.innerHTML = `${likeIcon} ${revertCount}`;
+                        }
+                    }
+                } catch {
+                    const revertLiked = !finalLiked;
+                    const revertCount = revertLiked ? parseInt(btn.dataset.count) + 1 : parseInt(btn.dataset.count) - 1;
+                    btn.dataset.count = revertCount;
+                    if (revertLiked) {
+                        btn.classList.add('liked');
+                        btn.innerHTML = `${likeFilled} ${revertCount}`;
+                    } else {
+                        btn.classList.remove('liked');
+                        btn.innerHTML = `${likeIcon} ${revertCount}`;
+                    }
+                }
+                delete commentLikeTimers[commentId];
+            }, 800);
+        }
+
+        // ============================================================
+        //  SHEET POST COMMENT (Instant Append)
+        // ============================================================
+        sheetSubmit.addEventListener('click', async () => {
+            if (!user) { popup.classList.add('active'); return; }
+            const content = sheetInput.value.trim();
+            if (!content || !currentPromptIdForComments) return;
+            sheetSubmit.disabled = true;
+
+            const tempId = 'temp_' + Date.now();
+            const tempComment = {
+                id: tempId,
+                user_id: user.id,
+                content: content,
+                likes_count: 0,
+                created_at: new Date().toISOString(),
+                profiles: {
+                    id: user.id,
+                    username: user.username,
+                    display_name: user.display_name || user.username,
+                    avatar_url: user.avatar_url
+                },
+                liked: false,
+                replies: []
+            };
+
+            const list = document.getElementById('sheetCommentsList');
+            const noMsg = list.querySelector('div[style*="No comments yet"]');
+            if (noMsg) list.innerHTML = '';
+            list.prepend(createSheetCommentHTML(tempComment));
+
+            try {
+                const res = await fetch('/api/comments?action=add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ promptId: currentPromptIdForComments, content })
+                });
+                if (res.ok) {
+                    sheetInput.value = '';
+                    openCommentSheet(currentPromptIdForComments);
+                } else {
+                    const tempEl = list.querySelector(`[data-id="${tempId}"]`);
+                    if (tempEl) tempEl.remove();
+                    alert('Failed to post comment.');
+                }
+            } catch {
+                const tempEl = list.querySelector(`[data-id="${tempId}"]`);
+                if (tempEl) tempEl.remove();
+                alert('Failed to post comment.');
+            }
+            sheetSubmit.disabled = false;
+        });
+
+        // ============================================================
+        //  SHEET CONTROLS
+        // ============================================================
+        document.getElementById('closeSheetBtn').addEventListener('click', () => {
+            commentSheet.classList.remove('active');
+        });
+        document.getElementById('sheetHandle').addEventListener('click', () => {
+            commentSheet.classList.remove('active');
+        });
+        commentSheet.addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) commentSheet.classList.remove('active');
+        });
+
+        // ============================================================
+        //  TIME AGO HELPER
+        // ============================================================
+        function timeAgo(dateStr) {
+            const now = new Date();
+            const past = new Date(dateStr);
+            const diffMs = now - past;
+            const diffSec = Math.floor(diffMs / 1000);
+            const diffMin = Math.floor(diffSec / 60);
+            const diffHour = Math.floor(diffMin / 60);
+            const diffDay = Math.floor(diffHour / 24);
+            if (diffSec < 60) return 'just now';
+            if (diffMin < 60) return diffMin + 'm';
+            if (diffHour < 24) return diffHour + 'h';
+            if (diffDay === 1) return 'yesterday';
+            if (diffDay < 7) return diffDay + 'd';
+            return new Date(dateStr).toLocaleDateString();
+        }
+
+        // ============================================================
+        //  INFINITE SCROLL (Snap detection)
+        // ============================================================
+        let scrollTimeout;
+        container.addEventListener('scroll', () => {
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                const scrollTop = container.scrollTop;
+                const clientHeight = container.clientHeight;
+                const scrollHeight = container.scrollHeight;
+                if (scrollTop + clientHeight >= scrollHeight - 200) {
+                    loadReels();
+                }
+            }, 150);
+        });
+
+        // ============================================================
+        //  POPUP CONTROLS
+        // ============================================================
+        document.getElementById('popupLoginBtn').addEventListener('click', () => {
+            window.location.href = '/';
+        });
+        document.getElementById('popupCloseBtn').addEventListener('click', () => {
+            popup.classList.remove('active');
+        });
+        popup.addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) popup.classList.remove('active');
+        });
+
+        // ============================================================
+        //  PROFILE BUTTON
+        // ============================================================
+        topProfile.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (user) {
+                window.location.href = `/@${user.username}`;
+            } else {
+                window.location.href = '/';
+            }
+        });
+
+        // ============================================================
+        //  INIT
+        // ============================================================
+        async function init() {
+            await verifyUser();
+            loadReels(true);
+        }
+        init();
+    </script>
+</body>
+</html>
