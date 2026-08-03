@@ -6,6 +6,9 @@
     <title>Edit Profile</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bitcount+Prop+Single&display=swap');
+    </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
     <style>
@@ -24,19 +27,29 @@
             padding: 24px 16px 80px;
         }
 
-        /* ===== BACK BUTTON ===== */
+        /* ===== BRANDED BACK BUTTON ===== */
         .back {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 10px;
             margin-bottom: 16px;
             color: #1a1a1a;
             text-decoration: none;
-            font-weight: 500;
+            font-family: 'Bitcount Prop Single', serif;
             font-size: 24px;
+            font-weight: 400;
+            letter-spacing: 1px;
+            text-transform: uppercase;
             transition: opacity 0.2s;
         }
         .back:hover { opacity: 0.6; }
+        .back img.icon {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            display: block;
+        }
+        .back span { color: #4f46e5; }
 
         /* ===== CARD (Skeuomorphic) ===== */
         .card {
@@ -399,7 +412,12 @@
 </head>
 <body>
     <div class="container">
-        <a href="/feed/" class="back">‹</a>
+        <!-- BRANDED BACK BUTTON -->
+        <a href="/feed/" class="back">
+            <img src="/asset/icon.png" class="icon" alt="Icon" onerror="this.style.display='none'" />
+            <span>spairogram</span>
+        </a>
+        
         <div id="content">
             <div class="loading" id="loading">
                 <div class="spinner"></div>
