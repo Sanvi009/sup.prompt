@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes" />
-    <title>Feed — Prompt Library</title>
+    <title>Feed — spairogram</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
@@ -50,6 +50,12 @@
             gap: 10px;
             text-decoration: none;
             letter-spacing: -0.025em;
+        }
+        header .brand img.icon {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            display: block;
         }
         header .brand span { color: #4f46e5; }
         header .controls {
@@ -551,7 +557,10 @@
 </head>
 <body>
     <header>
-        <a href="/feed/" class="brand">📚 <span>Prompt</span> Library</a>
+        <a href="/feed/" class="brand">
+            <img src="/asset/icon.png" class="icon" alt="Icon" onerror="this.style.display='none'" />
+            <span>spairogram</span>
+        </a>
         <div class="controls">
             <input type="text" id="searchInput" placeholder="Search prompts..." />
             <button class="profile-btn" id="profileBtn">👤</button>
