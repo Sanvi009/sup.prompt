@@ -24,7 +24,7 @@
             left: 0;
         }
 
-        /* ===== REELS CONTAINER ===== */
+        /* ===== REELS CONTAINER (Full Screen Vertical Scroll) ===== */
         .reels-container {
             height: 100vh;
             width: 100vw;
@@ -36,304 +36,404 @@
         }
         .reels-container::-webkit-scrollbar { display: none; }
 
-        /* ===== SKELETON LOADING (Reels) ===== */
-        .skeleton {
+        /* ===== SKELETON LOADING ===== */
+        .skeleton-reel {
+            height: 100vh;
+            width: 100vw;
+            scroll-snap-align: start;
+            position: relative;
+            background: #121212;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .skeleton-reel .skeleton-image {
+            width: 100%;
+            height: 100%;
             background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
             background-size: 200% 100%;
             animation: shimmer 1.5s infinite;
-            border-radius: 8px;
+        }
+        .skeleton-reel .bottom-overlay {
+            position: absolute;
+            bottom: 40px;
+            left: 20px;
+            right: 80px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .skeleton-reel .bottom-overlay .profile-row {
+            display: flex; align-items: center; gap: 12px;
+        }
+        .skeleton-reel .bottom-overlay .profile-row .circle {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        .skeleton-reel .bottom-overlay .profile-row .line {
+            height: 16px; width: 100px; border-radius: 8px;
+            background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        .skeleton-reel .bottom-overlay .title-line {
+            height: 18px; width: 80%; border-radius: 8px;
+            background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        .skeleton-reel .bottom-overlay .desc-line {
+            height: 14px; width: 60%; border-radius: 8px;
+            background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        .skeleton-reel .right-actions {
+            position: absolute;
+            bottom: 120px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+        .skeleton-reel .right-actions .btn {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
         }
         @keyframes shimmer {
             0% { background-position: 200% 0; }
             100% { background-position: -200% 0; }
         }
 
-        .skeleton-reel {
-            height: 100vh; width: 100vw; scroll-snap-align: start; position: relative;
-            background: #121212; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden;
-        }
-        .skeleton-reel .skeleton-image {
-            width: 100%; height: 100%;
-            background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
-            background-size: 200% 100%; animation: shimmer 1.5s infinite;
-        }
-        .skeleton-reel .bottom-overlay {
-            position: absolute; bottom: 40px; left: 20px; right: 80px; display: flex; flex-direction: column; gap: 6px;
-        }
-        .skeleton-reel .bottom-overlay .profile-row {
-            display: flex; align-items: center; flex-direction: row; gap: 12px;
-        }
-        .skeleton-reel .bottom-overlay .profile-row .circle {
-            width: 36px; height: 36px; border-radius: 50%;
-            background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
-            background-size: 200% 100%; animation: shimmer 1.5s infinite;
-        }
-        .skeleton-reel .bottom-overlay .profile-row .line {
-            height: 16px; width: 100px; border-radius: 8px;
-            background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
-            background-size: 200% 100%; animation: shimmer 1.5s infinite;
-        }
-        .skeleton-reel .bottom-overlay .title-line {
-            height: 18px; width: 80%; border-radius: 8px;
-            background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
-            background-size: 200% 100%; animation: shimmer 1.5s infinite;
-        }
-        .skeleton-reel .bottom-overlay .desc-line {
-            height: 14px; width: 60%; border-radius: 8px;
-            background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
-            background-size: 200% 100%; animation: shimmer 1.5s infinite;
-        }
-        .skeleton-reel .right-actions {
-            position: absolute; bottom: 120px; right: 20px; display: flex; flex-direction: column; gap: 20px; align-items: center;
-        }
-        .skeleton-reel .right-actions .btn {
-            width: 36px; height: 36px; border-radius: 50%;
-            background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
-            background-size: 200% 100%; animation: shimmer 1.5s infinite;
-        }
-
         /* ===== REEL ITEM ===== */
         .reel-item {
-            height: 100vh; width: 100vw; scroll-snap-align: start; position: relative;
-            display: flex; align-items: center; justify-content: center; overflow: hidden; background: #000;
+            height: 100vh;
+            width: 100vw;
+            scroll-snap-align: start;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: #000;
         }
         .reel-item img {
-            width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0; left: 0;
+            z-index: 1;
         }
         .reel-item .gradient-overlay {
-            position: absolute; bottom: 0; left: 0; right: 0; height: 50%;
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 50%;
             background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
-            z-index: 2; pointer-events: none;
+            z-index: 2;
+            pointer-events: none;
         }
 
-        /* ===== TOP LEFT BACK ===== */
+        /* ===== TOP LEFT BACK ARROW ===== */
         .top-left-back {
-            position: fixed; top: 20px; left: 16px; z-index: 50;
-            background: rgba(0,0,0,0.5); backdrop-filter: blur(8px);
-            width: 44px; height: 44px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; cursor: pointer;
-            border: 1px solid rgba(255,255,255,0.2); transition: all 0.2s;
-            color: #fff; font-size: 28px; font-weight: 300; user-select: none;
+            position: fixed;
+            top: 20px;
+            left: 16px;
+            z-index: 50;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(8px);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.2s;
+            color: #fff;
+            font-size: 28px;
+            font-weight: 300;
+            user-select: none;
         }
         .top-left-back:hover { transform: scale(1.05); background: rgba(255,255,255,0.2); }
 
         /* ===== TOP RIGHT PROFILE ===== */
         .top-profile {
-            position: fixed; top: 20px; right: 16px; z-index: 50;
-            width: 44px; height: 44px; border-radius: 50%;
-            background: rgba(0,0,0,0.5); backdrop-filter: blur(8px);
-            display: flex; align-items: center; justify-content: center; cursor: pointer;
-            border: 1px solid rgba(255,255,255,0.2); transition: all 0.2s;
-            color: #fff; font-size: 18px;
+            position: fixed;
+            top: 20px;
+            right: 16px;
+            z-index: 50;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.2s;
+            color: #fff;
+            font-size: 18px;
         }
         .top-profile:hover { transform: scale(1.05); background: rgba(255,255,255,0.2); }
-        .top-profile img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
+        .top-profile img {
+            width: 36px; height: 36px; border-radius: 50%; object-fit: cover;
+        }
 
-        /* ===== BOTTOM LEFT INFO (FIXED LAYOUT) ===== */
+        /* ===== BOTTOM LEFT INFO (Row-based like Reference) ===== */
         .bottom-info {
-            position: absolute; 
-            bottom: 40px; 
-            left: 16px; 
-            right: 90px; 
+            position: absolute;
+            bottom: 40px;
+            left: 16px;
+            right: 90px;
             z-index: 3;
             display: flex;
             flex-direction: column;
             gap: 4px;
             pointer-events: none;
         }
-
-        /* Profile Row: Avatar + Username + Badge */
         .bottom-info .profile-row {
             display: flex;
             align-items: center;
-            justify-content: flex-start;
-            gap: 12px; /* Perfect spacing between Avatar and Text */
+            gap: 10px;
             pointer-events: auto;
             cursor: pointer;
-            width: auto; /* Removed fit-content so it doesn't get clipped */
-            max-width: 100%;
-            flex-wrap: wrap; /* Prevents text from getting cut off on small screens */
         }
-        
         .bottom-info .profile-row:hover .username { text-decoration: underline; }
-        
         .bottom-info .profile-row .avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            object-fit: cover;
+            width: 36px; height: 36px; border-radius: 50%; object-fit: cover;
             border: 1.5px solid rgba(255,255,255,0.3);
-            flex-shrink: 0;
-            /* Added margin to ensure it never touches the left screen edge */
-            margin-left: 2px; 
         }
-        
         .bottom-info .profile-row .username {
-            font-weight: 600;
-            font-size: 15px;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            font-weight: 600; font-size: 15px; color: #fff;
+            display: flex; align-items: center; gap: 6px;
             text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-            white-space: nowrap;
         }
-        
-        .bottom-info .profile-row .badge { 
-            width: 16px; 
-            height: 16px; 
-            object-fit: contain; 
-            flex-shrink: 0; 
-        }
-
-        /* Timestamp (Added to match your reference image) */
-        .bottom-info .timestamp {
-            font-size: 13px;
-            color: rgba(255, 255, 255, 0.7);
-            font-weight: 400;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-            margin-left: 50px; /* Aligned with the username text, not the avatar */
-            margin-top: -2px;
-            pointer-events: auto;
-        }
-        
+        .bottom-info .profile-row .badge { width: 16px; height: 16px; object-fit: contain; }
         .bottom-info .reel-title {
-            font-weight: 700; 
-            font-size: 17px; 
-            color: #fff; 
-            line-height: 1.3;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.8); 
-            pointer-events: auto; 
+            font-weight: 700; font-size: 17px; color: #fff; line-height: 1.3;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            pointer-events: auto;
             margin-top: 2px;
         }
-        
         .bottom-info .reel-desc {
-            font-size: 14px; 
-            color: rgba(255,255,255,0.85); 
-            line-height: 1.4;
-            display: -webkit-box; 
-            -webkit-line-clamp: 2; 
-            -webkit-box-orient: vertical; 
-            overflow: hidden;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.8); 
+            font-size: 14px; color: rgba(255,255,255,0.85); line-height: 1.4;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
             pointer-events: auto;
         }
 
-        /* ===== RIGHT ACTION BAR ===== */
+        /* ===== RIGHT ACTION BAR (Larger & Moved Up) ===== */
         .right-actions {
-            position: absolute; bottom: 120px; right: 12px; z-index: 3;
-            display: flex; flex-direction: column; align-items: center; gap: 16px; pointer-events: none;
+            position: absolute;
+            bottom: 120px;
+            right: 12px;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            pointer-events: none;
         }
         .right-actions button {
             background: none; border: none; cursor: pointer;
             display: flex; flex-direction: column; align-items: center; gap: 2px;
             color: #fff; font-size: 13px; font-weight: 500; font-family: inherit;
-            pointer-events: auto; transition: transform 0.15s;
+            pointer-events: auto;
+            transition: transform 0.15s;
         }
         .right-actions button:active { transform: scale(0.85); }
         .right-actions button svg {
             width: 36px; height: 36px; fill: #fff; stroke: #fff; stroke-width: 1.5;
-            transition: fill 0.15s, stroke 0.15s; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+            transition: fill 0.15s, stroke 0.15s;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
         }
+        /* State styles */
         .right-actions button.liked { color: #ff3040; }
         .right-actions button.liked svg { fill: #ff3040; stroke: #ff3040; }
         .right-actions button.saved { color: #fff; }
         .right-actions button.saved svg { fill: #fff; stroke: #fff; }
         .right-actions button .count { font-size: 13px; font-weight: 600; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+
+        /* Specific icon customizations */
         .right-actions .comment-btn svg { stroke-width: 2; fill: none; }
         .right-actions .share-btn svg { stroke-width: 2; fill: none; }
 
-        /* ===== COMMENT BOTTOM SHEET ===== */
+        /* ===== BOTTOM SHEET COMMENT MODAL (70% Height) ===== */
         .comment-sheet-overlay {
-            display: none; position: fixed; inset: 0;
-            background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); z-index: 1000;
-            align-items: flex-end; justify-content: center;
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(6px);
+            z-index: 1000;
+            align-items: flex-end;
+            justify-content: center;
         }
         .comment-sheet-overlay.active { display: flex; }
+
         .comment-sheet {
-            background: #1a1a1a; border-radius: 20px 20px 0 0;
-            width: 100%; max-width: 500px; height: 70vh;
-            display: flex; flex-direction: column; overflow: hidden;
-            animation: slideUp 0.3s ease-out; position: relative;
+            background: #1a1a1a;
+            border-radius: 20px 20px 0 0;
+            width: 100%;
+            max-width: 500px;
+            height: 70vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            animation: slideUp 0.3s ease-out;
+            position: relative;
             padding-bottom: env(safe-area-inset-bottom);
         }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
 
-        .comment-sheet .handle { width: 40px; height: 4px; border-radius: 2px; background: #555; margin: 12px auto 8px; cursor: pointer; }
-        .comment-sheet .header { display: flex; justify-content: space-between; align-items: center; padding: 0 16px 12px; border-bottom: 1px solid #2a2a2a; }
+        .comment-sheet .handle {
+            width: 40px; height: 4px; border-radius: 2px; background: #555;
+            margin: 12px auto 8px; cursor: pointer;
+        }
+        .comment-sheet .header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 16px 12px; border-bottom: 1px solid #2a2a2a;
+        }
         .comment-sheet .header h3 { font-size: 18px; font-weight: 700; color: #fff; }
-        .comment-sheet .header .close-btn { background: none; border: none; color: #aaa; font-size: 24px; cursor: pointer; padding: 4px 8px; border-radius: 50%; transition: background 0.2s; }
+        .comment-sheet .header .close-btn {
+            background: none; border: none; color: #aaa; font-size: 24px; cursor: pointer;
+            padding: 4px 8px; border-radius: 50%; transition: background 0.2s;
+        }
         .comment-sheet .header .close-btn:hover { background: #2a2a2a; }
 
-        .comment-sheet .scroll-content { flex: 1; overflow-y: auto; padding: 12px 16px 8px; }
+        .comment-sheet .scroll-content {
+            flex: 1; overflow-y: auto; padding: 12px 16px 8px;
+        }
         .comment-sheet .scroll-content::-webkit-scrollbar { width: 4px; }
         .comment-sheet .scroll-content::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
 
-        /* Skeleton loading inside sheet */
-        .skeleton-sheet-item {
-            display: flex; gap: 10px; margin-bottom: 12px; padding: 4px 0;
-        }
-        .skeleton-sheet-item .avatar { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; }
-        .skeleton-sheet-item .body { flex: 1; display: flex; flex-direction: column; gap: 6px; }
-        .skeleton-sheet-item .body .line { height: 14px; width: 60%; border-radius: 6px; }
-        .skeleton-sheet-item .body .line.short { width: 30%; }
-        .skeleton-sheet-item .body .line.long { width: 80%; }
-
         /* Prompt details inside sheet */
         .sheet-prompt-title { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 6px; }
-        .sheet-prompt-desc { font-size: 15px; color: #bbb; line-height: 1.5; margin-bottom: 6px; }
-        .sheet-prompt-desc.collapsed { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-        .sheet-see-more { background: none; border: none; color: #0095f6; font-weight: 600; font-size: 14px; cursor: pointer; font-family: inherit; padding: 2px 0; margin-bottom: 10px; display: block; }
-        .sheet-prompt-text-wrap { background: #252525; border-radius: 12px; padding: 14px 16px; margin: 6px 0 10px; border: 1px solid #333; }
+        .sheet-prompt-desc {
+            font-size: 15px; color: #bbb; line-height: 1.5; margin-bottom: 6px;
+        }
+        .sheet-prompt-desc.collapsed {
+            display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+        }
+        .sheet-see-more {
+            background: none; border: none; color: #0095f6; font-weight: 600; font-size: 14px;
+            cursor: pointer; font-family: inherit; padding: 2px 0; margin-bottom: 10px; display: block;
+        }
+        .sheet-prompt-text-wrap {
+            background: #252525; border-radius: 12px; padding: 14px 16px; margin: 6px 0 10px;
+            border: 1px solid #333;
+        }
         .sheet-prompt-text-wrap .label { font-size: 12px; font-weight: 600; color: #888; text-transform: uppercase; margin-bottom: 4px; }
-        .sheet-prompt-text-wrap .text { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #eee; line-height: 1.7; white-space: pre-wrap; }
-        .sheet-copy-btn { width: 100%; padding: 10px; background: #0095f6; color: #fff; border: none; border-radius: 10px; font-weight: 600; font-size: 15px; cursor: pointer; transition: background 0.2s; margin-bottom: 16px; }
+        .sheet-prompt-text-wrap .text {
+            font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #eee; line-height: 1.7; white-space: pre-wrap;
+        }
+        .sheet-copy-btn {
+            width: 100%; padding: 10px; background: #0095f6; color: #fff; border: none;
+            border-radius: 10px; font-weight: 600; font-size: 15px; cursor: pointer;
+            transition: background 0.2s; margin-bottom: 16px;
+        }
         .sheet-copy-btn:hover { background: #0077c9; }
         .sheet-copy-btn.copied { background: #10b981; }
 
         .sheet-comments-label { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 10px; }
 
-        /* Comments */
-        .sheet-comment-item { display: flex; gap: 10px; margin-bottom: 14px; }
-        .sheet-comment-item .avatar { width: 32px; height: 32px; border-radius: 50%; background: #333; flex-shrink: 0; object-fit: cover; }
+        /* Comments inside sheet */
+        .sheet-comment-item {
+            display: flex; gap: 10px; margin-bottom: 14px;
+        }
+        .sheet-comment-item .avatar {
+            width: 32px; height: 32px; border-radius: 50%; background: #333; flex-shrink: 0; object-fit: cover;
+        }
         .sheet-comment-item .body { flex: 1; }
         .sheet-comment-item .body .row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
         .sheet-comment-item .body .row .name { font-weight: 600; font-size: 14px; color: #fff; cursor: pointer; }
         .sheet-comment-item .body .row .name:hover { text-decoration: underline; }
         .sheet-comment-item .body .row .time { font-size: 12px; color: #888; }
         .sheet-comment-item .body .content { font-size: 14px; color: #eee; line-height: 1.5; margin-top: 2px; }
-        .sheet-comment-item .body .actions { display: flex; gap: 14px; margin-top: 4px; font-size: 13px; color: #888; }
-        .sheet-comment-item .body .actions button { background: none; border: none; cursor: pointer; font-size: 13px; color: #888; font-family: inherit; display: flex; align-items: center; gap: 4px; padding: 2px 4px; border-radius: 4px; }
+        .sheet-comment-item .body .actions {
+            display: flex; gap: 14px; margin-top: 4px; font-size: 13px; color: #888;
+        }
+        .sheet-comment-item .body .actions button {
+            background: none; border: none; cursor: pointer; font-size: 13px; color: #888;
+            font-family: inherit; display: flex; align-items: center; gap: 4px; padding: 2px 4px; border-radius: 4px;
+        }
         .sheet-comment-item .body .actions button:hover { color: #fff; background: #2a2a2a; }
         .sheet-comment-item .body .actions button.liked { color: #ff3040; }
         .sheet-comment-item .body .actions button.liked svg { fill: #ff3040; }
         .sheet-comment-item .body .actions svg { width: 14px; height: 14px; fill: currentColor; }
         .sheet-comment-item .replies { margin-top: 8px; margin-left: 42px; display: flex; flex-direction: column; gap: 10px; }
-        .sheet-comment-item .reply-input-wrap { margin-top: 8px; margin-left: 42px; display: flex; gap: 8px; }
-        .sheet-comment-item .reply-input-wrap input { flex: 1; padding: 8px 14px; border: 1px solid #333; border-radius: 20px; font-size: 13px; font-family: inherit; background: #252525; color: #fff; transition: border 0.2s; }
+        .sheet-comment-item .reply-input-wrap {
+            margin-top: 8px; margin-left: 42px; display: flex; gap: 8px;
+        }
+        .sheet-comment-item .reply-input-wrap input {
+            flex: 1; padding: 8px 14px; border: 1px solid #333; border-radius: 20px; font-size: 13px;
+            font-family: inherit; background: #252525; color: #fff; transition: border 0.2s;
+        }
         .sheet-comment-item .reply-input-wrap input:focus { outline: none; border-color: #0095f6; }
-        .sheet-comment-item .reply-input-wrap button { padding: 8px 16px; background: #0095f6; color: #fff; border: none; border-radius: 20px; font-weight: 500; font-size: 13px; cursor: pointer; transition: background 0.2s; }
+        .sheet-comment-item .reply-input-wrap button {
+            padding: 8px 16px; background: #0095f6; color: #fff; border: none; border-radius: 20px;
+            font-weight: 500; font-size: 13px; cursor: pointer; transition: background 0.2s;
+        }
         .sheet-comment-item .reply-input-wrap button:hover { background: #0077c9; }
 
-        /* Input Bar */
-        .sheet-input-wrap { display: flex; gap: 10px; padding: 12px 16px calc(16px + env(safe-area-inset-bottom)); border-top: 1px solid #2a2a2a; background: #1a1a1a; }
-        .sheet-input-wrap .avatar { width: 32px; height: 32px; border-radius: 50%; background: #333; flex-shrink: 0; object-fit: cover; display: flex; align-items: center; justify-content: center; font-weight: 600; color: #fff; font-size: 14px; }
+        /* Input bar at bottom of sheet (Fixed with safe-area padding) */
+        .sheet-input-wrap {
+            display: flex; gap: 10px; padding: 12px 16px calc(16px + env(safe-area-inset-bottom));
+            border-top: 1px solid #2a2a2a; background: #1a1a1a;
+        }
+        .sheet-input-wrap .avatar {
+            width: 32px; height: 32px; border-radius: 50%; background: #333; flex-shrink: 0; object-fit: cover;
+            display: flex; align-items: center; justify-content: center; font-weight: 600; color: #fff; font-size: 14px;
+        }
         .sheet-input-wrap .avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
-        .sheet-input-wrap input { flex: 1; padding: 10px 16px; border: 1px solid #333; border-radius: 24px; font-size: 14px; font-family: inherit; background: #252525; color: #fff; transition: border 0.2s; }
+        .sheet-input-wrap input {
+            flex: 1; padding: 10px 16px; border: 1px solid #333; border-radius: 24px; font-size: 14px;
+            font-family: inherit; background: #252525; color: #fff; transition: border 0.2s;
+        }
         .sheet-input-wrap input:focus { outline: none; border-color: #0095f6; }
-        .sheet-input-wrap button { padding: 8px 20px; background: #0095f6; color: #fff; border: none; border-radius: 24px; font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s; }
+        .sheet-input-wrap button {
+            padding: 8px 20px; background: #0095f6; color: #fff; border: none; border-radius: 24px;
+            font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s;
+        }
         .sheet-input-wrap button:hover { background: #0077c9; }
         .sheet-input-wrap button:disabled { opacity: 0.5; cursor: not-allowed; }
 
         /* ===== AUTH POPUP ===== */
-        .popup-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 2000; align-items: center; justify-content: center; }
+        .popup-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 2000;
+            align-items: center; justify-content: center;
+        }
         .popup-overlay.active { display: flex; }
-        .popup { background: #1a1a1a; border-radius: 20px; padding: 32px 40px; max-width: 400px; width: 92%; text-align: center; border: 1px solid #333; }
+        .popup {
+            background: #1a1a1a; border-radius: 20px; padding: 32px 40px; max-width: 400px; width: 92%;
+            text-align: center; border: 1px solid #333;
+        }
         .popup h2 { font-size: 22px; font-weight: 700; color: #fff; }
         .popup p { color: #aaa; font-size: 16px; margin: 10px 0 28px; line-height: 1.5; }
-        .popup .btn-primary { padding: 12px 32px; background: #0095f6; color: #fff; border: none; border-radius: 12px; font-weight: 600; font-size: 16px; cursor: pointer; transition: background 0.2s; }
+        .popup .btn-primary {
+            padding: 12px 32px; background: #0095f6; color: #fff; border: none; border-radius: 12px;
+            font-weight: 600; font-size: 16px; cursor: pointer; transition: background 0.2s;
+        }
         .popup .btn-primary:hover { background: #0077c9; }
-        .popup .btn-secondary { padding: 12px 32px; background: #2a2a2a; border: none; border-radius: 12px; font-weight: 500; font-size: 16px; cursor: pointer; margin-left: 12px; color: #fff; transition: background 0.2s; }
+        .popup .btn-secondary {
+            padding: 12px 32px; background: #2a2a2a; border: none; border-radius: 12px; font-weight: 500;
+            font-size: 16px; cursor: pointer; margin-left: 12px; color: #fff; transition: background 0.2s;
+        }
         .popup .btn-secondary:hover { background: #3a3a3a; }
 
         /* ===== RESPONSIVE ===== */
@@ -343,7 +443,6 @@
             .bottom-info { bottom: 30px; left: 14px; right: 70px; }
             .bottom-info .profile-row .avatar { width: 32px; height: 32px; }
             .bottom-info .profile-row .username { font-size: 14px; }
-            .bottom-info .timestamp { margin-left: 44px; font-size: 12px; }
             .bottom-info .reel-title { font-size: 16px; }
             .comment-sheet { max-width: 100%; height: 75vh; border-radius: 16px 16px 0 0; }
             .top-left-back { top: 16px; left: 12px; width: 40px; height: 40px; font-size: 24px; }
@@ -538,7 +637,7 @@
         }
 
         // ============================================================
-        //  CREATE REEL ELEMENT
+        //  CREATE REEL ELEMENT (TikTok Style)
         // ============================================================
         function createReelElement(p) {
             const reel = document.createElement('div');
@@ -575,8 +674,6 @@
                             <img src="/badge.png" class="badge" onerror="this.style.display='none'" alt="Verified" />
                         </span>
                     </div>
-                    <!-- Added timestamp for perfect spacing and layout -->
-                    <div class="timestamp">a month ago</div>
                     <div class="reel-title">${p.title}</div>
                     ${p.description ? `<div class="reel-desc">${p.description}</div>` : ''}
                 </div>
@@ -757,22 +854,9 @@
                     <div class="skeleton" style="height:24px;width:70%;border-radius:6px;"></div>
                     <div class="skeleton" style="height:16px;width:90%;border-radius:6px;"></div>
                     <div class="skeleton" style="height:60px;width:100%;border-radius:8px;"></div>
-                    <div class="skeleton-sheet-item">
-                        <div class="skeleton avatar"></div>
-                        <div class="body">
-                            <div class="skeleton line"></div>
-                            <div class="skeleton line short"></div>
-                            <div class="skeleton line long"></div>
-                        </div>
-                    </div>
-                    <div class="skeleton-sheet-item">
-                        <div class="skeleton avatar"></div>
-                        <div class="body">
-                            <div class="skeleton line"></div>
-                            <div class="skeleton line short"></div>
-                            <div class="skeleton line long"></div>
-                        </div>
-                    </div>
+                    <div class="skeleton" style="height:14px;width:40%;border-radius:6px;"></div>
+                    <div class="skeleton" style="height:14px;width:80%;border-radius:6px;"></div>
+                    <div class="skeleton" style="height:14px;width:60%;border-radius:6px;"></div>
                 </div>
             `;
 
@@ -1072,7 +1156,7 @@
         }
 
         // ============================================================
-        //  INFINITE SCROLL
+        //  INFINITE SCROLL (Pre-fetch at 2nd-to-last)
         // ============================================================
         let scrollTimeout;
         container.addEventListener('scroll', () => {
@@ -1083,17 +1167,20 @@
                 const scrollHeight = container.scrollHeight;
                 const children = container.children;
                 
+                // If there are more than 1 reel, check if we are near the last one
                 if (children.length > 1) {
                     const lastReel = children[children.length - 1];
                     const secondLastReel = children[children.length - 2];
                     if (secondLastReel) {
                         const secondLastOffsetTop = secondLastReel.offsetTop;
                         const windowBottom = scrollTop + clientHeight;
+                        // If the user has scrolled past the 2nd-to-last reel, load more
                         if (windowBottom >= secondLastOffsetTop + 100) {
                             loadReels();
                         }
                     }
                 } else {
+                    // Fallback to bottom detection
                     if (scrollTop + clientHeight >= scrollHeight - 200) {
                         loadReels();
                     }
