@@ -28,19 +28,29 @@
             padding: 0 16px 20px;
         }
 
-        /* ===== BACK BUTTON ===== */
-        .back {
+        /* ===== BRANDED HEADER (Matches Feed Page) ===== */
+        .brand {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 10px;
             margin: 12px 0 8px;
             color: #1a1a1a;
             text-decoration: none;
-            font-weight: 500;
+            font-family: 'Bitcount Prop Single', serif;
             font-size: 24px;
+            font-weight: 400;
+            letter-spacing: 1px;
+            text-transform: uppercase;
             transition: opacity 0.2s;
         }
-        .back:hover { opacity: 0.6; }
+        .brand:hover { opacity: 0.6; }
+        .brand img.icon {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            display: block;
+        }
+        .brand span { color: #4f46e5; }
 
         /* ===== PROFILE HEADER (Instagram-style) ===== */
         .profile-header {
@@ -576,7 +586,12 @@
 </head>
 <body>
     <div class="container">
-        <a href="/feed/" class="back">‹</a>
+        <!-- EXACT BRANDED HEADER AS FEED -->
+        <a href="/feed/" class="brand">
+            <img src="/asset/icon.png" class="icon" alt="Icon" onerror="this.style.display='none'" />
+            <span>spairogram</span>
+        </a>
+        
         <div id="content">
             <!-- Skeleton loading will be rendered here by JavaScript -->
         </div>
