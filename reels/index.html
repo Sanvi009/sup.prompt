@@ -63,34 +63,38 @@
             right: 80px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 6px;
         }
-        .skeleton-reel .bottom-overlay .avatar-line {
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        .skeleton-reel .bottom-overlay .profile-row {
+            display: flex; align-items: center; gap: 12px;
         }
-        .skeleton-reel .bottom-overlay .avatar-line .circle {
-            width: 40px; height: 40px; border-radius: 50%;
+        .skeleton-reel .bottom-overlay .profile-row .circle {
+            width: 36px; height: 36px; border-radius: 50%;
             background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
             background-size: 200% 100%;
             animation: shimmer 1.5s infinite;
         }
-        .skeleton-reel .bottom-overlay .avatar-line .line {
-            height: 16px; width: 120px; border-radius: 8px;
+        .skeleton-reel .bottom-overlay .profile-row .line {
+            height: 16px; width: 100px; border-radius: 8px;
             background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
             background-size: 200% 100%;
             animation: shimmer 1.5s infinite;
         }
-        .skeleton-reel .bottom-overlay .line.long {
-            height: 14px; width: 80%; border-radius: 8px;
+        .skeleton-reel .bottom-overlay .title-line {
+            height: 18px; width: 80%; border-radius: 8px;
+            background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        .skeleton-reel .bottom-overlay .desc-line {
+            height: 14px; width: 60%; border-radius: 8px;
             background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
             background-size: 200% 100%;
             animation: shimmer 1.5s infinite;
         }
         .skeleton-reel .right-actions {
             position: absolute;
-            bottom: 40px;
+            bottom: 120px;
             right: 20px;
             display: flex;
             flex-direction: column;
@@ -98,7 +102,7 @@
             align-items: center;
         }
         .skeleton-reel .right-actions .btn {
-            width: 30px; height: 30px; border-radius: 50%;
+            width: 36px; height: 36px; border-radius: 50%;
             background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
             background-size: 200% 100%;
             animation: shimmer 1.5s infinite;
@@ -131,22 +135,46 @@
         .reel-item .gradient-overlay {
             position: absolute;
             bottom: 0; left: 0; right: 0;
-            height: 60%;
-            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
+            height: 50%;
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
             z-index: 2;
             pointer-events: none;
         }
+
+        /* ===== TOP LEFT BACK ARROW ===== */
+        .top-left-back {
+            position: fixed;
+            top: 20px;
+            left: 16px;
+            z-index: 50;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(8px);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.2s;
+            color: #fff;
+            font-size: 28px;
+            font-weight: 300;
+            user-select: none;
+        }
+        .top-left-back:hover { transform: scale(1.05); background: rgba(255,255,255,0.2); }
 
         /* ===== TOP RIGHT PROFILE ===== */
         .top-profile {
             position: fixed;
             top: 20px;
-            right: 20px;
+            right: 16px;
             z-index: 50;
-            width: 42px;
-            height: 42px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
-            background: rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.5);
             backdrop-filter: blur(8px);
             display: flex;
             align-items: center;
@@ -162,78 +190,80 @@
             width: 36px; height: 36px; border-radius: 50%; object-fit: cover;
         }
 
-        /* ===== BOTTOM LEFT INFO ===== */
+        /* ===== BOTTOM LEFT INFO (Row-based like Reference) ===== */
         .bottom-info {
             position: absolute;
-            bottom: 50px;
-            left: 20px;
+            bottom: 40px;
+            left: 16px;
             right: 90px;
             z-index: 3;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 4px;
             pointer-events: none;
         }
-        .bottom-info .user-row {
+        .bottom-info .profile-row {
             display: flex;
             align-items: center;
             gap: 10px;
             pointer-events: auto;
             cursor: pointer;
         }
-        .bottom-info .user-row:hover .username { text-decoration: underline; }
-        .bottom-info .user-row .avatar {
+        .bottom-info .profile-row:hover .username { text-decoration: underline; }
+        .bottom-info .profile-row .avatar {
             width: 36px; height: 36px; border-radius: 50%; object-fit: cover;
-            border: 1px solid rgba(255,255,255,0.2);
+            border: 1.5px solid rgba(255,255,255,0.3);
         }
-        .bottom-info .user-row .username {
+        .bottom-info .profile-row .username {
             font-weight: 600; font-size: 15px; color: #fff;
             display: flex; align-items: center; gap: 6px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
         }
-        .bottom-info .user-row .badge { width: 16px; height: 16px; object-fit: contain; }
+        .bottom-info .profile-row .badge { width: 16px; height: 16px; object-fit: contain; }
         .bottom-info .reel-title {
-            font-weight: 700; font-size: 18px; color: #fff; line-height: 1.3;
-            margin-top: 2px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            font-weight: 700; font-size: 17px; color: #fff; line-height: 1.3;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
             pointer-events: auto;
+            margin-top: 2px;
         }
         .bottom-info .reel-desc {
-            font-size: 14px; color: rgba(255,255,255,0.8); line-height: 1.4;
+            font-size: 14px; color: rgba(255,255,255,0.85); line-height: 1.4;
             display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
             pointer-events: auto;
         }
 
-        /* ===== RIGHT ACTION BAR ===== */
+        /* ===== RIGHT ACTION BAR (Larger & Moved Up) ===== */
         .right-actions {
             position: absolute;
-            bottom: 50px;
-            right: 16px;
+            bottom: 120px;
+            right: 12px;
             z-index: 3;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 18px;
+            gap: 16px;
             pointer-events: none;
         }
         .right-actions button {
             background: none; border: none; cursor: pointer;
             display: flex; flex-direction: column; align-items: center; gap: 2px;
-            color: #fff; font-size: 12px; font-weight: 500; font-family: inherit;
+            color: #fff; font-size: 13px; font-weight: 500; font-family: inherit;
             pointer-events: auto;
             transition: transform 0.15s;
         }
         .right-actions button:active { transform: scale(0.85); }
         .right-actions button svg {
-            width: 28px; height: 28px; fill: #fff; stroke: #fff; stroke-width: 1.5;
+            width: 36px; height: 36px; fill: #fff; stroke: #fff; stroke-width: 1.5;
             transition: fill 0.15s, stroke 0.15s;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
         }
         /* State styles */
         .right-actions button.liked { color: #ff3040; }
         .right-actions button.liked svg { fill: #ff3040; stroke: #ff3040; }
         .right-actions button.saved { color: #fff; }
         .right-actions button.saved svg { fill: #fff; stroke: #fff; }
-        .right-actions button .count { font-size: 12px; font-weight: 500; text-shadow: 0 2px 4px rgba(0,0,0,0.4); }
+        .right-actions button .count { font-size: 13px; font-weight: 600; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
 
         /* Specific icon customizations */
         .right-actions .comment-btn svg { stroke-width: 2; fill: none; }
@@ -263,6 +293,7 @@
             overflow: hidden;
             animation: slideUp 0.3s ease-out;
             position: relative;
+            padding-bottom: env(safe-area-inset-bottom);
         }
         @keyframes slideUp {
             from { transform: translateY(100%); }
@@ -359,9 +390,9 @@
         }
         .sheet-comment-item .reply-input-wrap button:hover { background: #0077c9; }
 
-        /* Input bar at bottom of sheet */
+        /* Input bar at bottom of sheet (Fixed with safe-area padding) */
         .sheet-input-wrap {
-            display: flex; gap: 10px; padding: 12px 16px 16px;
+            display: flex; gap: 10px; padding: 12px 16px calc(16px + env(safe-area-inset-bottom));
             border-top: 1px solid #2a2a2a; background: #1a1a1a;
         }
         .sheet-input-wrap .avatar {
@@ -407,19 +438,23 @@
 
         /* ===== RESPONSIVE ===== */
         @media (max-width: 640px) {
-            .right-actions { bottom: 30px; right: 12px; gap: 14px; }
-            .right-actions button svg { width: 24px; height: 24px; }
-            .bottom-info { bottom: 30px; left: 16px; right: 70px; }
-            .bottom-info .user-row .avatar { width: 32px; height: 32px; }
-            .bottom-info .user-row .username { font-size: 14px; }
+            .right-actions { bottom: 100px; right: 12px; gap: 14px; }
+            .right-actions button svg { width: 32px; height: 32px; }
+            .bottom-info { bottom: 30px; left: 14px; right: 70px; }
+            .bottom-info .profile-row .avatar { width: 32px; height: 32px; }
+            .bottom-info .profile-row .username { font-size: 14px; }
             .bottom-info .reel-title { font-size: 16px; }
             .comment-sheet { max-width: 100%; height: 75vh; border-radius: 16px 16px 0 0; }
-            .top-profile { top: 16px; right: 16px; width: 38px; height: 38px; font-size: 16px; }
-            .top-profile img { width: 32px; height: 32px; }
+            .top-left-back { top: 16px; left: 12px; width: 40px; height: 40px; font-size: 24px; }
+            .top-profile { top: 16px; right: 12px; width: 40px; height: 40px; font-size: 16px; }
+            .top-profile img { width: 34px; height: 34px; }
         }
     </style>
 </head>
 <body>
+
+    <!-- TOP LEFT BACK ARROW -->
+    <div class="top-left-back" id="topLeftBack">‹</div>
 
     <!-- TOP RIGHT PROFILE ICON -->
     <div class="top-profile" id="topProfile">👤</div>
@@ -469,9 +504,9 @@
         let loading = false;
         let hasMore = true;
         let currentPromptIdForComments = null;
-        let currentReelData = null; // Store current prompt data for sheet
+        let currentReelData = null;
 
-        // Local state trackers for debounced optimistic updates
+        // Local state trackers
         let localLikes = {};
         let localSaves = {};
         let likeDebounceTimers = {};
@@ -482,6 +517,7 @@
         //  DOM
         // ============================================================
         const container = document.getElementById('reelsContainer');
+        const topBack = document.getElementById('topLeftBack');
         const topProfile = document.getElementById('topProfile');
         const popup = document.getElementById('popup');
         const commentSheet = document.getElementById('commentSheet');
@@ -531,11 +567,12 @@
                     <div class="skeleton-reel">
                         <div class="skeleton-image"></div>
                         <div class="bottom-overlay">
-                            <div class="avatar-line">
+                            <div class="profile-row">
                                 <div class="circle"></div>
                                 <div class="line"></div>
                             </div>
-                            <div class="line long"></div>
+                            <div class="title-line"></div>
+                            <div class="desc-line"></div>
                         </div>
                         <div class="right-actions">
                             <div class="btn"></div>
@@ -623,8 +660,6 @@
             const likeIconHtml = localLike.liked ? heartFilled : heartIcon;
             const saveIconHtml = localSave.saved ? bookmarkFilled : bookmarkIcon;
 
-            const date = new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-
             reel.innerHTML = `
                 <img src="${p.image_main}" 
                      onerror="this.src='https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=600&h=800&fit=crop&auto=format'" 
@@ -632,7 +667,7 @@
                 <div class="gradient-overlay"></div>
 
                 <div class="bottom-info">
-                    <div class="user-row" onclick="window.location.href='/@raafiiih'">
+                    <div class="profile-row" onclick="window.location.href='/@raafiiih'">
                         <img src="/raafiiih/profile.png" class="avatar" onerror="this.src='https://ui-avatars.com/api/?name=R&background=4f46e5&color=fff'" alt="RAAFIIIH" />
                         <span class="username">
                             RAAFIIIH
@@ -689,7 +724,7 @@
         }
 
         // ============================================================
-        //  INTERACTIONS (Optimistic + Debounced) - Exact same as feed
+        //  INTERACTIONS (Optimistic + Debounced)
         // ============================================================
         function updateLikeUI(btn, promptId, newCount, newLikedState) {
             const heartFilled = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
@@ -1095,6 +1130,13 @@
         });
 
         // ============================================================
+        //  BACK BUTTON
+        // ============================================================
+        topBack.addEventListener('click', () => {
+            window.location.href = '/feed/';
+        });
+
+        // ============================================================
         //  TIME AGO HELPER
         // ============================================================
         function timeAgo(dateStr) {
@@ -1114,7 +1156,7 @@
         }
 
         // ============================================================
-        //  INFINITE SCROLL (Snap detection)
+        //  INFINITE SCROLL (Pre-fetch at 2nd-to-last)
         // ============================================================
         let scrollTimeout;
         container.addEventListener('scroll', () => {
@@ -1123,8 +1165,25 @@
                 const scrollTop = container.scrollTop;
                 const clientHeight = container.clientHeight;
                 const scrollHeight = container.scrollHeight;
-                if (scrollTop + clientHeight >= scrollHeight - 200) {
-                    loadReels();
+                const children = container.children;
+                
+                // If there are more than 1 reel, check if we are near the last one
+                if (children.length > 1) {
+                    const lastReel = children[children.length - 1];
+                    const secondLastReel = children[children.length - 2];
+                    if (secondLastReel) {
+                        const secondLastOffsetTop = secondLastReel.offsetTop;
+                        const windowBottom = scrollTop + clientHeight;
+                        // If the user has scrolled past the 2nd-to-last reel, load more
+                        if (windowBottom >= secondLastOffsetTop + 100) {
+                            loadReels();
+                        }
+                    }
+                } else {
+                    // Fallback to bottom detection
+                    if (scrollTop + clientHeight >= scrollHeight - 200) {
+                        loadReels();
+                    }
                 }
             }, 150);
         });
