@@ -7,6 +7,9 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
+// Default avatar URL (stored in Supabase storage)
+const DEFAULT_AVATAR_URL = 'https://txubevnsqchnzaztppfb.supabase.co/storage/v1/object/public/default/default.jpg';
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
@@ -42,7 +45,7 @@ export default async function handler(req, res) {
       .insert({
         username,
         display_name: username,
-        avatar_url: null,
+        avatar_url: DEFAULT_AVATAR_URL, // <-- Changed from null to default URL
         bio: '',
         is_premium: false,
         is_owner: false,
