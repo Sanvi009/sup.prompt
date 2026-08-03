@@ -614,7 +614,8 @@
         //  RENDER SETTINGS FORM (NEW: Added email and phone fields)
         // ============================================================
         function renderSettings(profile) {
-            const avatarUrl = profile.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(profile.username) + '&background=e0e0e0&color=4f46e5&size=80';
+            // REMOVED FALLBACK: avatar_url is never null
+            const avatarUrl = profile.avatar_url;
             const displayName = profile.display_name || profile.username;
 
             container.innerHTML = `
