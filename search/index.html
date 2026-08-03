@@ -6,6 +6,9 @@
     <title>Search Results</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bitcount+Prop+Single&display=swap');
+    </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -43,18 +46,24 @@
             backdrop-filter: blur(6px);
         }
         header .brand {
-            font-size: 22px;
-            font-weight: 700;
-            color: #1e293b;
+            font-family: 'Bitcount Prop Single', serif;
+            font-size: 24px;
+            font-weight: 400;
+            color: #111827;
             display: flex;
             align-items: center;
             gap: 10px;
             text-decoration: none;
-            letter-spacing: -0.025em;
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
-        header .brand span {
-            color: #4f46e5;
+        header .brand img.icon {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            display: block;
         }
+        header .brand span { color: #4f46e5; }
         header .controls {
             display: flex;
             align-items: center;
@@ -458,7 +467,10 @@
 </head>
 <body>
     <header>
-        <a href="/feed/" class="brand">📚 <span>Prompt</span> Library</a>
+        <a href="/feed/" class="brand">
+            <img src="/asset/icon.png" class="icon" alt="Icon" onerror="this.style.display='none'" />
+            <span>spairogram</span>
+        </a>
         <div class="controls">
             <input type="text" id="searchInput" placeholder="Search users & prompts..." value="" />
             <button class="profile-btn" id="profileBtn">👤</button>
