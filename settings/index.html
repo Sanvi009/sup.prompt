@@ -517,7 +517,7 @@
         }
 
         // ============================================================
-        //  RENDER SETTINGS FORM (unchanged except button label)
+        //  RENDER SETTINGS FORM (NEW: Added email and phone fields)
         // ============================================================
         function renderSettings(profile) {
             const avatarUrl = profile.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(profile.username) + '&background=e0e0e0&color=4f46e5&size=80';
@@ -546,6 +546,20 @@
                     <div class="form-group">
                         <label for="bio">Bio</label>
                         <textarea id="bio" rows="3" placeholder="Tell us about yourself...">${profile.bio || ''}</textarea>
+                    </div>
+
+                    <!-- NEW: Email Field -->
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" value="${profile.email || ''}" placeholder="your@email.com" />
+                        <div class="helper">Only visible to you.</div>
+                    </div>
+
+                    <!-- NEW: Phone Number Field -->
+                    <div class="form-group">
+                        <label for="phoneNumber">Phone Number</label>
+                        <input type="tel" id="phoneNumber" value="${profile.phone_number || ''}" placeholder="+1 234 567 890" />
+                        <div class="helper">Only visible to you.</div>
                     </div>
 
                     <div class="form-group">
@@ -580,7 +594,7 @@
         }
 
         // ============================================================
-        //  OPEN AVATAR PICKER
+        //  OPEN AVATAR PICKER (unchanged)
         // ============================================================
         async function openAvatarPicker() {
             selectedAvatarUrl = null;
@@ -647,7 +661,7 @@
         }
 
         // ============================================================
-        //  PICKER CANCEL
+        //  PICKER CANCEL (unchanged)
         // ============================================================
         pickerCancelBtn.addEventListener('click', () => {
             pickerOverlay.classList.remove('active');
@@ -665,7 +679,7 @@
         });
 
         // ============================================================
-        //  PICKER SELECT (saves chosen avatar URL via PUT)
+        //  PICKER SELECT (unchanged)
         // ============================================================
         pickerSelectBtn.addEventListener('click', async () => {
             if (!selectedAvatarUrl) return;
@@ -719,7 +733,7 @@
         });
 
         // ============================================================
-        //  HANDLE SAVE (unchanged)
+        //  HANDLE SAVE (NEW: Added email and phone number)
         // ============================================================
         async function handleSave() {
             const saveBtn = document.getElementById('saveBtn');
@@ -734,6 +748,9 @@
             const displayName = document.getElementById('displayName').value.trim();
             const bio = document.getElementById('bio').value.trim();
             const username = document.getElementById('username').value.trim();
+            // NEW: Get email and phone number values
+            const email = document.getElementById('email').value.trim();
+            const phoneNumber = document.getElementById('phoneNumber').value.trim();
 
             try {
                 if (username !== currentUser.username) {
@@ -756,13 +773,19 @@
                     currentUser.username = username;
                 }
 
+                // Send all fields including email and phone number
                 const res = await fetch('/api/profile', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify({ display_name: displayName, bio })
+                    body: JSON.stringify({ 
+                        display_name: displayName, 
+                        bio,
+                        email: email || null,
+                        phone_number: phoneNumber || null
+                    })
                 });
                 const data = await res.json();
 
