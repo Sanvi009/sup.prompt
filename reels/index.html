@@ -129,35 +129,94 @@
         .top-profile:hover { transform: scale(1.05); background: rgba(255,255,255,0.2); }
         .top-profile img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
 
-        /* ===== BOTTOM LEFT INFO (FIXED ROW) ===== */
+        /* ===== BOTTOM LEFT INFO (FIXED LAYOUT) ===== */
         .bottom-info {
-            position: absolute; bottom: 40px; left: 16px; right: 90px; z-index: 3;
-            display: flex; flex-direction: column; gap: 4px; pointer-events: none;
+            position: absolute; 
+            bottom: 40px; 
+            left: 16px; 
+            right: 90px; 
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            pointer-events: none;
         }
+
+        /* Profile Row: Avatar + Username + Badge */
         .bottom-info .profile-row {
-            display: flex; align-items: center; flex-direction: row; gap: 12px;
-            pointer-events: auto; cursor: pointer; width: fit-content;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 12px; /* Perfect spacing between Avatar and Text */
+            pointer-events: auto;
+            cursor: pointer;
+            width: auto; /* Removed fit-content so it doesn't get clipped */
+            max-width: 100%;
+            flex-wrap: wrap; /* Prevents text from getting cut off on small screens */
         }
+        
         .bottom-info .profile-row:hover .username { text-decoration: underline; }
+        
         .bottom-info .profile-row .avatar {
-            width: 36px; height: 36px; border-radius: 50%; object-fit: cover;
-            border: 1.5px solid rgba(255,255,255,0.3); flex-shrink: 0;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1.5px solid rgba(255,255,255,0.3);
+            flex-shrink: 0;
+            /* Added margin to ensure it never touches the left screen edge */
+            margin-left: 2px; 
         }
+        
         .bottom-info .profile-row .username {
-            font-weight: 600; font-size: 15px; color: #fff;
-            display: flex; align-items: center; gap: 6px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.8); white-space: nowrap;
+            font-weight: 600;
+            font-size: 15px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            white-space: nowrap;
         }
-        .bottom-info .profile-row .badge { width: 16px; height: 16px; object-fit: contain; flex-shrink: 0; }
+        
+        .bottom-info .profile-row .badge { 
+            width: 16px; 
+            height: 16px; 
+            object-fit: contain; 
+            flex-shrink: 0; 
+        }
+
+        /* Timestamp (Added to match your reference image) */
+        .bottom-info .timestamp {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 400;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            margin-left: 50px; /* Aligned with the username text, not the avatar */
+            margin-top: -2px;
+            pointer-events: auto;
+        }
         
         .bottom-info .reel-title {
-            font-weight: 700; font-size: 17px; color: #fff; line-height: 1.3;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.8); pointer-events: auto; margin-top: 2px;
+            font-weight: 700; 
+            font-size: 17px; 
+            color: #fff; 
+            line-height: 1.3;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8); 
+            pointer-events: auto; 
+            margin-top: 2px;
         }
+        
         .bottom-info .reel-desc {
-            font-size: 14px; color: rgba(255,255,255,0.85); line-height: 1.4;
-            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.8); pointer-events: auto;
+            font-size: 14px; 
+            color: rgba(255,255,255,0.85); 
+            line-height: 1.4;
+            display: -webkit-box; 
+            -webkit-line-clamp: 2; 
+            -webkit-box-orient: vertical; 
+            overflow: hidden;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8); 
+            pointer-events: auto;
         }
 
         /* ===== RIGHT ACTION BAR ===== */
@@ -284,6 +343,7 @@
             .bottom-info { bottom: 30px; left: 14px; right: 70px; }
             .bottom-info .profile-row .avatar { width: 32px; height: 32px; }
             .bottom-info .profile-row .username { font-size: 14px; }
+            .bottom-info .timestamp { margin-left: 44px; font-size: 12px; }
             .bottom-info .reel-title { font-size: 16px; }
             .comment-sheet { max-width: 100%; height: 75vh; border-radius: 16px 16px 0 0; }
             .top-left-back { top: 16px; left: 12px; width: 40px; height: 40px; font-size: 24px; }
@@ -515,6 +575,8 @@
                             <img src="/badge.png" class="badge" onerror="this.style.display='none'" alt="Verified" />
                         </span>
                     </div>
+                    <!-- Added timestamp for perfect spacing and layout -->
+                    <div class="timestamp">a month ago</div>
                     <div class="reel-title">${p.title}</div>
                     ${p.description ? `<div class="reel-desc">${p.description}</div>` : ''}
                 </div>
