@@ -41,20 +41,34 @@ export default async function handler(req, res) {
     // If no targetUserId is provided, fall back to the authenticated user
     const id = targetUserId || userId;
 
+    // Determine if the user is viewing their own profile
+    const isOwnProfile = (id === userId);
+
+    // Build the select query based on ownership
+    let selectQuery = `
+      id,
+      username,
+      display_name,
+      avatar_url,
+      bio,
+      is_premium,
+      is_owner,
+      created_at,
+      last_username_change,
+      last_display_name_change
+    `;
+
+    // Only include email and phone_number if viewing own profile
+    if (isOwnProfile) {
+      selectQuery += `,
+        email,
+        phone_number
+      `;
+    }
+
     let { data: profile, error } = await supabaseAdmin
       .from('profiles')
-      .select(`
-        id,
-        username,
-        display_name,
-        avatar_url,
-        bio,
-        is_premium,
-        is_owner,
-        created_at,
-        last_username_change,
-        last_display_name_change
-      `)
+      .select(selectQuery)
       .eq('username', id)   // Treat id as username
       .single();
 
@@ -62,18 +76,7 @@ export default async function handler(req, res) {
     if (error || !profile) {
       const { data: profileByUuid, error: uuidError } = await supabaseAdmin
         .from('profiles')
-        .select(`
-          id,
-          username,
-          display_name,
-          avatar_url,
-          bio,
-          is_premium,
-          is_owner,
-          created_at,
-          last_username_change,
-          last_display_name_change
-        `)
+        .select(selectQuery)
         .eq('id', id)
         .single();
 
@@ -141,7 +144,7 @@ export default async function handler(req, res) {
   // UPDATE PROFILE
   // ================================================================
   if (req.method === 'PUT') {
-    const { display_name, bio, avatar_url } = req.body;
+    const { display_name, bio, avatar_url, email, phone_number } = req.body;
 
     const updates = {};
     
@@ -175,6 +178,15 @@ export default async function handler(req, res) {
 
     if (avatar_url !== undefined) {
       updates.avatar_url = avatar_url;
+    }
+
+    // NEW: Add email and phone_number to updates
+    if (email !== undefined) {
+      updates.email = email;
+    }
+
+    if (phone_number !== undefined) {
+      updates.phone_number = phone_number;
     }
 
     updates.updated_at = new Date().toISOString();
