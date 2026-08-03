@@ -103,7 +103,7 @@
             object-fit: cover;
         }
 
-        /* ===== SKELETON LOADING ===== */
+        /* ===== SKELETON LOADING (Feed) ===== */
         .skeleton {
             background: linear-gradient(90deg, #e4e6eb 25%, #f0f2f5 50%, #e4e6eb 75%);
             background-size: 200% 100%;
@@ -372,6 +372,17 @@
         .comment-modal .comments-list::-webkit-scrollbar { width: 4px; }
         .comment-modal .comments-list::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
 
+        /* Skeleton for comments */
+        .skeleton-comment {
+            display: flex; gap: 10px; margin-bottom: 12px; padding: 4px 0;
+        }
+        .skeleton-comment .avatar { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; }
+        .skeleton-comment .body { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+        .skeleton-comment .body .line { height: 14px; width: 60%; border-radius: 6px; }
+        .skeleton-comment .body .line.short { width: 30%; }
+        .skeleton-comment .body .line.long { width: 80%; }
+
+        /* Comment Items */
         .comment-item {
             display: flex;
             gap: 10px;
@@ -550,7 +561,7 @@
                 <button class="close-btn" id="closeCommentModal">✕</button>
             </div>
             <div class="comments-list" id="commentList">
-                <div style="text-align:center;padding:20px;color:#65676b;">Loading comments...</div>
+                <!-- Skeleton comments will be injected here -->
             </div>
             <div class="input-wrap">
                 <div class="avatar-small" id="commentUserAvatar">?</div>
@@ -582,6 +593,12 @@
         let hasMore = true;
         let searchTimeout = null;
         let currentPromptIdForComments = null;
+
+        // Local state trackers for debounced optimistic updates
+        let localLikes = {};      // { promptId: { count, liked } }
+        let localSaves = {};     // { promptId: { count, saved } }
+        let likeDebounceTimers = {};
+        let saveDebounceTimers = {};
 
         // ============================================================
         //  DOM
@@ -629,7 +646,7 @@
         }
 
         // ============================================================
-        //  RENDER SKELETON
+        //  RENDER SKELETON (Feed)
         // ============================================================
         function renderSkeletons(count = 3) {
             let html = '';
@@ -660,6 +677,26 @@
         }
 
         // ============================================================
+        //  RENDER SKELETON (Comments)
+        // ============================================================
+        function renderCommentSkeletons(count = 3) {
+            let html = '';
+            for (let i = 0; i < count; i++) {
+                html += `
+                    <div class="skeleton-comment">
+                        <div class="skeleton avatar"></div>
+                        <div class="body">
+                            <div class="skeleton line"></div>
+                            <div class="skeleton line short"></div>
+                            <div class="skeleton line long"></div>
+                        </div>
+                    </div>
+                `;
+            }
+            commentList.innerHTML = html;
+        }
+
+        // ============================================================
         //  LOAD FEED
         // ============================================================
         async function loadFeed(reset = false) {
@@ -668,6 +705,8 @@
             if (reset) {
                 page = 0;
                 hasMore = true;
+                localLikes = {};
+                localSaves = {};
                 renderSkeletons();
                 loader.style.display = 'block';
             }
@@ -692,6 +731,9 @@
                 }
 
                 prompts.forEach(p => {
+                    // Initialize local state from server data
+                    localLikes[p.id] = { count: p.like_count || 0, liked: p.liked || false };
+                    localSaves[p.id] = { count: p.save_count || 0, saved: p.saved || false };
                     feedContainer.appendChild(createPostElement(p));
                 });
 
@@ -722,13 +764,17 @@
             const heartFilled = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
             const bookmarkIcon = `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>`;
             const bookmarkFilled = `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>`;
-            const commentIcon = `<svg viewBox="0 0 24 24"><path d="M21 6h-2v2h-2V6h-2V4h2V2h2v2h2v2zm-10 3c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm0 4c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>`;
+            // NEW: Speech bubble / cloud with tail
+            const commentIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
             const shareIcon = `<svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>`;
 
-            const likeClass = p.liked ? 'liked' : '';
-            const saveClass = p.saved ? 'saved' : '';
-            const likeIconHtml = p.liked ? heartFilled : heartIcon;
-            const saveIconHtml = p.saved ? bookmarkFilled : bookmarkIcon;
+            const localLike = localLikes[p.id] || { count: p.like_count || 0, liked: p.liked || false };
+            const localSave = localSaves[p.id] || { count: p.save_count || 0, saved: p.saved || false };
+
+            const likeClass = localLike.liked ? 'liked' : '';
+            const saveClass = localSave.saved ? 'saved' : '';
+            const likeIconHtml = localLike.liked ? heartFilled : heartIcon;
+            const saveIconHtml = localSave.saved ? bookmarkFilled : bookmarkIcon;
 
             const date = new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
@@ -768,13 +814,13 @@
                 </div>
                 <div class="action-bar">
                     <button class="like-btn ${likeClass}" data-id="${p.id}">
-                        ${likeIconHtml} <span class="count">${p.like_count || 0}</span>
+                        ${likeIconHtml} <span class="count">${localLike.count}</span>
                     </button>
                     <button class="comment-btn" data-id="${p.id}">
                         ${commentIcon} <span class="count">${p.comment_count || 0}</span>
                     </button>
                     <button class="save-btn ${saveClass}" data-id="${p.id}">
-                        ${saveIconHtml} <span class="count">${p.save_count || 0}</span>
+                        ${saveIconHtml} <span class="count">${localSave.count}</span>
                     </button>
                     <button class="share-btn" data-id="${p.id}">
                         ${shareIcon}
@@ -786,45 +832,38 @@
             `;
 
             // --- Event Listeners ---
-            // Like
             card.querySelector('.like-btn').addEventListener('click', (e) => {
                 e.stopPropagation();
-                handleLike(e.currentTarget);
+                handleLike(e.currentTarget, p.id);
             });
 
-            // Save
             card.querySelector('.save-btn').addEventListener('click', (e) => {
                 e.stopPropagation();
-                handleSave(e.currentTarget);
+                handleSave(e.currentTarget, p.id);
             });
 
-            // Share
             card.querySelector('.share-btn').addEventListener('click', (e) => {
                 e.stopPropagation();
                 navigator.clipboard.writeText(window.location.origin + '/prompt/' + p.slug);
                 alert('Link copied to clipboard!');
             });
 
-            // Comment (Open Modal)
             card.querySelector('.comment-btn').addEventListener('click', (e) => {
                 e.stopPropagation();
                 if (!user) { popup.classList.add('active'); return; }
                 openCommentModal(p.id);
             });
 
-            // View Prompt
             card.querySelector('.btn-view-prompt').addEventListener('click', () => {
                 window.location.href = '/prompt/' + p.slug;
             });
 
-            // Image Full Screen
             card.querySelector('.post-image-wrap img').addEventListener('click', (e) => {
                 e.stopPropagation();
                 imageModalContent.src = e.target.src;
                 imageModal.classList.add('active');
             });
 
-            // See More Description
             const seeMoreBtn = card.querySelector('.see-more-btn');
             if (seeMoreBtn) {
                 seeMoreBtn.addEventListener('click', (e) => {
@@ -840,134 +879,155 @@
         }
 
         // ============================================================
-        //  INTERACTIONS (Optimistic UI)
+        //  INTERACTIONS (Optimistic UI + Debounced API Sync)
         // ============================================================
-        let pendingInteractions = {};
-
-        async function handleLike(btn) {
-            if (!user) { popup.classList.add('active'); return; }
-            const promptId = btn.dataset.id;
-            if (pendingInteractions[promptId]) return;
-            pendingInteractions[promptId] = true;
-
-            const isLiked = btn.classList.contains('liked');
-            const countSpan = btn.querySelector('.count');
-            let currentCount = parseInt(countSpan.textContent);
-
-            // Optimistic update
-            if (isLiked) {
-                btn.classList.remove('liked');
-                btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> <span class="count">${currentCount - 1}</span>`;
-            } else {
+        function updateLikeUI(btn, promptId, newCount, newLikedState) {
+            const heartFilled = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+            const heartIcon = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+            if (newLikedState) {
                 btn.classList.add('liked');
-                btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> <span class="count">${currentCount + 1}</span>`;
+                btn.innerHTML = `${heartFilled} <span class="count">${newCount}</span>`;
+            } else {
+                btn.classList.remove('liked');
+                btn.innerHTML = `${heartIcon} <span class="count">${newCount}</span>`;
             }
-
-            const action = isLiked ? 'unlike' : 'like';
-            const method = isLiked ? 'DELETE' : 'POST';
-
-            try {
-                const res = await fetch(`/api/interactions?action=${action}`, {
-                    method,
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ promptId })
-                });
-                const data = await res.json();
-                if (!data.success) {
-                    // Revert silently
-                    if (isLiked) {
-                        btn.classList.add('liked');
-                        btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> <span class="count">${currentCount}</span>`;
-                    } else {
-                        btn.classList.remove('liked');
-                        btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> <span class="count">${currentCount}</span>`;
-                    }
-                } else {
-                    // Ensure UI is correct
-                    const newCount = data.like_count;
-                    if (isLiked) {
-                        btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> <span class="count">${newCount}</span>`;
-                    } else {
-                        btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> <span class="count">${newCount}</span>`;
-                    }
-                }
-            } catch (err) {
-                // Revert silently on network error
-                if (isLiked) {
-                    btn.classList.add('liked');
-                    btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> <span class="count">${currentCount}</span>`;
-                } else {
-                    btn.classList.remove('liked');
-                    btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> <span class="count">${currentCount}</span>`;
-                }
-            }
-            pendingInteractions[promptId] = false;
         }
 
-        async function handleSave(btn) {
+        function handleLike(btn, promptId) {
             if (!user) { popup.classList.add('active'); return; }
-            const promptId = btn.dataset.id;
-            if (pendingInteractions[promptId]) return;
-            pendingInteractions[promptId] = true;
 
-            const isSaved = btn.classList.contains('saved');
-            const countSpan = btn.querySelector('.count');
-            let currentCount = parseInt(countSpan.textContent);
+            // 1. Instant optimistic UI update
+            const current = localLikes[promptId] || { count: 0, liked: false };
+            const newLiked = !current.liked;
+            const newCount = newLiked ? current.count + 1 : current.count - 1;
+            
+            localLikes[promptId] = { count: newCount, liked: newLiked };
+            updateLikeUI(btn, promptId, newCount, newLiked);
 
-            if (isSaved) {
-                btn.classList.remove('saved');
-                btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg> <span class="count">${currentCount - 1}</span>`;
-            } else {
+            // 2. Clear existing timer
+            if (likeDebounceTimers[promptId]) {
+                clearTimeout(likeDebounceTimers[promptId]);
+            }
+
+            // 3. Set new timer (800ms debounce)
+            likeDebounceTimers[promptId] = setTimeout(async () => {
+                const finalState = localLikes[promptId];
+                if (!finalState) return;
+
+                const action = finalState.liked ? 'like' : 'unlike';
+                const method = finalState.liked ? 'POST' : 'DELETE';
+
+                try {
+                    const res = await fetch(`/api/interactions?action=${action}`, {
+                        method,
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ promptId })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        // Sync with server's exact count
+                        localLikes[promptId] = { count: data.like_count, liked: finalState.liked };
+                        // Update all UI elements for this prompt
+                        document.querySelectorAll(`.like-btn[data-id="${promptId}"]`).forEach(el => {
+                            updateLikeUI(el, promptId, data.like_count, finalState.liked);
+                        });
+                    } else {
+                        // Revert silently if API fails
+                        const revertedLiked = !finalState.liked;
+                        const revertedCount = revertedLiked ? finalState.count + 1 : finalState.count - 1;
+                        localLikes[promptId] = { count: revertedCount, liked: revertedLiked };
+                        document.querySelectorAll(`.like-btn[data-id="${promptId}"]`).forEach(el => {
+                            updateLikeUI(el, promptId, revertedCount, revertedLiked);
+                        });
+                    }
+                } catch (err) {
+                    // Revert silently on network error
+                    const revertedLiked = !finalState.liked;
+                    const revertedCount = revertedLiked ? finalState.count + 1 : finalState.count - 1;
+                    localLikes[promptId] = { count: revertedCount, liked: revertedLiked };
+                    document.querySelectorAll(`.like-btn[data-id="${promptId}"]`).forEach(el => {
+                        updateLikeUI(el, promptId, revertedCount, revertedLiked);
+                    });
+                }
+                delete likeDebounceTimers[promptId];
+            }, 800);
+        }
+
+        function updateSaveUI(btn, promptId, newCount, newSavedState) {
+            const bookmarkFilled = `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>`;
+            const bookmarkIcon = `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>`;
+            if (newSavedState) {
                 btn.classList.add('saved');
-                btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg> <span class="count">${currentCount + 1}</span>`;
+                btn.innerHTML = `${bookmarkFilled} <span class="count">${newCount}</span>`;
+            } else {
+                btn.classList.remove('saved');
+                btn.innerHTML = `${bookmarkIcon} <span class="count">${newCount}</span>`;
+            }
+        }
+
+        function handleSave(btn, promptId) {
+            if (!user) { popup.classList.add('active'); return; }
+
+            const current = localSaves[promptId] || { count: 0, saved: false };
+            const newSaved = !current.saved;
+            const newCount = newSaved ? current.count + 1 : current.count - 1;
+            
+            localSaves[promptId] = { count: newCount, saved: newSaved };
+            updateSaveUI(btn, promptId, newCount, newSaved);
+
+            if (saveDebounceTimers[promptId]) {
+                clearTimeout(saveDebounceTimers[promptId]);
             }
 
-            const action = isSaved ? 'unsave' : 'save';
-            const method = isSaved ? 'DELETE' : 'POST';
+            saveDebounceTimers[promptId] = setTimeout(async () => {
+                const finalState = localSaves[promptId];
+                if (!finalState) return;
 
-            try {
-                const res = await fetch(`/api/interactions?action=${action}`, {
-                    method,
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ promptId })
-                });
-                const data = await res.json();
-                if (!data.success) {
-                    if (isSaved) {
-                        btn.classList.add('saved');
-                        btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg> <span class="count">${currentCount}</span>`;
+                const action = finalState.saved ? 'save' : 'unsave';
+                const method = finalState.saved ? 'POST' : 'DELETE';
+
+                try {
+                    const res = await fetch(`/api/interactions?action=${action}`, {
+                        method,
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ promptId })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        localSaves[promptId] = { count: data.save_count, saved: finalState.saved };
+                        document.querySelectorAll(`.save-btn[data-id="${promptId}"]`).forEach(el => {
+                            updateSaveUI(el, promptId, data.save_count, finalState.saved);
+                        });
                     } else {
-                        btn.classList.remove('saved');
-                        btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg> <span class="count">${currentCount}</span>`;
+                        const revertedSaved = !finalState.saved;
+                        const revertedCount = revertedSaved ? finalState.count + 1 : finalState.count - 1;
+                        localSaves[promptId] = { count: revertedCount, saved: revertedSaved };
+                        document.querySelectorAll(`.save-btn[data-id="${promptId}"]`).forEach(el => {
+                            updateSaveUI(el, promptId, revertedCount, revertedSaved);
+                        });
                     }
-                } else {
-                    const newCount = data.save_count;
-                    if (isSaved) {
-                        btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg> <span class="count">${newCount}</span>`;
-                    } else {
-                        btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg> <span class="count">${newCount}</span>`;
-                    }
+                } catch (err) {
+                    const revertedSaved = !finalState.saved;
+                    const revertedCount = revertedSaved ? finalState.count + 1 : finalState.count - 1;
+                    localSaves[promptId] = { count: revertedCount, saved: revertedSaved };
+                    document.querySelectorAll(`.save-btn[data-id="${promptId}"]`).forEach(el => {
+                        updateSaveUI(el, promptId, revertedCount, revertedSaved);
+                    });
                 }
-            } catch (err) {
-                if (isSaved) {
-                    btn.classList.add('saved');
-                    btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg> <span class="count">${currentCount}</span>`;
-                } else {
-                    btn.classList.remove('saved');
-                    btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg> <span class="count">${currentCount}</span>`;
-                }
-            }
-            pendingInteractions[promptId] = false;
+                delete saveDebounceTimers[promptId];
+            }, 800);
         }
 
         // ============================================================
         //  COMMENT MODAL
         // ============================================================
+        let commentLikeTimers = {};
+
         async function openCommentModal(promptId) {
             currentPromptIdForComments = promptId;
             commentModal.classList.add('active');
-            commentList.innerHTML = `<div style="text-align:center;padding:20px;color:#65676b;">Loading comments...</div>`;
             commentInput.value = '';
+            renderCommentSkeletons(3);
 
             try {
                 const res = await fetch(`/api/comments?action=list&promptId=${promptId}&limit=50&offset=0`, {
@@ -1013,7 +1073,7 @@
                     </div>
                     <div class="content">${c.content}</div>
                     <div class="actions">
-                        <button class="comment-like-btn ${likeClass}" data-id="${c.id}">
+                        <button class="comment-like-btn ${likeClass}" data-id="${c.id}" data-count="${c.likes_count || 0}">
                             ${likeIcon} ${c.likes_count || 0}
                         </button>
                         <span style="color:#d1d5db;">·</span>
@@ -1041,10 +1101,10 @@
             html += `</div></div>`;
             div.innerHTML = html;
 
-            // Attach event listeners manually because innerHTML doesn't bind them
+            // Attach event listeners
             const likeBtn = div.querySelector('.comment-like-btn');
             if (likeBtn) {
-                likeBtn.addEventListener('click', () => handleCommentLike(likeBtn));
+                likeBtn.addEventListener('click', () => handleCommentLike(likeBtn, c.id));
             }
 
             const replyToggle = div.querySelector('.reply-toggle');
@@ -1077,69 +1137,124 @@
         }
 
         // ============================================================
-        //  COMMENT LIKE (Optimistic)
+        //  COMMENT LIKE (Debounced Optimistic)
         // ============================================================
-        async function handleCommentLike(btn) {
-            if (!user) { popup.classList.add('active'); return; }
-            const commentId = btn.dataset.id;
-            const isLiked = btn.classList.contains('liked');
-            const countSpan = btn.textContent.match(/\d+$/)?.[0] || '0';
-            let currentCount = parseInt(countSpan);
-
-            // Optimistic update
-            if (isLiked) {
-                btn.classList.remove('liked');
-                btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> ${currentCount - 1}`;
-            } else {
+        function updateCommentLikeUI(btn, newCount, newLikedState) {
+            const likeIcon = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+            const likeFilled = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+            if (newLikedState) {
                 btn.classList.add('liked');
-                btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> ${currentCount + 1}`;
-            }
-
-            const action = isLiked ? 'unlike-comment' : 'like-comment';
-            const method = isLiked ? 'DELETE' : 'POST';
-
-            try {
-                const res = await fetch(`/api/comments?action=${action}`, {
-                    method,
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ commentId })
-                });
-                if (!res.ok) {
-                    if (isLiked) {
-                        btn.classList.add('liked');
-                        btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> ${currentCount}`;
-                    } else {
-                        btn.classList.remove('liked');
-                        btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> ${currentCount}`;
-                    }
-                }
-            } catch {
-                if (isLiked) {
-                    btn.classList.add('liked');
-                    btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> ${currentCount}`;
-                } else {
-                    btn.classList.remove('liked');
-                    btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> ${currentCount}`;
-                }
+                btn.innerHTML = `${likeFilled} ${newCount}`;
+            } else {
+                btn.classList.remove('liked');
+                btn.innerHTML = `${likeIcon} ${newCount}`;
             }
         }
 
+        function handleCommentLike(btn, commentId) {
+            if (!user) { popup.classList.add('active'); return; }
+
+            const currentCount = parseInt(btn.dataset.count) || 0;
+            const isLiked = btn.classList.contains('liked');
+            const newLiked = !isLiked;
+            const newCount = newLiked ? currentCount + 1 : currentCount - 1;
+            btn.dataset.count = newCount;
+
+            updateCommentLikeUI(btn, newCount, newLiked);
+
+            if (commentLikeTimers[commentId]) {
+                clearTimeout(commentLikeTimers[commentId]);
+            }
+
+            commentLikeTimers[commentId] = setTimeout(async () => {
+                const finalLiked = btn.classList.contains('liked');
+                const action = finalLiked ? 'like-comment' : 'unlike-comment';
+                const method = finalLiked ? 'POST' : 'DELETE';
+
+                try {
+                    const res = await fetch(`/api/comments?action=${action}`, {
+                        method,
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ commentId })
+                    });
+                    if (!res.ok) {
+                        // Revert silently
+                        const revertLiked = !finalLiked;
+                        const revertCount = revertLiked ? parseInt(btn.dataset.count) + 1 : parseInt(btn.dataset.count) - 1;
+                        btn.dataset.count = revertCount;
+                        updateCommentLikeUI(btn, revertCount, revertLiked);
+                    }
+                } catch (err) {
+                    // Revert silently
+                    const revertLiked = !finalLiked;
+                    const revertCount = revertLiked ? parseInt(btn.dataset.count) + 1 : parseInt(btn.dataset.count) - 1;
+                    btn.dataset.count = revertCount;
+                    updateCommentLikeUI(btn, revertCount, revertLiked);
+                }
+                delete commentLikeTimers[commentId];
+            }, 800);
+        }
+
         // ============================================================
-        //  POST NEW COMMENT
+        //  POST NEW COMMENT (Instant Append, No Reload)
         // ============================================================
         commentSubmitBtn.addEventListener('click', async () => {
             if (!user) { popup.classList.add('active'); return; }
             const content = commentInput.value.trim();
             if (!content || !currentPromptIdForComments) return;
             commentSubmitBtn.disabled = true;
+
+            // 1. Create temporary comment object
+            const tempId = 'temp_' + Date.now();
+            const tempComment = {
+                id: tempId,
+                user_id: user.id,
+                content: content,
+                likes_count: 0,
+                created_at: new Date().toISOString(),
+                profiles: {
+                    id: user.id,
+                    username: user.username,
+                    display_name: user.display_name || user.username,
+                    avatar_url: user.avatar_url
+                },
+                liked: false,
+                replies: []
+            };
+
+            // 2. Append instantly to the list
+            const noCommentsMsg = commentList.querySelector('div[style*="No comments yet"]');
+            if (noCommentsMsg) commentList.innerHTML = '';
+            commentList.prepend(createCommentElement(tempComment));
+
+            // 3. Send API request
             try {
                 const res = await fetch('/api/comments?action=add', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({ promptId: currentPromptIdForComments, content })
                 });
-                if (res.ok) { commentInput.value = ''; openCommentModal(currentPromptIdForComments); }
-            } catch (err) { console.error(err); }
+                if (res.ok) {
+                    // Success: Replace temp ID with real data by re-fetching silently
+                    commentInput.value = '';
+                    const fetchRes = await fetch(`/api/comments?action=list&promptId=${currentPromptIdForComments}&limit=50&offset=0`, {
+                        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                    });
+                    const data = await fetchRes.json();
+                    renderCommentsInModal(data.comments || []);
+                } else {
+                    // Failed: Remove the temp comment
+                    const tempEl = commentList.querySelector(`[data-id="${tempId}"]`);
+                    if (tempEl) tempEl.remove();
+                    alert('Failed to post comment. Please try again.');
+                }
+            } catch (err) {
+                // Failed: Remove the temp comment
+                const tempEl = commentList.querySelector(`[data-id="${tempId}"]`);
+                if (tempEl) tempEl.remove();
+                alert('Failed to post comment. Please try again.');
+            }
+
             commentSubmitBtn.disabled = false;
         });
 
@@ -1165,7 +1280,6 @@
         // ============================================================
         //  MODAL CONTROLS
         // ============================================================
-        // Close Comment Modal
         document.getElementById('closeCommentModal').addEventListener('click', () => {
             commentModal.classList.remove('active');
         });
@@ -1173,7 +1287,6 @@
             if (e.target === e.currentTarget) commentModal.classList.remove('active');
         });
 
-        // Close Image Modal
         imageModal.addEventListener('click', () => {
             imageModal.classList.remove('active');
         });
