@@ -6,6 +6,9 @@
     <title>Prompt Detail</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bitcount+Prop+Single&display=swap');
+    </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -25,18 +28,29 @@
             padding: 16px 12px 80px;
         }
 
-        .back {
+        /* ===== BRANDED HEADER (Matches Feed Page) ===== */
+        .brand {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 10px;
             margin-bottom: 16px;
-            color: #65676b;
+            color: #1a1a1a;
             text-decoration: none;
-            font-weight: 500;
-            font-size: 14px;
-            transition: color 0.2s;
+            font-family: 'Bitcount Prop Single', serif;
+            font-size: 24px;
+            font-weight: 400;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: opacity 0.2s;
         }
-        .back:hover { color: #1877f2; }
+        .brand:hover { opacity: 0.6; }
+        .brand img.icon {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            display: block;
+        }
+        .brand span { color: #4f46e5; }
 
         /* ===== SKELETON LOADING ===== */
         .skeleton {
@@ -726,7 +740,12 @@
 </head>
 <body>
     <div class="container">
-        <a href="/feed/" class="back">← Back to Feed</a>
+        <!-- BRANDED HEADER -->
+        <a href="/feed/" class="brand">
+            <img src="/asset/icon.png" class="icon" alt="Icon" onerror="this.style.display='none'" />
+            <span>spairogram</span>
+        </a>
+        
         <div id="content">
             <!-- Skeleton will be rendered by JavaScript -->
         </div>
