@@ -3,9 +3,12 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Prompt Library</title>
+    <title>Spairogram</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bitcount+Prop+Single&display=swap');
+    </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
     <style>
         /* ===== RESET & BASE ===== */
@@ -39,24 +42,28 @@
             text-align: center;
         }
 
-        .card .logo {
-            font-size: 52px;
-            margin-bottom: 6px;
-            display: inline-block;
-            filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.05));
+        /* ===== BRANDING ===== */
+        .brand-logo {
+            width: 52px;
+            height: 52px;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto 6px;
         }
-
-        .card h1 {
+        .card .brand-name {
+            font-family: 'Bitcount Prop Single', serif;
             font-size: 30px;
-            font-weight: 700;
+            font-weight: 400;
             color: #1e293b;
-            letter-spacing: -0.025em;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
             margin-bottom: 2px;
         }
+        .card .brand-name span { color: #4f46e5; }
 
         .card .sub {
             color: #64748b;
-            font-size: 15px;
+            font-size: 13px;
             margin-bottom: 28px;
             font-weight: 500;
         }
@@ -279,8 +286,8 @@
         /* ===== RESPONSIVE ===== */
         @media (max-width: 600px) {
             .card { padding: 32px 24px 28px; border-radius: 24px; }
-            .card h1 { font-size: 26px; }
-            .card .logo { font-size: 44px; }
+            .brand-logo { width: 40px; height: 40px; }
+            .card .brand-name { font-size: 26px; }
             .profile-icon { top: 16px; right: 16px; width: 38px; height: 38px; font-size: 17px; }
             .btn-primary, .btn-secondary, .btn-guest { font-size: 15px; padding: 12px; }
             .input-group input { font-size: 14px; padding: 12px 16px; }
@@ -289,8 +296,8 @@
 
         @media (max-width: 420px) {
             .card { padding: 24px 16px 20px; }
-            .card h1 { font-size: 22px; }
-            .card .logo { font-size: 36px; }
+            .brand-logo { width: 36px; height: 36px; }
+            .card .brand-name { font-size: 22px; }
             .auth-box { gap: 12px; }
         }
     </style>
@@ -298,9 +305,10 @@
 <body>
     <div class="container">
         <div class="card" id="mainCard">
-            <div class="logo">📚</div>
-            <h1>Prompt Library</h1>
-            <p class="sub">Discover, save, and share AI prompts</p>
+            <!-- Brand Logo & Name -->
+            <img src="/asset/icon.png" class="brand-logo" alt="Icon" onerror="this.style.display='none'" />
+            <h1 class="brand-name"><span>spairogram</span></h1>
+            <p class="sub">Creating an account takes less than 10 seconds.</p>
 
             <!-- Profile Icon (visible only when logged in) -->
             <button class="profile-icon" id="profileIcon" style="display:none;" title="Profile">
