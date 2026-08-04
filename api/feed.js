@@ -8,7 +8,7 @@ const supabaseAdmin = createClient(
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
@@ -380,6 +380,99 @@ export default async function handler(req, res) {
       prompts: promptsWithCounts,
       total: count || 0,
       hasMore: (Number(offset) + Number(limit)) < (count || 0)
+    });
+  }
+
+  // ================================================================
+  //  NOTIFICATIONS (NEW)
+  // ================================================================
+  if (action === 'notifications') {
+    // Only logged-in users can see notifications
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const { limit = 50, offset = 0 } = req.query;
+
+    const { data: notifications, error, count } = await supabaseAdmin
+      .from('notifications')
+      .select(`
+        id,
+        type,
+        target_id,
+        is_read,
+        created_at,
+        actor:actor_id (
+          id,
+          username,
+          display_name,
+          avatar_url
+        )
+      `, { count: 'exact' })
+      .eq('recipient_id', userId)
+      .order('created_at', { ascending: false })
+      .range(Number(offset), Number(offset) + Number(limit) - 1);
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    return res.status(200).json({
+      notifications,
+      total: count || 0,
+      hasMore: (Number(offset) + Number(limit)) < (count || 0)
+    });
+  }
+
+  // ================================================================
+  //  MARK NOTIFICATIONS AS READ (NEW)
+  // ================================================================
+  if (action === 'mark-read') {
+    // Only logged-in users can mark their own notifications as read
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const { notificationId } = req.body;
+
+    let query = supabaseAdmin
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('recipient_id', userId);
+
+    if (notificationId) {
+      query = query.eq('id', notificationId);
+    }
+
+    const { error } = await query;
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: notificationId ? 'Notification marked as read' : 'All notifications marked as read'
+    });
+  }
+
+  // ================================================================
+  //  GET UNREAD COUNT (NEW)
+  // ================================================================
+  if (action === 'unread-count') {
+    // Only logged-in users can see their unread count
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const { count } = await supabaseAdmin
+      .from('notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('recipient_id', userId)
+      .eq('is_read', false);
+
+    return res.status(200).json({
+      unread_count: count || 0
     });
   }
 
