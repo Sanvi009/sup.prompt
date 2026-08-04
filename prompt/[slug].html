@@ -1142,6 +1142,136 @@
             document.getElementById('loadMoreBtn').addEventListener('click', () => {
                 loadComments(false);
             });
+
+            // ============================================================
+            //  ===== NEW: MENTION AUTOCOMPLETE SYSTEM (MOVED INSIDE renderPrompt) =====
+            // ============================================================
+            const commentInput = document.getElementById('commentInput');
+            const mentionDropdown = document.getElementById('mentionDropdown');
+
+            if (commentInput && mentionDropdown) {
+                console.log('Mention system initialized successfully');
+
+                let mentionTimeout = null;
+
+                commentInput.addEventListener('input', (e) => {
+                    const value = e.target.value;
+                    const atIndex = value.lastIndexOf('@');
+                    
+                    // Hide dropdown if no @ or @ is at the very end without a following character
+                    if (atIndex === -1 || atIndex === value.length - 1) {
+                        mentionDropdown.classList.remove('active');
+                        mentionDropdown.innerHTML = '';
+                        return;
+                    }
+
+                    // Get the text after the @ (the username being typed)
+                    const searchText = value.substring(atIndex + 1);
+                    if (searchText.length === 0) {
+                        mentionDropdown.classList.remove('active');
+                        mentionDropdown.innerHTML = '';
+                        return;
+                    }
+
+                    // Clear previous timeout
+                    if (mentionTimeout) {
+                        clearTimeout(mentionTimeout);
+                    }
+
+                    // Debounce the search
+                    mentionTimeout = setTimeout(async () => {
+                        let suggestions = [];
+
+                        // LAYER 1: Current commenters (0 API calls)
+                        const commenterMatches = currentCommenters.filter(username => 
+                            username.toLowerCase().startsWith(searchText.toLowerCase()) && 
+                            username !== user?.username
+                        );
+                        suggestions.push(...commenterMatches);
+
+                        // LAYER 2: Following list (0 API calls, already loaded)
+                        if (suggestions.length < 5) {
+                            const followingMatches = followingUsers
+                                .filter(u => 
+                                    u.username.toLowerCase().startsWith(searchText.toLowerCase()) && 
+                                    u.username !== user?.username &&
+                                    !suggestions.includes(u.username)
+                                )
+                                .slice(0, 5 - suggestions.length);
+                            suggestions.push(...followingMatches.map(u => u.username));
+                        }
+
+                        // LAYER 3: Global search (API call, only if needed)
+                        if (suggestions.length === 0 && searchText.length >= 2) {
+                            try {
+                                const res = await fetch(`/api/feed?action=search&q=${encodeURIComponent(searchText)}&limit=5`, {
+                                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                                });
+                                const data = await res.json();
+                                const globalUsers = (data.users || [])
+                                    .filter(u => u.username !== user?.username)
+                                    .slice(0, 5);
+                                suggestions.push(...globalUsers.map(u => u.username));
+                            } catch (err) {
+                                console.error('Mention search failed:', err);
+                            }
+                        }
+
+                        // Render dropdown if we have suggestions
+                        if (suggestions.length > 0) {
+                            renderMentionDropdown(suggestions, atIndex);
+                        } else {
+                            mentionDropdown.classList.remove('active');
+                            mentionDropdown.innerHTML = '';
+                        }
+                    }, 300);
+                });
+
+                function renderMentionDropdown(suggestions, atIndex) {
+                    mentionDropdown.innerHTML = '';
+                    suggestions.forEach(username => {
+                        const item = document.createElement('div');
+                        item.className = 'mention-item';
+                        
+                        // Find user data from following list for avatar
+                        const userData = followingUsers.find(u => u.username === username);
+                        const avatarUrl = userData?.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(username) + '&background=4f46e5&color=fff&size=28';
+                        const displayName = userData?.display_name || username;
+
+                        item.innerHTML = `
+                            <img src="${avatarUrl}" class="avatar" alt="${username}" />
+                            <div class="info">
+                                <div class="display-name">${displayName}</div>
+                                <div class="username">@${username}</div>
+                            </div>
+                        `;
+
+                        item.addEventListener('click', () => {
+                            const input = document.getElementById('commentInput');
+                            const value = input.value;
+                            // Replace the @text with @username
+                            const newValue = value.substring(0, atIndex) + `@${username} `;
+                            input.value = newValue;
+                            input.focus();
+                            mentionDropdown.classList.remove('active');
+                            mentionDropdown.innerHTML = '';
+                        });
+
+                        mentionDropdown.appendChild(item);
+                    });
+                    mentionDropdown.classList.add('active');
+                }
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.mention-dropdown') && !e.target.closest('#commentInput')) {
+                        mentionDropdown.classList.remove('active');
+                        mentionDropdown.innerHTML = '';
+                    }
+                });
+            } else {
+                console.error('Mention system failed to initialize: commentInput or mentionDropdown not found');
+            }
         }
 
         // ============================================================
@@ -1420,147 +1550,6 @@
         });
 
         // ============================================================
-        //  ===== NEW: MENTION AUTOCOMPLETE SYSTEM =====
-        // ============================================================
-        async function loadFollowingUsers() {
-            if (!user) return;
-            try {
-                const res = await fetch(`/api/follows?action=following&userId=${user.id}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const data = await res.json();
-                if (data.following) {
-                    followingUsers = data.following.map(f => f.profiles).filter(Boolean);
-                }
-            } catch (err) {
-                console.error('Failed to load following users:', err);
-            }
-        }
-
-        // Initialize mention system once DOM is ready
-        let mentionTimeout = null;
-        const commentInput = document.getElementById('commentInput');
-        const mentionDropdown = document.getElementById('mentionDropdown');
-
-        if (commentInput && mentionDropdown) {
-            commentInput.addEventListener('input', (e) => {
-                const value = e.target.value;
-                const atIndex = value.lastIndexOf('@');
-                
-                // Hide dropdown if no @ or @ is at the very end without a following character
-                if (atIndex === -1 || atIndex === value.length - 1) {
-                    mentionDropdown.classList.remove('active');
-                    mentionDropdown.innerHTML = '';
-                    return;
-                }
-
-                // Get the text after the @ (the username being typed)
-                const searchText = value.substring(atIndex + 1);
-                if (searchText.length === 0) {
-                    mentionDropdown.classList.remove('active');
-                    mentionDropdown.innerHTML = '';
-                    return;
-                }
-
-                // Clear previous timeout
-                if (mentionTimeout) {
-                    clearTimeout(mentionTimeout);
-                }
-
-                // Debounce the search
-                mentionTimeout = setTimeout(async () => {
-                    let suggestions = [];
-
-                    // LAYER 1: Current commenters (0 API calls)
-                    const commenterMatches = currentCommenters.filter(username => 
-                        username.toLowerCase().startsWith(searchText.toLowerCase()) && 
-                        username !== user?.username
-                    );
-                    suggestions.push(...commenterMatches);
-
-                    // LAYER 2: Following list (0 API calls, already loaded)
-                    if (suggestions.length < 5) {
-                        const followingMatches = followingUsers
-                            .filter(u => 
-                                u.username.toLowerCase().startsWith(searchText.toLowerCase()) && 
-                                u.username !== user?.username &&
-                                !suggestions.includes(u.username)
-                            )
-                            .slice(0, 5 - suggestions.length);
-                        suggestions.push(...followingMatches.map(u => u.username));
-                    }
-
-                    // LAYER 3: Global search (API call, only if needed)
-                    if (suggestions.length === 0 && searchText.length >= 2) {
-                        try {
-                            const res = await fetch(`/api/feed?action=search&q=${encodeURIComponent(searchText)}&limit=5`, {
-                                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-                            });
-                            const data = await res.json();
-                            const globalUsers = (data.users || [])
-                                .filter(u => u.username !== user?.username)
-                                .slice(0, 5);
-                            suggestions.push(...globalUsers.map(u => u.username));
-                        } catch (err) {
-                            console.error('Mention search failed:', err);
-                        }
-                    }
-
-                    // Render dropdown if we have suggestions
-                    if (suggestions.length > 0) {
-                        renderMentionDropdown(suggestions, atIndex);
-                    } else {
-                        mentionDropdown.classList.remove('active');
-                        mentionDropdown.innerHTML = '';
-                    }
-                }, 300);
-            });
-
-            function renderMentionDropdown(suggestions, atIndex) {
-                mentionDropdown.innerHTML = '';
-                suggestions.forEach(username => {
-                    const item = document.createElement('div');
-                    item.className = 'mention-item';
-                    
-                    // Find user data from following list for avatar
-                    const userData = followingUsers.find(u => u.username === username);
-                    const avatarUrl = userData?.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(username) + '&background=4f46e5&color=fff&size=28';
-                    const displayName = userData?.display_name || username;
-
-                    item.innerHTML = `
-                        <img src="${avatarUrl}" class="avatar" alt="${username}" />
-                        <div class="info">
-                            <div class="display-name">${displayName}</div>
-                            <div class="username">@${username}</div>
-                        </div>
-                    `;
-
-                    item.addEventListener('click', () => {
-                        const input = document.getElementById('commentInput');
-                        const value = input.value;
-                        // Replace the @text with @username
-                        const newValue = value.substring(0, atIndex) + `@${username} `;
-                        input.value = newValue;
-                        input.focus();
-                        mentionDropdown.classList.remove('active');
-                        mentionDropdown.innerHTML = '';
-                    });
-
-                    mentionDropdown.appendChild(item);
-                });
-                mentionDropdown.classList.add('active');
-            }
-
-            // Close dropdown when clicking outside
-            document.addEventListener('click', (e) => {
-                if (!e.target.closest('.mention-dropdown') && !e.target.closest('#commentInput')) {
-                    mentionDropdown.classList.remove('active');
-                    mentionDropdown.innerHTML = '';
-                }
-            });
-        }
-
-        // ============================================================
         //  RELATED
         // ============================================================
         async function loadRelated() {
@@ -1604,7 +1593,18 @@
         async function init() {
             await verifyUser();
             if (user) {
-                await loadFollowingUsers();
+                // Load following users for mention system
+                try {
+                    const res = await fetch(`/api/follows?action=following&userId=${user.id}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const data = await res.json();
+                    if (data.following) {
+                        followingUsers = data.following.map(f => f.profiles).filter(Boolean);
+                    }
+                } catch (err) {
+                    console.error('Failed to load following users:', err);
+                }
             }
             loadPrompt();
         }
