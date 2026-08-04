@@ -193,6 +193,41 @@ export default async function handler(req, res) {
         action_type: 'comment'
       });
 
+    // ===== NEW: Parse @mentions and insert notifications =====
+    const mentionRegex = /@([a-zA-Z0-9_]+)/g;
+    const matches = content.match(mentionRegex);
+    if (matches) {
+      const uniqueUsernames = [...new Set(matches.map(m => m.substring(1)))];
+      for (const username of uniqueUsernames) {
+        const { data: mentionedUser } = await supabaseAdmin
+          .from('profiles')
+          .select('id')
+          .eq('username', username)
+          .maybeSingle();
+
+        if (mentionedUser && mentionedUser.id !== userId) {
+          // Insert mention record
+          await supabaseAdmin
+            .from('mentions')
+            .insert({
+              comment_id: comment.id,
+              mentioned_user_id: mentionedUser.id
+            });
+
+          // Insert notification
+          await supabaseAdmin
+            .from('notifications')
+            .insert({
+              recipient_id: mentionedUser.id,
+              actor_id: userId,
+              type: 'mention',
+              target_id: comment.id
+            });
+        }
+      }
+    }
+    // =========================================================
+
     return res.status(201).json({
       success: true,
       comment
@@ -283,7 +318,7 @@ export default async function handler(req, res) {
 
     const { data: comment } = await supabaseAdmin
       .from('comments')
-      .select('id, likes_count')
+      .select('id, user_id, likes_count')
       .eq('id', commentId)
       .single();
 
@@ -317,6 +352,19 @@ export default async function handler(req, res) {
       .from('comments')
       .update({ likes_count: comment.likes_count + 1 })
       .eq('id', commentId);
+
+    // ===== NEW: Insert comment like notification =====
+    if (comment.user_id !== userId) {
+      await supabaseAdmin
+        .from('notifications')
+        .insert({
+          recipient_id: comment.user_id,
+          actor_id: userId,
+          type: 'like',
+          target_id: commentId
+        });
+    }
+    // ==================================================
 
     return res.status(201).json({
       success: true,
@@ -405,7 +453,7 @@ export default async function handler(req, res) {
           image_main
         )
       `, { count: 'exact' })
-      .eq('user_id', id)                   // ✅ FIXED: use user_id
+      .eq('user_id', id)
       .eq('is_hidden', false)
       .order('created_at', { ascending: false })
       .range(Number(offset), Number(offset) + Number(limit) - 1);
