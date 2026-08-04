@@ -115,6 +115,27 @@ export default async function handler(req, res) {
     });
   }
 
+  // --- GET SINGLE COMMENT (for notification redirect) ---
+  if (req.method === 'GET' && action === 'get') {
+    const { commentId } = req.query;
+
+    if (!commentId) {
+      return res.status(400).json({ error: 'Comment ID required' });
+    }
+
+    const { data: comment, error } = await supabaseAdmin
+      .from('comments')
+      .select('prompt_id')
+      .eq('id', commentId)
+      .single();
+
+    if (error || !comment) {
+      return res.status(404).json({ error: 'Comment not found' });
+    }
+
+    return res.status(200).json({ prompt_id: comment.prompt_id });
+  }
+
   // --- ADD COMMENT ---
   if (req.method === 'POST' && action === 'add') {
     if (!userId) {
@@ -214,14 +235,14 @@ export default async function handler(req, res) {
               mentioned_user_id: mentionedUser.id
             });
 
-          // Insert notification
+          // Insert notification (store promptId and commentId in target_id as JSON)
           await supabaseAdmin
             .from('notifications')
             .insert({
               recipient_id: mentionedUser.id,
               actor_id: userId,
               type: 'mention',
-              target_id: comment.id
+              target_id: JSON.stringify({ commentId: comment.id, promptId })
             });
         }
       }
@@ -318,7 +339,7 @@ export default async function handler(req, res) {
 
     const { data: comment } = await supabaseAdmin
       .from('comments')
-      .select('id, user_id, likes_count')
+      .select('id, user_id, prompt_id, likes_count')
       .eq('id', commentId)
       .single();
 
@@ -353,7 +374,7 @@ export default async function handler(req, res) {
       .update({ likes_count: comment.likes_count + 1 })
       .eq('id', commentId);
 
-    // ===== NEW: Insert comment like notification =====
+    // ===== NEW: Insert comment like notification (with promptId and commentId in target_id) =====
     if (comment.user_id !== userId) {
       await supabaseAdmin
         .from('notifications')
@@ -361,7 +382,7 @@ export default async function handler(req, res) {
           recipient_id: comment.user_id,
           actor_id: userId,
           type: 'like',
-          target_id: commentId
+          target_id: JSON.stringify({ commentId: comment.id, promptId: comment.prompt_id })
         });
     }
     // ==================================================
