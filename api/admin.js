@@ -630,7 +630,7 @@ export default async function handler(req, res) {
 
     // --- GET SINGLE PROMPT (admin) ---
     if (subAction === 'get') {
-      const { promptId } = req.body;
+      const { promptId } = req.query;
 
       if (!promptId) {
         return res.status(400).json({ error: 'Prompt ID required' });
