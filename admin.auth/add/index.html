@@ -131,21 +131,6 @@
             resize: vertical;
             min-height: 80px;
         }
-        .form-group input[type="file"] {
-            padding: 8px;
-            border: 1px dashed #d1d5db;
-            background: #f9fafb;
-        }
-        .form-group input[type="file"]:focus {
-            border-color: #4f46e5;
-            box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
-            outline: none;
-        }
-        .form-group .helper {
-            font-size: 12px;
-            color: #64748b;
-            margin-top: 4px;
-        }
         .form-group select[multiple] {
             min-height: 120px;
         }
@@ -202,6 +187,54 @@
             font-size: 14px;
             text-align: center;
             margin-top: 12px;
+        }
+
+        /* ===== DRAG & DROP IMAGE UPLOAD (Added) ===== */
+        .drop-zone {
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #f9fafb;
+            position: relative;
+        }
+        .drop-zone:hover,
+        .drop-zone.dragover {
+            border-color: #4f46e5;
+            background: #eef2ff;
+        }
+        .drop-zone .preview {
+            max-width: 100%;
+            max-height: 150px;
+            object-fit: contain;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            display: none;
+        }
+        .drop-zone .placeholder {
+            color: #64748b;
+            font-size: 13px;
+            display: block;
+        }
+        .drop-zone .placeholder svg {
+            width: 24px;
+            height: 24px;
+            fill: #64748b;
+            margin-bottom: 4px;
+        }
+        .drop-zone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .drop-zone.has-file .placeholder {
+            display: none;
+        }
+        .drop-zone.has-file .preview {
+            display: block;
         }
 
         @media (max-width: 640px) {
@@ -262,14 +295,31 @@
                 </div>
 
                 <div class="form-row">
+                    <!-- ===== DRAG & DROP MAIN IMAGE ===== -->
                     <div class="form-group">
                         <label for="mainImage">Main Image <span class="required">*</span></label>
-                        <input type="file" id="mainImage" accept="image/*" required />
+                        <div class="drop-zone" id="mainImageDropZone">
+                            <img class="preview" id="mainImagePreview" />
+                            <div class="placeholder">
+                                <svg viewBox="0 0 24 24"><path d="M19 7v2h-4V7h4zm-4 10h4v-2h-4v2zm-2-6h6v2h-6v-2zm-4 0h2v2H9v-2zm0 4h2v2H9v-2zm-4-4h2v2H5v-2zm0 4h2v2H5v-2z"/></svg>
+                                <br />Drag & drop or click to upload
+                            </div>
+                            <input type="file" id="mainImage" accept="image/*" required />
+                        </div>
                         <div class="helper">Required. This will be the cover image.</div>
                     </div>
+
+                    <!-- ===== DRAG & DROP OPTIONAL IMAGE ===== -->
                     <div class="form-group">
                         <label for="optionalImage">Optional Image</label>
-                        <input type="file" id="optionalImage" accept="image/*" />
+                        <div class="drop-zone" id="optionalImageDropZone">
+                            <img class="preview" id="optionalImagePreview" />
+                            <div class="placeholder">
+                                <svg viewBox="0 0 24 24"><path d="M19 7v2h-4V7h4zm-4 10h4v-2h-4v2zm-2-6h6v2h-6v-2zm-4 0h2v2H9v-2zm0 4h2v2H9v-2zm-4-4h2v2H5v-2zm0 4h2v2H5v-2z"/></svg>
+                                <br />Drag & drop or click to upload
+                            </div>
+                            <input type="file" id="optionalImage" accept="image/*" />
+                        </div>
                         <div class="helper">Optional. Additional image for the prompt.</div>
                     </div>
                 </div>
@@ -374,6 +424,51 @@
                 document.getElementById('addCategoryBtn').click();
             }
         });
+
+        // ===== DRAG & DROP SETUP FOR ADD PROMPT =====
+        function setupDropZone(dropZoneId, previewId, fileInputId) {
+            const dropZone = document.getElementById(dropZoneId);
+            const preview = document.getElementById(previewId);
+            const fileInput = document.getElementById(fileInputId);
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('dragover');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                if (e.dataTransfer.files.length > 0) {
+                    fileInput.files = e.dataTransfer.files;
+                    handleFileSelect(e.dataTransfer.files[0]);
+                }
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleFileSelect(e.target.files[0]);
+                }
+            });
+
+            function handleFileSelect(file) {
+                if (!file.type.startsWith('image/')) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    dropZone.classList.add('has-file');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        setupDropZone('mainImageDropZone', 'mainImagePreview', 'mainImage');
+        setupDropZone('optionalImageDropZone', 'optionalImagePreview', 'optionalImage');
 
         async function uploadImage(file, promptId, type) {
             if (!file) return null;
@@ -534,6 +629,15 @@
                 errorBox.textContent = '';
 
                 document.getElementById('addPromptForm').reset();
+
+                // Clear previews after reset
+                document.getElementById('mainImagePreview').src = '';
+                document.getElementById('mainImagePreview').style.display = 'none';
+                document.getElementById('mainImageDropZone').classList.remove('has-file');
+                document.getElementById('optionalImagePreview').src = '';
+                document.getElementById('optionalImagePreview').style.display = 'none';
+                document.getElementById('optionalImageDropZone').classList.remove('has-file');
+
                 submitBtn.disabled = true;
                 submitBtn.textContent = '✅ Done (Refresh to add more)';
 
