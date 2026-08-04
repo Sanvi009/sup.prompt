@@ -452,24 +452,16 @@
             let textHtml = '';
             let redirectUrl = null;
 
-            // Parse target_id (stored as JSON string)
-            let targetData = {};
-            try {
-                targetData = JSON.parse(n.target_id);
-            } catch {
-                targetData = { commentId: n.target_id, promptId: null };
-            }
-
             switch (n.type) {
                 case 'like':
                     iconHtml = `<div class="icon-badge like">❤️</div>`;
                     textHtml = `<strong>${actor.display_name || actor.username}</strong> liked your comment.`;
-                    // We will handle redirect in the click handler using targetData
+                    // We will redirect using the API call in the click handler
                     break;
                 case 'mention':
                     iconHtml = `<div class="icon-badge mention">@</div>`;
                     textHtml = `<strong>${actor.display_name || actor.username}</strong> mentioned you in a comment.`;
-                    redirectUrl = targetData.promptId ? `/prompt/${targetData.promptId}` : null;
+                    // We will redirect using the API call in the click handler
                     break;
                 case 'follow':
                     iconHtml = `<div class="icon-badge follow">➕</div>`;
@@ -496,19 +488,26 @@
                     await markAsRead(n.id);
                 }
 
-                // Handle redirect based on notification type
-                if (n.type === 'like') {
-                    // For like notifications, we have commentId and promptId in targetData
-                    if (targetData.promptId) {
-                        // We need the slug, not the ID
+                if (n.type === 'like' || n.type === 'mention') {
+                    // Both like and mention notifications store the commentId in target_id
+                    const commentId = n.target_id;
+                    if (commentId) {
                         try {
-                            const promptRes = await fetch(`/api/prompts?action=by-id&id=${targetData.promptId}`, {
+                            // Fetch the comment to get the prompt_id
+                            const commentRes = await fetch(`/api/comments?action=get&commentId=${commentId}`, {
                                 headers: { 'Authorization': `Bearer ${token}` }
                             });
-                            const promptData = await promptRes.json();
-                            if (promptData.prompt && promptData.prompt.slug) {
-                                window.location.href = `/prompt/${promptData.prompt.slug}`;
-                                return;
+                            const commentData = await commentRes.json();
+                            if (commentData.prompt_id) {
+                                // Fetch the prompt to get the slug
+                                const promptRes = await fetch(`/api/prompts?action=by-id&id=${commentData.prompt_id}`, {
+                                    headers: { 'Authorization': `Bearer ${token}` }
+                                });
+                                const promptData = await promptRes.json();
+                                if (promptData.prompt && promptData.prompt.slug) {
+                                    window.location.href = `/prompt/${promptData.prompt.slug}`;
+                                    return;
+                                }
                             }
                         } catch (err) {
                             console.error('Failed to redirect to prompt:', err);
