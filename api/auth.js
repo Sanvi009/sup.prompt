@@ -45,7 +45,7 @@ export default async function handler(req, res) {
       .insert({
         username,
         display_name: username,
-        avatar_url: DEFAULT_AVATAR_URL, // <-- Changed from null to default URL
+        avatar_url: DEFAULT_AVATAR_URL,
         bio: '',
         is_premium: false,
         is_owner: false,
@@ -103,9 +103,41 @@ export default async function handler(req, res) {
     const adminUsername = process.env.ADMIN_USERNAME;
     const adminPassword = process.env.ADMIN_PASSWORD;
 
+    // ===== ADMIN LOGIN (UPDATED TO FETCH REAL UUID) =====
     if (username === adminUsername && password === adminPassword) {
+      // Fetch the admin's real profile from the database
+      const { data: adminProfile, error: adminError } = await supabaseAdmin
+        .from('profiles')
+        .select('id, username')
+        .eq('username', adminUsername)
+        .single();
+
+      // If the admin profile doesn't exist in the database, fallback to 'admin' (safe fallback)
+      if (adminError || !adminProfile) {
+        const token = jwt.sign(
+          { id: 'admin', username: adminUsername, is_owner: true },
+          process.env.JWT_SECRET,
+          { expiresIn: '7d' }
+        );
+
+        return res.status(200).json({
+          success: true,
+          token,
+          user: {
+            id: 'admin',
+            username: adminUsername,
+            display_name: 'Admin (Owner)',
+            avatar_url: null,
+            is_premium: false,
+            is_owner: true,
+            is_banned: false
+          }
+        });
+      }
+
+      // Sign the token with the REAL UUID from the database
       const token = jwt.sign(
-        { id: 'admin', username: adminUsername, is_owner: true },
+        { id: adminProfile.id, username: adminProfile.username, is_owner: true },
         process.env.JWT_SECRET,
         { expiresIn: '7d' }
       );
@@ -114,8 +146,8 @@ export default async function handler(req, res) {
         success: true,
         token,
         user: {
-          id: 'admin',
-          username: adminUsername,
+          id: adminProfile.id,
+          username: adminProfile.username,
           display_name: 'Admin (Owner)',
           avatar_url: null,
           is_premium: false,
@@ -188,6 +220,7 @@ export default async function handler(req, res) {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       
+      // If the admin token still has 'admin' as id (fallback), handle it
       if (decoded.id === 'admin') {
         return res.status(200).json({
           success: true,
