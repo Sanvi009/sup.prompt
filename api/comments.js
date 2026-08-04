@@ -235,14 +235,14 @@ export default async function handler(req, res) {
               mentioned_user_id: mentionedUser.id
             });
 
-          // Insert notification (store promptId and commentId in target_id as JSON)
+          // Insert notification (store commentId as target_id)
           await supabaseAdmin
             .from('notifications')
             .insert({
               recipient_id: mentionedUser.id,
               actor_id: userId,
               type: 'mention',
-              target_id: JSON.stringify({ commentId: comment.id, promptId })
+              target_id: comment.id
             });
         }
       }
@@ -374,7 +374,7 @@ export default async function handler(req, res) {
       .update({ likes_count: comment.likes_count + 1 })
       .eq('id', commentId);
 
-    // ===== NEW: Insert comment like notification (with promptId and commentId in target_id) =====
+    // ===== NEW: Insert comment like notification (store commentId as target_id) =====
     if (comment.user_id !== userId) {
       await supabaseAdmin
         .from('notifications')
@@ -382,7 +382,7 @@ export default async function handler(req, res) {
           recipient_id: comment.user_id,
           actor_id: userId,
           type: 'like',
-          target_id: JSON.stringify({ commentId: comment.id, promptId: comment.prompt_id })
+          target_id: comment.id // <-- Plain UUID, NOT JSON
         });
     }
     // ==================================================
