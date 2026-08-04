@@ -300,6 +300,7 @@
             background: #cbd5e1;
         }
 
+        /* ===== MODAL OVERLAYS ===== */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -416,6 +417,88 @@
             text-align: center;
         }
 
+        /* ===== EDIT MODAL SPECIFIC STYLES ===== */
+        #editForm .form-group {
+            margin-bottom: 16px;
+        }
+        #editForm .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        #editForm .form-group input[type="text"],
+        #editForm .form-group textarea,
+        #editForm .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            background: white;
+        }
+        #editForm .form-group input:focus,
+        #editForm .form-group textarea:focus,
+        #editForm .form-group select:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+        }
+        #editForm .form-group textarea {
+            resize: vertical;
+        }
+        #editForm .form-group select[multiple] {
+            min-height: 100px;
+        }
+
+        /* ===== DRAG & DROP IMAGE UPLOAD ===== */
+        .drop-zone {
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #f9fafb;
+            position: relative;
+        }
+        .drop-zone:hover,
+        .drop-zone.dragover {
+            border-color: #4f46e5;
+            background: #eef2ff;
+        }
+        .drop-zone .preview {
+            max-width: 100%;
+            max-height: 150px;
+            object-fit: contain;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            display: none;
+        }
+        .drop-zone .placeholder {
+            color: #64748b;
+            font-size: 13px;
+            display: block;
+        }
+        .drop-zone .placeholder svg {
+            width: 24px;
+            height: 24px;
+            fill: #64748b;
+            margin-bottom: 4px;
+        }
+        .drop-zone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .drop-zone.has-file .placeholder {
+            display: none;
+        }
+        .drop-zone.has-file .preview {
+            display: block;
+        }
+
         @media (max-width: 768px) {
             .prompt-card {
                 flex-direction: column;
@@ -490,6 +573,7 @@
         </div>
     </div>
 
+    <!-- ===== PROMPT DETAILS MODAL ===== -->
     <div class="modal-overlay" id="promptModal">
         <div class="modal">
             <div class="modal-header">
@@ -505,6 +589,7 @@
         </div>
     </div>
 
+    <!-- ===== EDIT PROMPT MODAL (WITH CATEGORIES & DRAG-DROP) ===== -->
     <div class="modal-overlay" id="editModal">
         <div class="modal">
             <div class="modal-header">
@@ -514,28 +599,63 @@
             <div class="modal-body">
                 <form id="editForm">
                     <input type="hidden" id="editPromptId" />
-                    <div class="form-group" style="margin-bottom:16px;">
-                        <label style="display:block;font-weight:500;margin-bottom:4px;">Title</label>
-                        <input type="text" id="editTitle" style="width:100%;padding:10px 14px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;font-family:inherit;" required />
+                    
+                    <div class="form-group">
+                        <label for="editTitle">Title</label>
+                        <input type="text" id="editTitle" required />
                     </div>
-                    <div class="form-group" style="margin-bottom:16px;">
-                        <label style="display:block;font-weight:500;margin-bottom:4px;">Description</label>
-                        <textarea id="editDescription" rows="2" style="width:100%;padding:10px 14px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;font-family:inherit;resize:vertical;"></textarea>
+
+                    <div class="form-group">
+                        <label for="editDescription">Description</label>
+                        <textarea id="editDescription" rows="2"></textarea>
                     </div>
-                    <div class="form-group" style="margin-bottom:16px;">
-                        <label style="display:block;font-weight:500;margin-bottom:4px;">Prompt Text</label>
-                        <textarea id="editPromptText" rows="4" style="width:100%;padding:10px 14px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;font-family:inherit;resize:vertical;" required></textarea>
+
+                    <div class="form-group">
+                        <label for="editPromptText">Prompt Text</label>
+                        <textarea id="editPromptText" rows="4" required></textarea>
                     </div>
-                    <div class="form-group" style="margin-bottom:16px;">
-                        <label style="display:block;font-weight:500;margin-bottom:4px;">Main Image</label>
-                        <input type="file" id="editMainImage" accept="image/*" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;" />
-                        <p style="font-size:12px;color:#64748b;margin-top:4px;">Leave empty to keep current image</p>
+
+                    <!-- ===== NEW: CATEGORY SELECTOR ===== -->
+                    <div class="form-group">
+                        <label for="editCategorySelect">Categories</label>
+                        <select id="editCategorySelect" multiple>
+                            <option value="" disabled>Loading categories...</option>
+                        </select>
+                        <div style="font-size:12px;color:#64748b;margin-top:4px;">Hold Ctrl/Cmd to select multiple.</div>
+                        <div style="display:flex;gap:8px;margin-top:8px;">
+                            <input type="text" id="editNewCategoryInput" placeholder="Add new category..." style="flex:1;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;" />
+                            <button type="button" id="editAddCategoryBtn" style="padding:8px 16px;background:#10b981;color:white;border:none;border-radius:6px;font-weight:500;cursor:pointer;font-size:13px;">Add</button>
+                        </div>
                     </div>
-                    <div class="form-group" style="margin-bottom:16px;">
-                        <label style="display:block;font-weight:500;margin-bottom:4px;">Optional Image</label>
-                        <input type="file" id="editOptionalImage" accept="image/*" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;" />
-                        <p style="font-size:12px;color:#64748b;margin-top:4px;">Leave empty to keep current image</p>
+
+                    <!-- ===== NEW: DRAG & DROP MAIN IMAGE ===== -->
+                    <div class="form-group">
+                        <label for="editMainImage">Main Image</label>
+                        <div class="drop-zone" id="editMainImageDropZone">
+                            <img class="preview" id="editMainImagePreview" />
+                            <div class="placeholder">
+                                <svg viewBox="0 0 24 24"><path d="M19 7v2h-4V7h4zm-4 10h4v-2h-4v2zm-2-6h6v2h-6v-2zm-4 0h2v2H9v-2zm0 4h2v2H9v-2zm-4-4h2v2H5v-2zm0 4h2v2H5v-2z"/></svg>
+                                <br />Drag & drop or click to upload
+                            </div>
+                            <input type="file" id="editMainImage" accept="image/*" />
+                        </div>
+                        <p style="font-size:12px;color:#64748b;margin-top:4px;">Leave empty to keep current image.</p>
                     </div>
+
+                    <!-- ===== NEW: DRAG & DROP OPTIONAL IMAGE ===== -->
+                    <div class="form-group">
+                        <label for="editOptionalImage">Optional Image</label>
+                        <div class="drop-zone" id="editOptionalImageDropZone">
+                            <img class="preview" id="editOptionalImagePreview" />
+                            <div class="placeholder">
+                                <svg viewBox="0 0 24 24"><path d="M19 7v2h-4V7h4zm-4 10h4v-2h-4v2zm-2-6h6v2h-6v-2zm-4 0h2v2H9v-2zm0 4h2v2H9v-2zm-4-4h2v2H5v-2zm0 4h2v2H5v-2z"/></svg>
+                                <br />Drag & drop or click to upload
+                            </div>
+                            <input type="file" id="editOptionalImage" accept="image/*" />
+                        </div>
+                        <p style="font-size:12px;color:#64748b;margin-top:4px;">Leave empty to keep current image.</p>
+                    </div>
+
                     <div class="error-box" id="editError"></div>
                     <div class="modal-actions">
                         <button type="button" class="btn-secondary" id="cancelEditBtn">Cancel</button>
@@ -546,6 +666,7 @@
         </div>
     </div>
 
+    <!-- ===== CONFIRM MODAL ===== -->
     <div class="modal-overlay" id="confirmModal">
         <div class="modal" style="max-width:420px;">
             <div class="modal-header">
@@ -894,15 +1015,94 @@
             }
         });
 
+        // ============================================================
+        //  EDIT MODAL LOGIC
+        // ============================================================
+
+        async function loadEditCategories() {
+            const select = document.getElementById('editCategorySelect');
+            select.innerHTML = '<option value="" disabled>Loading categories...</option>';
+
+            try {
+                const configRes = await fetch('/api/supabase-config');
+                const config = await configRes.json();
+
+                const sb = supabase.createClient(config.url, config.anonKey);
+
+                const { data, error } = await sb
+                    .from('categories')
+                    .select('*')
+                    .order('name');
+
+                if (error) throw error;
+
+                select.innerHTML = '';
+                data.forEach(cat => {
+                    const opt = document.createElement('option');
+                    opt.value = cat.id;
+                    opt.textContent = cat.name;
+                    select.appendChild(opt);
+                });
+
+            } catch (err) {
+                select.innerHTML = '<option value="" disabled>Error loading categories</option>';
+                console.error('Error loading categories:', err);
+            }
+        }
+
+        document.getElementById('editAddCategoryBtn').addEventListener('click', async () => {
+            const input = document.getElementById('editNewCategoryInput');
+            const name = input.value.trim();
+            if (!name) return;
+
+            try {
+                const configRes = await fetch('/api/supabase-config');
+                const config = await configRes.json();
+
+                const client = supabase.createClient(config.url, config.anonKey);
+
+                const { error } = await client
+                    .from('categories')
+                    .insert({ name });
+
+                if (error) throw error;
+
+                input.value = '';
+                loadEditCategories();
+
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        });
+
+        document.getElementById('editNewCategoryInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('editAddCategoryBtn').click();
+            }
+        });
+
         async function openEditModal(promptId) {
             const modal = document.getElementById('editModal');
             const title = document.getElementById('editModalTitle');
-            const form = document.getElementById('editForm');
             const errorBox = document.getElementById('editError');
+            const saveBtn = document.getElementById('saveEditBtn');
 
+            // Reset UI
             modal.classList.add('active');
             title.textContent = 'Edit Prompt';
             errorBox.textContent = '';
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save Changes';
+            document.getElementById('editMainImagePreview').src = '';
+            document.getElementById('editMainImagePreview').style.display = 'none';
+            document.getElementById('editMainImageDropZone').classList.remove('has-file');
+            document.getElementById('editOptionalImagePreview').src = '';
+            document.getElementById('editOptionalImagePreview').style.display = 'none';
+            document.getElementById('editOptionalImageDropZone').classList.remove('has-file');
+
+            // Load categories first
+            await loadEditCategories();
 
             try {
                 const res = await fetch(`/api/admin?action=prompts&sub=get&promptId=${promptId}`, {
@@ -919,11 +1119,82 @@
                 document.getElementById('editDescription').value = prompt.description || '';
                 document.getElementById('editPromptText').value = prompt.prompt_text;
 
+                // Pre-select categories
+                const select = document.getElementById('editCategorySelect');
+                if (prompt.category_ids && Array.isArray(prompt.category_ids)) {
+                    const options = select.options;
+                    for (let i = 0; i < options.length; i++) {
+                        if (prompt.category_ids.includes(options[i].value)) {
+                            options[i].selected = true;
+                        }
+                    }
+                }
+
+                // Show current images in drop zones (if any)
+                if (prompt.image_main) {
+                    const preview = document.getElementById('editMainImagePreview');
+                    preview.src = prompt.image_main;
+                    preview.style.display = 'block';
+                    document.getElementById('editMainImageDropZone').classList.add('has-file');
+                }
+                if (prompt.image_optional) {
+                    const preview = document.getElementById('editOptionalImagePreview');
+                    preview.src = prompt.image_optional;
+                    preview.style.display = 'block';
+                    document.getElementById('editOptionalImageDropZone').classList.add('has-file');
+                }
+
             } catch (err) {
                 errorBox.textContent = err.message;
             }
         }
 
+        // ===== DRAG & DROP SETUP FOR EDIT MODAL =====
+        function setupDropZone(dropZoneId, previewId, fileInputId) {
+            const dropZone = document.getElementById(dropZoneId);
+            const preview = document.getElementById(previewId);
+            const fileInput = document.getElementById(fileInputId);
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('dragover');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                if (e.dataTransfer.files.length > 0) {
+                    fileInput.files = e.dataTransfer.files;
+                    handleFileSelect(e.dataTransfer.files[0]);
+                }
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleFileSelect(e.target.files[0]);
+                }
+            });
+
+            function handleFileSelect(file) {
+                if (!file.type.startsWith('image/')) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    dropZone.classList.add('has-file');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        setupDropZone('editMainImageDropZone', 'editMainImagePreview', 'editMainImage');
+        setupDropZone('editOptionalImageDropZone', 'editOptionalImagePreview', 'editOptionalImage');
+
+        // ===== EDIT FORM SUBMIT =====
         document.getElementById('editForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const saveBtn = document.getElementById('saveEditBtn');
@@ -939,20 +1210,25 @@
             const promptText = document.getElementById('editPromptText').value.trim();
             const mainFile = document.getElementById('editMainImage').files[0];
             const optionalFile = document.getElementById('editOptionalImage').files[0];
+            const select = document.getElementById('editCategorySelect');
+            const selected = Array.from(select.selectedOptions).map(opt => opt.value);
 
             try {
+                // Upload new images if provided (you can replace this with your existing upload logic)
                 let imageMain = null;
                 let imageOptional = null;
 
                 if (mainFile) {
-                    const formData = new FormData();
-                    formData.append('file', mainFile);
-                    formData.append('promptId', promptId);
-                    formData.append('type', 'main');
+                    // Use your existing uploadImage function here (or its logic)
+                    // For now, we'll skip the upload and just pass the new file to the backend
+                    // You will need to implement the upload logic as you do in the Add Prompt page
+                    // imageMain = await uploadImage(mainFile, promptId, 'main');
+                    // For simplicity, we just send the file name. You must implement the upload.
+                    // WARNING: You must implement the actual upload logic here.
                 }
 
                 if (optionalFile) {
-                    // Similar for optional image
+                    // Same for optional image
                 }
 
                 const res = await fetch('/api/admin?action=prompts&sub=edit', {
@@ -965,7 +1241,8 @@
                         promptId,
                         title,
                         description,
-                        prompt_text: promptText
+                        prompt_text: promptText,
+                        category_ids: selected // <-- Sending categories
                     })
                 });
 
@@ -985,6 +1262,9 @@
             saveBtn.textContent = 'Save Changes';
         });
 
+        // ============================================================
+        //  PROMPT DETAILS MODAL LOGIC
+        // ============================================================
         async function showPromptDetails(promptId, type) {
             const modal = document.getElementById('promptModal');
             const body = document.getElementById('modalBody');
@@ -1042,6 +1322,9 @@
             }
         }
 
+        // ============================================================
+        //  CONFIRM MODAL LOGIC
+        // ============================================================
         let confirmCallback = null;
 
         function showConfirm(title, message, callback) {
@@ -1065,6 +1348,9 @@
             }
         });
 
+        // ============================================================
+        //  MODAL CLOSE HANDLERS
+        // ============================================================
         document.getElementById('closeModalBtn').addEventListener('click', () => {
             document.getElementById('promptModal').classList.remove('active');
         });
@@ -1089,6 +1375,9 @@
             }
         });
 
+        // ============================================================
+        //  INIT
+        // ============================================================
         loadPrompts(true);
     </script>
 </body>
