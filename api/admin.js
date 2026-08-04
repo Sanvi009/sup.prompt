@@ -883,17 +883,15 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Type must be "premium" or "owner"' });
       }
 
-      // 🔥 FIX: Skip database lookup if userId is 'admin'
-      if (userId !== 'admin') {
-        const { data: user } = await supabaseAdmin
-          .from('profiles')
-          .select('id')
-          .eq('id', userId)
-          .single();
+      // Check if user exists (this now runs for EVERYONE, including the admin)
+      const { data: user } = await supabaseAdmin
+        .from('profiles')
+        .select('id')
+        .eq('id', userId)
+        .single();
 
-        if (!user) {
-          return res.status(404).json({ error: 'User not found' });
-        }
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
       }
 
       // Check if already premium
