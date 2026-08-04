@@ -1108,10 +1108,9 @@
         }
 
         // ============================================================
-        //  FOLLOW / UNFOLLOW (DEBOUNCED + INSTANT UI)
+        //  FOLLOW / UNFOLLOW (DEBOUNCED + INSTANT UI) - FULLY FIXED
         // ============================================================
         let followDebounceTimer = null;
-        let pendingFollowAction = null;
 
         async function handleFollow() {
             if (!currentUser) {
@@ -1120,51 +1119,52 @@
             }
 
             const btn = document.getElementById('followBtn');
-            const followerStatLabel = document.querySelector('.stat .value'); // Gets the first .stat .value (Followers)
-            // Find the exact follower count element
             const statsValues = document.querySelectorAll('.stat .value');
             let followerCountEl = null;
             if (statsValues.length >= 2) {
-                // The stats order is: Loves, Followers, Following
-                // Index 1 is Followers
                 followerCountEl = statsValues[1];
             }
 
-            // 1. Determine the NEW state (opposite of current)
-            const newFollowingState = !isFollowing;
-            const currentFollowerCount = followerCountEl ? parseInt(followerCountEl.textContent) || 0 : 0;
+            // 1. FLIP isFollowing INSTANTLY (This is the core fix)
+            isFollowing = !isFollowing;
 
-            // 2. INSTANT UI UPDATE (Optimistic)
-            if (newFollowingState) {
+            // 2. Update button text and class INSTANTLY based on the NEW isFollowing
+            if (isFollowing) {
                 btn.textContent = 'Following';
                 btn.classList.add('following');
-                if (followerCountEl) followerCountEl.textContent = currentFollowerCount + 1;
             } else {
                 btn.textContent = 'Follow';
                 btn.classList.remove('following');
-                if (followerCountEl) followerCountEl.textContent = Math.max(0, currentFollowerCount - 1);
             }
 
-            // 3. Cancel previous pending timer and store the new pending action
+            // 3. Update follower count INSTANTLY based on the NEW isFollowing
+            if (followerCountEl) {
+                const currentFollowerCount = parseInt(followerCountEl.textContent) || 0;
+                if (isFollowing) {
+                    followerCountEl.textContent = currentFollowerCount + 1;
+                } else {
+                    followerCountEl.textContent = Math.max(0, currentFollowerCount - 1);
+                }
+            }
+
+            // 4. Cancel any previous pending timer
             if (followDebounceTimer) {
                 clearTimeout(followDebounceTimer);
                 followDebounceTimer = null;
             }
 
-            pendingFollowAction = newFollowingState;
+            // 5. Store the FINAL state (the current isFollowing) and set a new timer
+            const finalActionState = isFollowing;
 
-            // 4. Set a new debounce timer (600ms)
             followDebounceTimer = setTimeout(async () => {
-                // Clear the timer reference
                 followDebounceTimer = null;
 
-                // Determine what action to send based on the FINAL pending state
-                const finalAction = pendingFollowAction ? 'follow' : 'unfollow';
-                const finalMethod = pendingFollowAction ? 'POST' : 'DELETE';
+                const action = finalActionState ? 'follow' : 'unfollow';
+                const method = finalActionState ? 'POST' : 'DELETE';
 
                 try {
-                    const res = await fetch(`/api/follows?action=${finalAction}`, {
-                        method: finalMethod,
+                    const res = await fetch(`/api/follows?action=${action}`, {
+                        method: method,
                         headers: {
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${token}`
@@ -1172,44 +1172,44 @@
                         body: JSON.stringify({ targetUserId: profileUser.id })
                     });
 
-                    if (res.ok) {
-                        // UI is already correct, just sync the local state variable
-                        isFollowing = pendingFollowAction;
-                    } else {
-                        // API failed: REVERT the UI silently
-                        const revertState = !pendingFollowAction;
-                        const revertCount = followerCountEl ? parseInt(followerCountEl.textContent) || 0 : 0;
-
-                        if (revertState) {
+                    if (!res.ok) {
+                        // API failed: Revert isFollowing and UI silently
+                        isFollowing = !finalActionState;
+                        if (isFollowing) {
                             btn.textContent = 'Following';
                             btn.classList.add('following');
-                            if (followerCountEl) followerCountEl.textContent = revertCount + 1;
+                            if (followerCountEl) {
+                                const count = parseInt(followerCountEl.textContent) || 0;
+                                followerCountEl.textContent = count + 1;
+                            }
                         } else {
                             btn.textContent = 'Follow';
                             btn.classList.remove('following');
-                            if (followerCountEl) followerCountEl.textContent = Math.max(0, revertCount - 1);
+                            if (followerCountEl) {
+                                const count = parseInt(followerCountEl.textContent) || 0;
+                                followerCountEl.textContent = Math.max(0, count - 1);
+                            }
                         }
-                        isFollowing = revertState;
                     }
                 } catch (err) {
-                    // Network error: REVERT the UI silently
-                    const revertState = !pendingFollowAction;
-                    const revertCount = followerCountEl ? parseInt(followerCountEl.textContent) || 0 : 0;
-
-                    if (revertState) {
+                    // Network error: Revert isFollowing and UI silently
+                    isFollowing = !finalActionState;
+                    if (isFollowing) {
                         btn.textContent = 'Following';
                         btn.classList.add('following');
-                        if (followerCountEl) followerCountEl.textContent = revertCount + 1;
+                        if (followerCountEl) {
+                            const count = parseInt(followerCountEl.textContent) || 0;
+                            followerCountEl.textContent = count + 1;
+                        }
                     } else {
                         btn.textContent = 'Follow';
                         btn.classList.remove('following');
-                        if (followerCountEl) followerCountEl.textContent = Math.max(0, revertCount - 1);
+                        if (followerCountEl) {
+                            const count = parseInt(followerCountEl.textContent) || 0;
+                            followerCountEl.textContent = Math.max(0, count - 1);
+                        }
                     }
-                    isFollowing = revertState;
                 }
-
-                // Clean up pending action
-                pendingFollowAction = null;
             }, 600);
         }
 
