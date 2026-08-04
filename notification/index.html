@@ -450,18 +450,26 @@
 
             let iconHtml = '';
             let textHtml = '';
-            let redirectUrl = '#';
+            let redirectUrl = null;
+
+            // Parse target_id (stored as JSON string)
+            let targetData = {};
+            try {
+                targetData = JSON.parse(n.target_id);
+            } catch {
+                targetData = { commentId: n.target_id, promptId: null };
+            }
 
             switch (n.type) {
                 case 'like':
                     iconHtml = `<div class="icon-badge like">❤️</div>`;
                     textHtml = `<strong>${actor.display_name || actor.username}</strong> liked your comment.`;
-                    redirectUrl = `/prompt/${n.target_slug || ''}`;
+                    // We will handle redirect in the click handler using targetData
                     break;
                 case 'mention':
                     iconHtml = `<div class="icon-badge mention">@</div>`;
                     textHtml = `<strong>${actor.display_name || actor.username}</strong> mentioned you in a comment.`;
-                    redirectUrl = `/prompt/${n.target_slug || ''}`;
+                    redirectUrl = targetData.promptId ? `/prompt/${targetData.promptId}` : null;
                     break;
                 case 'follow':
                     iconHtml = `<div class="icon-badge follow">➕</div>`;
@@ -487,7 +495,26 @@
                 if (!n.is_read) {
                     await markAsRead(n.id);
                 }
-                if (redirectUrl && redirectUrl !== '#') {
+
+                // Handle redirect based on notification type
+                if (n.type === 'like') {
+                    // For like notifications, we have commentId and promptId in targetData
+                    if (targetData.promptId) {
+                        // We need the slug, not the ID
+                        try {
+                            const promptRes = await fetch(`/api/prompts?action=by-id&id=${targetData.promptId}`, {
+                                headers: { 'Authorization': `Bearer ${token}` }
+                            });
+                            const promptData = await promptRes.json();
+                            if (promptData.prompt && promptData.prompt.slug) {
+                                window.location.href = `/prompt/${promptData.prompt.slug}`;
+                                return;
+                            }
+                        } catch (err) {
+                            console.error('Failed to redirect to prompt:', err);
+                        }
+                    }
+                } else if (redirectUrl) {
                     window.location.href = redirectUrl;
                 }
             });
