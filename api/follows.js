@@ -75,6 +75,17 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: error.message });
     }
 
+    // ===== NEW: Insert follow notification =====
+    await supabaseAdmin
+      .from('notifications')
+      .insert({
+        recipient_id: targetUserId,
+        actor_id: userId,
+        type: 'follow',
+        target_id: targetUserId
+      });
+    // ==========================================
+
     return res.status(201).json({ success: true, follow: data });
   }
 
