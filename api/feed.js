@@ -17,7 +17,6 @@ export default async function handler(req, res) {
 
   const authHeader = req.headers.authorization;
   let userId = null;
-  let userCategories = [];
   let followingIds = [];
 
   if (authHeader && authHeader.startsWith('Bearer ')) {
@@ -27,26 +26,6 @@ export default async function handler(req, res) {
       userId = decoded.id;
 
       if (userId) {
-        const { data: activity } = await supabaseAdmin
-          .from('user_activity')
-          .select('category_id, action_type')
-          .eq('user_id', userId);
-
-        if (activity && activity.length > 0) {
-          const categoryCounts = {};
-          activity.forEach(a => {
-            if (a.category_id) {
-              const key = a.category_id;
-              if (!categoryCounts[key]) categoryCounts[key] = 0;
-              categoryCounts[key] += 1;
-            }
-          });
-
-          userCategories = Object.entries(categoryCounts)
-            .sort((a, b) => b[1] - a[1])
-            .map(entry => entry[0]);
-        }
-
         const { data: follows } = await supabaseAdmin
           .from('follows')
           .select('following_id')
@@ -68,90 +47,77 @@ export default async function handler(req, res) {
   // ================================================================
   if (req.method === 'GET' && action === 'feed') {
     const { limit = 50, offset = 0 } = req.query;
+    const limitNum = Number(limit);
+    const offsetNum = Number(offset);
 
     // 1. Get boosted prompts
-    let query = supabaseAdmin
+    let boostedQuery = supabaseAdmin
       .from('prompts')
       .select('*', { count: 'exact' })
       .eq('is_published', true)
       .eq('is_boosted', true)
       .order('created_at', { ascending: false });
 
-    const { data: boosted, error: boostError } = await query;
+    const { data: boosted, error: boostError } = await boostedQuery;
 
     if (boostError) {
       return res.status(500).json({ error: boostError.message });
     }
 
-    // 2. Get regular prompts (non-boosted)
+    // 2. Get IDs of prompts the user has already liked or saved
+    let excludedIds = [];
+    if (userId) {
+      const { data: likedIdsData } = await supabaseAdmin
+        .from('likes')
+        .select('prompt_id')
+        .eq('user_id', userId);
+
+      const { data: savedIdsData } = await supabaseAdmin
+        .from('saves')
+        .select('prompt_id')
+        .eq('user_id', userId);
+
+      const likedIds = likedIdsData ? likedIdsData.map(l => l.prompt_id) : [];
+      const savedIds = savedIdsData ? savedIdsData.map(s => s.prompt_id) : [];
+      excludedIds = [...likedIds, ...savedIds];
+    }
+
+    // 3. Get regular prompts (non-boosted)
     let regularQuery = supabaseAdmin
       .from('prompts')
       .select('*', { count: 'exact' })
       .eq('is_published', true)
       .eq('is_boosted', false)
       .order('created_at', { ascending: false })
-      .range(Number(offset), Number(offset) + Number(limit) - 1);
+      .range(offsetNum, offsetNum + limitNum - 1);
 
-    const { data: regular, error: regularError } = await regularQuery;
+    if (userId && excludedIds.length > 0) {
+      regularQuery = regularQuery.not('id', 'in', `(${excludedIds.join(',')})`);
+    }
+
+    let { data: regular, error: regularError } = await regularQuery;
 
     if (regularError) {
       return res.status(500).json({ error: regularError.message });
     }
 
-    let allPrompts = [...boosted, ...regular];
+    // 4. If we didn't get enough prompts, fall back to showing ALL prompts (including liked/saved)
+    if (regular.length < limitNum) {
+      const { data: fallback } = await supabaseAdmin
+        .from('prompts')
+        .select('*', { count: 'exact' })
+        .eq('is_published', true)
+        .eq('is_boosted', false)
+        .order('created_at', { ascending: false })
+        .range(0, limitNum - 1);
 
-    // 3. Personalize for logged-in users
-    if (userId && userCategories.length > 0) {
-      const { data: userLikes } = await supabaseAdmin
-        .from('likes')
-        .select('prompt_id')
-        .eq('user_id', userId);
-
-      const { data: userSaves } = await supabaseAdmin
-        .from('saves')
-        .select('prompt_id')
-        .eq('user_id', userId);
-
-      const likedIds = userLikes ? userLikes.map(l => l.prompt_id) : [];
-      const savedIds = userSaves ? userSaves.map(s => s.prompt_id) : [];
-
-      const scored = allPrompts.map(prompt => {
-        let score = 0;
-
-        if (followingIds.length > 0) {
-          // Placeholder for future creator_id support
-        }
-
-        if (prompt.category_ids && prompt.category_ids.length > 0) {
-          const matchedCategories = prompt.category_ids.filter(id => 
-            userCategories.includes(id)
-          );
-          score += matchedCategories.length * 10;
-        }
-
-        if (!likedIds.includes(prompt.id)) {
-          score += 5;
-        }
-        if (!savedIds.includes(prompt.id)) {
-          score += 3;
-        }
-
-        if (prompt.is_boosted) {
-          score += 50;
-        }
-
-        const daysOld = (Date.now() - new Date(prompt.created_at).getTime()) / (1000 * 60 * 60 * 24);
-        score += Math.max(0, 10 - daysOld);
-
-        return { ...prompt, _score: score };
-      });
-
-      scored.sort((a, b) => b._score - a._score);
-      allPrompts = scored.map(({ _score, ...prompt }) => prompt);
-      allPrompts = allPrompts.slice(0, Number(limit));
+      regular = fallback || [];
     }
 
-    // 4. Get likes/saves/comments for each prompt
+    // 5. Combine boosted + regular
+    let allPrompts = [...boosted, ...regular];
+
+    // 6. Get likes/saves/comments for each prompt
     const promptsWithCounts = await Promise.all(
       allPrompts.map(async (prompt) => {
         const { count: likes } = await supabaseAdmin
