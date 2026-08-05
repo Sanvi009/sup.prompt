@@ -920,6 +920,15 @@
         // ============================================================
         //  RENDER PROMPT
         // ============================================================
+        function getOptimizedImageUrl(url) {
+            if (!url) return '';
+            const screenWidth = window.innerWidth;
+            let width = 800;
+            if (screenWidth < 640) width = 400;
+            else if (screenWidth < 1024) width = 600;
+            return `${url}?width=${width}&format=webp`;
+        }
+
         function renderPrompt(p) {
             const date = new Date(p.created_at).toLocaleDateString('en-US', {
                 month: 'short', day: 'numeric', year: 'numeric'
@@ -952,6 +961,10 @@
                 `;
             }
 
+            // Optimized image URLs
+            const optimizedMain = getOptimizedImageUrl(p.image_main);
+            const optimizedOptional = getOptimizedImageUrl(p.image_optional);
+
             container.innerHTML = `
                 <div class="post-card">
                     <!-- Header -->
@@ -977,10 +990,17 @@
 
                     <!-- Image + View Count -->
                     <div class="post-image-wrap">
-                        <img src="${p.image_main}" 
+                        <img src="${optimizedMain}" 
+                             width="600" height="400"
+                             loading="lazy"
+                             decoding="async"
                              onerror="this.src='https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=800&h=450&fit=crop&auto=format'" 
                              alt="${p.title}" />
-                        ${p.image_optional ? `<img src="${p.image_optional}" style="display:block;width:100%;max-height:400px;object-fit:cover;" />` : ''}
+                        ${p.image_optional ? `<img src="${optimizedOptional}" 
+                             width="600" height="400"
+                             loading="lazy"
+                             decoding="async"
+                             style="display:block;width:100%;max-height:400px;object-fit:cover;" />` : ''}
                         <div class="view-count">
                             ${viewIcon} ${p.view_count || 0}
                         </div>
@@ -1366,6 +1386,8 @@
                 grid.innerHTML = prompts.map(p => `
                     <div class="related-card" onclick="window.location.href='/prompt/${p.slug}'">
                         <img src="${p.image_main}" 
+                             loading="lazy"
+                             decoding="async"
                              onerror="this.src='https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=400&h=400&fit=crop&auto=format'" 
                              alt="${p.title}" />
                         <div class="title">${p.title}</div>
