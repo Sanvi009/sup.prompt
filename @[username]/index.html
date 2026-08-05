@@ -1199,9 +1199,30 @@
         async function loadFollowList(type, userId) {
             try {
                 const action = type === 'followers' ? 'followers' : 'following';
-                const res = await fetch(`/api/follows?action=${action}&userId=${userId}`);
-                const data = await res.json();
+                
+                // ✅ FIX: Add Authorization header if token exists
+                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                
+                const res = await fetch(`/api/follows?action=${action}&userId=${userId}`, {
+                    headers
+                });
 
+                // Handle 401 gracefully for guest users
+                if (res.status === 401) {
+                    followModalList.innerHTML = `
+                        <div class="empty">
+                            <div class="icon">🔒</div>
+                            <p>Please log in to see this list.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                if (!res.ok) {
+                    throw new Error('Failed to load');
+                }
+
+                const data = await res.json();
                 const list = data[action] || [];
 
                 if (list.length === 0) {
@@ -1217,7 +1238,6 @@
                 followModalList.innerHTML = '';
 
                 list.forEach(item => {
-                    // ✅ FIX: The profile data is directly under 'profiles'
                     const profile = item.profiles || {};
                     const username = profile.username || 'Unknown';
                     const displayName = profile.display_name || username;
