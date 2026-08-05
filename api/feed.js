@@ -50,7 +50,7 @@ export default async function handler(req, res) {
     const limitNum = Number(limit);
     const offsetNum = Number(offset);
 
-    // 1. Get boosted prompts
+    // 1. Get boosted prompts (always shown, no exclusions, newest first)
     let boostedQuery = supabaseAdmin
       .from('prompts')
       .select('*', { count: 'exact' })
@@ -82,13 +82,13 @@ export default async function handler(req, res) {
       excludedIds = [...likedIds, ...savedIds];
     }
 
-    // 3. Get regular prompts (non-boosted)
+    // 3. Get regular prompts (non-boosted) - RANDOM ORDER
     let regularQuery = supabaseAdmin
       .from('prompts')
       .select('*', { count: 'exact' })
       .eq('is_published', true)
       .eq('is_boosted', false)
-      .order('created_at', { ascending: false })
+      .order('random()')  // <-- RANDOM ORDER
       .range(offsetNum, offsetNum + limitNum - 1);
 
     if (userId && excludedIds.length > 0) {
@@ -108,7 +108,7 @@ export default async function handler(req, res) {
         .select('*', { count: 'exact' })
         .eq('is_published', true)
         .eq('is_boosted', false)
-        .order('created_at', { ascending: false })
+        .order('random()')
         .range(0, limitNum - 1);
 
       regular = fallback || [];
@@ -201,7 +201,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       prompts: promptsWithCounts,
       total: promptsWithCounts.length,
-      hasMore: promptsWithCounts.length === Number(limit)
+      hasMore: promptsWithCounts.length === limitNum
     });
   }
 
@@ -284,7 +284,7 @@ export default async function handler(req, res) {
       .from('prompts')
       .select('*', { count: 'exact' })
       .eq('is_published', true)
-      .order('created_at', { ascending: false })
+      .order('random()')  // <-- RANDOM ORDER for guests too
       .range(Number(offset), Number(offset) + Number(limit) - 1);
 
     if (error) {
