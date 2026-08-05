@@ -69,21 +69,43 @@ export default async function handler(req, res) {
   if (req.method === 'GET' && action === 'feed') {
     const { limit = 50, offset = 0 } = req.query;
 
-    // 1. Get boosted prompts
-    let query = supabaseAdmin
+    // 1. Get prompts the user has already viewed in the last 3 days
+    let viewedPromptIds = [];
+    if (userId) {
+      const threeDaysAgo = new Date();
+      threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+
+      const { data: viewed } = await supabaseAdmin
+        .from('user_activity')
+        .select('prompt_id')
+        .eq('user_id', userId)
+        .eq('action_type', 'view')
+        .gte('created_at', threeDaysAgo.toISOString());
+
+      if (viewed && viewed.length > 0) {
+        viewedPromptIds = viewed.map(v => v.prompt_id);
+      }
+    }
+
+    // 2. Get boosted prompts (excluding recently viewed)
+    let boostedQuery = supabaseAdmin
       .from('prompts')
       .select('*', { count: 'exact' })
       .eq('is_published', true)
       .eq('is_boosted', true)
       .order('created_at', { ascending: false });
 
-    const { data: boosted, error: boostError } = await query;
+    if (viewedPromptIds.length > 0) {
+      boostedQuery = boostedQuery.not('id', 'in', viewedPromptIds);
+    }
+
+    const { data: boosted, error: boostError } = await boostedQuery;
 
     if (boostError) {
       return res.status(500).json({ error: boostError.message });
     }
 
-    // 2. Get regular prompts (non-boosted)
+    // 3. Get regular prompts (non-boosted, excluding recently viewed)
     let regularQuery = supabaseAdmin
       .from('prompts')
       .select('*', { count: 'exact' })
@@ -91,6 +113,10 @@ export default async function handler(req, res) {
       .eq('is_boosted', false)
       .order('created_at', { ascending: false })
       .range(Number(offset), Number(offset) + Number(limit) - 1);
+
+    if (viewedPromptIds.length > 0) {
+      regularQuery = regularQuery.not('id', 'in', viewedPromptIds);
+    }
 
     const { data: regular, error: regularError } = await regularQuery;
 
@@ -100,7 +126,7 @@ export default async function handler(req, res) {
 
     let allPrompts = [...boosted, ...regular];
 
-    // 3. Personalize for logged-in users
+    // 4. Personalize for logged-in users
     if (userId && userCategories.length > 0) {
       const { data: userLikes } = await supabaseAdmin
         .from('likes')
@@ -118,10 +144,12 @@ export default async function handler(req, res) {
       const scored = allPrompts.map(prompt => {
         let score = 0;
 
+        // Following priority - if prompt creator is followed, boost score
         if (followingIds.length > 0) {
           // Placeholder for future creator_id support
         }
 
+        // Category matching (kept as-is for now)
         if (prompt.category_ids && prompt.category_ids.length > 0) {
           const matchedCategories = prompt.category_ids.filter(id => 
             userCategories.includes(id)
@@ -129,17 +157,22 @@ export default async function handler(req, res) {
           score += matchedCategories.length * 10;
         }
 
+        // Not yet liked bonus
         if (!likedIds.includes(prompt.id)) {
           score += 5;
         }
+
+        // Not yet saved bonus
         if (!savedIds.includes(prompt.id)) {
           score += 3;
         }
 
+        // Boosted bonus
         if (prompt.is_boosted) {
           score += 50;
         }
 
+        // Recency bonus (newer = higher score)
         const daysOld = (Date.now() - new Date(prompt.created_at).getTime()) / (1000 * 60 * 60 * 24);
         score += Math.max(0, 10 - daysOld);
 
@@ -151,7 +184,7 @@ export default async function handler(req, res) {
       allPrompts = allPrompts.slice(0, Number(limit));
     }
 
-    // 4. Get likes/saves/comments for each prompt
+    // 5. Get likes/saves/comments for each prompt
     const promptsWithCounts = await Promise.all(
       allPrompts.map(async (prompt) => {
         const { count: likes } = await supabaseAdmin
@@ -201,24 +234,21 @@ export default async function handler(req, res) {
       })
     );
 
-    // 🔥 BULK VIEW COUNT UPDATE (fixed — two-step approach)
+    // 6. Bulk view count update
     if (allPrompts.length > 0) {
       const promptIds = allPrompts.map(p => p.id);
       try {
-        // 1. Get current view counts
         const { data: currentPrompts } = await supabaseAdmin
           .from('prompts')
           .select('id, view_count')
           .in('id', promptIds);
 
         if (currentPrompts && currentPrompts.length > 0) {
-          // 2. Build update objects
           const updates = currentPrompts.map(p => ({
             id: p.id,
             view_count: (p.view_count || 0) + 1
           }));
 
-          // 3. Update each one individually
           for (const update of updates) {
             await supabaseAdmin
               .from('prompts')
@@ -227,13 +257,63 @@ export default async function handler(req, res) {
           }
         }
       } catch (err) {
-        // Silently fail — views are non-critical
         console.warn('View count update failed:', err.message);
       }
     }
 
+    // 7. Get Creative Peoples suggestions (for logged-in users only)
+    let suggestions = [];
+    if (userId) {
+      try {
+        // Get top users by follower count
+        const { data: topUsers, error: topError } = await supabaseAdmin
+          .from('profiles')
+          .select(`
+            id,
+            username,
+            display_name,
+            avatar_url,
+            is_premium,
+            is_owner
+          `)
+          .eq('is_banned', false)
+          .order('created_at', { ascending: false })
+          .limit(50);
+
+        if (!topError && topUsers && topUsers.length > 0) {
+          // Get follower counts for each user
+          const usersWithFollowers = await Promise.all(
+            topUsers.map(async (user) => {
+              const { count: followers } = await supabaseAdmin
+                .from('follows')
+                .select('*', { count: 'exact', head: true })
+                .eq('following_id', user.id);
+              return { ...user, followers: followers || 0 };
+            })
+          );
+
+          // Sort by follower count (highest first)
+          usersWithFollowers.sort((a, b) => b.followers - a.followers);
+
+          // Filter out already followed users and the current user
+          const available = usersWithFollowers.filter(u => 
+            u.id !== userId && !followingIds.includes(u.id)
+          );
+
+          // Get top 20, then pick 4 random
+          const top20 = available.slice(0, 20);
+          const shuffled = top20.sort(() => Math.random() - 0.5);
+          suggestions = shuffled.slice(0, 4);
+        }
+      } catch (err) {
+        console.warn('Failed to fetch suggestions:', err.message);
+      }
+    }
+
+    // 8. Return response with prompts and suggestions
     return res.status(200).json({
       prompts: promptsWithCounts,
+      suggestions: suggestions,
       total: promptsWithCounts.length,
       hasMore: promptsWithCounts.length === Number(limit)
     });
@@ -345,24 +425,21 @@ export default async function handler(req, res) {
       })
     );
 
-    // 🔥 BULK VIEW COUNT UPDATE (fixed — two-step approach)
+    // Bulk view count update
     if (prompts.length > 0) {
       const promptIds = prompts.map(p => p.id);
       try {
-        // 1. Get current view counts
         const { data: currentPrompts } = await supabaseAdmin
           .from('prompts')
           .select('id, view_count')
           .in('id', promptIds);
 
         if (currentPrompts && currentPrompts.length > 0) {
-          // 2. Build update objects
           const updates = currentPrompts.map(p => ({
             id: p.id,
             view_count: (p.view_count || 0) + 1
           }));
 
-          // 3. Update each one individually
           for (const update of updates) {
             await supabaseAdmin
               .from('prompts')
@@ -371,7 +448,6 @@ export default async function handler(req, res) {
           }
         }
       } catch (err) {
-        // Silently fail — views are non-critical
         console.warn('View count update failed:', err.message);
       }
     }
