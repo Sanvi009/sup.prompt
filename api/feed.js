@@ -67,7 +67,7 @@ export default async function handler(req, res) {
   //  PERSONALIZED FEED (Logged-in users)
   // ================================================================
   if (req.method === 'GET' && action === 'feed') {
-    const { limit = 50, offset = 0 } = req.query;
+    const { limit = 50, offset = 0, exclude } = req.query;
 
     // 1. Get prompts the user has already viewed in the last 3 days
     let viewedPromptIds = [];
@@ -87,7 +87,16 @@ export default async function handler(req, res) {
       }
     }
 
-    // 2. Get boosted prompts (excluding recently viewed)
+    // 2. Parse exclude IDs from the request
+    let excludeIds = [];
+    if (exclude) {
+      excludeIds = exclude.split(',').filter(id => id);
+    }
+
+    // Combine viewed and exclude IDs
+    const allExcludeIds = [...viewedPromptIds, ...excludeIds];
+
+    // 3. Get boosted prompts (excluding recently viewed and session-excluded)
     let boostedQuery = supabaseAdmin
       .from('prompts')
       .select('*', { count: 'exact' })
@@ -95,8 +104,8 @@ export default async function handler(req, res) {
       .eq('is_boosted', true)
       .order('created_at', { ascending: false });
 
-    if (viewedPromptIds.length > 0) {
-      boostedQuery = boostedQuery.not('id', 'in', viewedPromptIds);
+    if (allExcludeIds.length > 0) {
+      boostedQuery = boostedQuery.not('id', 'in', allExcludeIds);
     }
 
     const { data: boosted, error: boostError } = await boostedQuery;
@@ -105,7 +114,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: boostError.message });
     }
 
-    // 3. Get regular prompts (non-boosted, excluding recently viewed)
+    // 4. Get regular prompts (non-boosted, excluding recently viewed and session-excluded)
     let regularQuery = supabaseAdmin
       .from('prompts')
       .select('*', { count: 'exact' })
@@ -114,8 +123,8 @@ export default async function handler(req, res) {
       .order('created_at', { ascending: false })
       .range(Number(offset), Number(offset) + Number(limit) - 1);
 
-    if (viewedPromptIds.length > 0) {
-      regularQuery = regularQuery.not('id', 'in', viewedPromptIds);
+    if (allExcludeIds.length > 0) {
+      regularQuery = regularQuery.not('id', 'in', allExcludeIds);
     }
 
     const { data: regular, error: regularError } = await regularQuery;
@@ -126,7 +135,7 @@ export default async function handler(req, res) {
 
     let allPrompts = [...boosted, ...regular];
 
-    // 4. Personalize for logged-in users
+    // 5. Personalize for logged-in users
     if (userId && userCategories.length > 0) {
       const { data: userLikes } = await supabaseAdmin
         .from('likes')
@@ -184,7 +193,7 @@ export default async function handler(req, res) {
       allPrompts = allPrompts.slice(0, Number(limit));
     }
 
-    // 5. Get likes/saves/comments for each prompt
+    // 6. Get likes/saves/comments for each prompt
     const promptsWithCounts = await Promise.all(
       allPrompts.map(async (prompt) => {
         const { count: likes } = await supabaseAdmin
@@ -234,7 +243,7 @@ export default async function handler(req, res) {
       })
     );
 
-    // 6. Bulk view count update
+    // 7. Bulk view count update
     if (allPrompts.length > 0) {
       const promptIds = allPrompts.map(p => p.id);
       try {
@@ -261,7 +270,7 @@ export default async function handler(req, res) {
       }
     }
 
-    // 7. Get Creative Peoples suggestions (for logged-in users only)
+    // 8. Get Creative Peoples suggestions (for logged-in users only)
     let suggestions = [];
     if (userId) {
       try {
@@ -310,7 +319,21 @@ export default async function handler(req, res) {
       }
     }
 
-    // 8. Return response with prompts and suggestions
+    // 9. Insert view records into user_activity (fire and forget)
+    if (userId && promptsWithCounts.length > 0) {
+      const viewRecords = promptsWithCounts.map(p => ({
+        user_id: userId,
+        prompt_id: p.id,
+        action_type: 'view',
+        category_id: p.category_ids?.[0] || null,
+        created_at: new Date().toISOString()
+      }));
+      
+      // Fire and forget — don't wait for this
+      supabaseAdmin.from('user_activity').insert(viewRecords).then();
+    }
+
+    // 10. Return response with prompts and suggestions
     return res.status(200).json({
       prompts: promptsWithCounts,
       suggestions: suggestions,
