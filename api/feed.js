@@ -46,9 +46,10 @@ export default async function handler(req, res) {
   //  PERSONALIZED FEED (Logged-in users)
   // ================================================================
   if (req.method === 'GET' && action === 'feed') {
-    const { limit = 50, offset = 0 } = req.query;
+    const { limit = 50, offset = 0, seed = 1 } = req.query;
     const limitNum = Number(limit);
     const offsetNum = Number(offset);
+    const randomSeed = Number(seed) || 1;
 
     // 1. Get boosted prompts (always shown, no exclusions, newest first)
     let boostedQuery = supabaseAdmin
@@ -82,13 +83,13 @@ export default async function handler(req, res) {
       excludedIds = [...likedIds, ...savedIds];
     }
 
-    // 3. Get regular prompts (non-boosted) - RANDOM ORDER
+    // 3. Get regular prompts (non-boosted) – consistent random order using seed
     let regularQuery = supabaseAdmin
       .from('prompts')
       .select('*', { count: 'exact' })
       .eq('is_published', true)
       .eq('is_boosted', false)
-      .order('random()')  // <-- RANDOM ORDER
+      .order('random', { ascending: true, nullsFirst: false, foreignTable: undefined, seed: randomSeed })
       .range(offsetNum, offsetNum + limitNum - 1);
 
     if (userId && excludedIds.length > 0) {
@@ -108,7 +109,7 @@ export default async function handler(req, res) {
         .select('*', { count: 'exact' })
         .eq('is_published', true)
         .eq('is_boosted', false)
-        .order('random()')
+        .order('random', { ascending: true, nullsFirst: false, foreignTable: undefined, seed: randomSeed })
         .range(0, limitNum - 1);
 
       regular = fallback || [];
@@ -171,20 +172,17 @@ export default async function handler(req, res) {
     if (allPrompts.length > 0) {
       const promptIds = allPrompts.map(p => p.id);
       try {
-        // 1. Get current view counts
         const { data: currentPrompts } = await supabaseAdmin
           .from('prompts')
           .select('id, view_count')
           .in('id', promptIds);
 
         if (currentPrompts && currentPrompts.length > 0) {
-          // 2. Build update objects
           const updates = currentPrompts.map(p => ({
             id: p.id,
             view_count: (p.view_count || 0) + 1
           }));
 
-          // 3. Update each one individually
           for (const update of updates) {
             await supabaseAdmin
               .from('prompts')
@@ -193,7 +191,6 @@ export default async function handler(req, res) {
           }
         }
       } catch (err) {
-        // Silently fail — views are non-critical
         console.warn('View count update failed:', err.message);
       }
     }
@@ -278,14 +275,17 @@ export default async function handler(req, res) {
   //  EXPLORE (Guest feed)
   // ================================================================
   if (req.method === 'GET' && action === 'explore') {
-    const { limit = 50, offset = 0 } = req.query;
+    const { limit = 50, offset = 0, seed = 1 } = req.query;
+    const limitNum = Number(limit);
+    const offsetNum = Number(offset);
+    const randomSeed = Number(seed) || 1;
 
     const { data: prompts, error, count } = await supabaseAdmin
       .from('prompts')
       .select('*', { count: 'exact' })
       .eq('is_published', true)
-      .order('random()')  // <-- RANDOM ORDER for guests too
-      .range(Number(offset), Number(offset) + Number(limit) - 1);
+      .order('random', { ascending: true, nullsFirst: false, foreignTable: undefined, seed: randomSeed })
+      .range(offsetNum, offsetNum + limitNum - 1);
 
     if (error) {
       return res.status(500).json({ error: error.message });
@@ -311,24 +311,20 @@ export default async function handler(req, res) {
       })
     );
 
-    // 🔥 BULK VIEW COUNT UPDATE (fixed — two-step approach)
     if (prompts.length > 0) {
       const promptIds = prompts.map(p => p.id);
       try {
-        // 1. Get current view counts
         const { data: currentPrompts } = await supabaseAdmin
           .from('prompts')
           .select('id, view_count')
           .in('id', promptIds);
 
         if (currentPrompts && currentPrompts.length > 0) {
-          // 2. Build update objects
           const updates = currentPrompts.map(p => ({
             id: p.id,
             view_count: (p.view_count || 0) + 1
           }));
 
-          // 3. Update each one individually
           for (const update of updates) {
             await supabaseAdmin
               .from('prompts')
@@ -337,7 +333,6 @@ export default async function handler(req, res) {
           }
         }
       } catch (err) {
-        // Silently fail — views are non-critical
         console.warn('View count update failed:', err.message);
       }
     }
@@ -345,7 +340,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       prompts: promptsWithCounts,
       total: count || 0,
-      hasMore: (Number(offset) + Number(limit)) < (count || 0)
+      hasMore: (offsetNum + limitNum) < (count || 0)
     });
   }
 
