@@ -1,13 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
-
     <link rel="icon" type="image/png" href="/asset/icon.png" />
     <link rel="shortcut icon" href="/asset/icon.png" />
-
-
-    
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>User Profile</title>
@@ -104,6 +99,11 @@
         }
         .profile-header .stats-row .stat {
             text-align: center;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .profile-header .stats-row .stat:hover {
+            opacity: 0.7;
         }
         .profile-header .stats-row .stat .value {
             font-size: 20px;
@@ -499,6 +499,177 @@
             background: #fecaca;
         }
 
+        /* ===== FOLLOWER/FOLLOWING MODAL ===== */
+        .follow-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(4px);
+            z-index: 1002;
+            align-items: center;
+            justify-content: center;
+        }
+        .follow-modal-overlay.active { display: flex; }
+
+        .follow-modal {
+            background: #e8ecf1;
+            border-radius: 20px;
+            padding: 28px 32px;
+            max-width: 480px;
+            width: 92%;
+            max-height: 80vh;
+            box-shadow: 
+                12px 12px 24px rgba(0,0,0,0.08),
+                -12px -12px 24px rgba(255,255,255,0.6);
+            display: flex;
+            flex-direction: column;
+        }
+        .follow-modal h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 16px;
+        }
+        .follow-modal .close-btn {
+            align-self: flex-end;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #1a1a1a;
+            padding: 4px 8px;
+            border-radius: 8px;
+            transition: background 0.2s;
+            margin-top: -8px;
+            margin-right: -8px;
+        }
+        .follow-modal .close-btn:hover {
+            background: rgba(0,0,0,0.05);
+        }
+        .follow-modal .list {
+            overflow-y: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-right: 4px;
+        }
+        .follow-modal .list::-webkit-scrollbar {
+            width: 4px;
+        }
+        .follow-modal .list::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 4px;
+        }
+        .follow-modal .list .user-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            background: white;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .follow-modal .list .user-item:hover {
+            background: #f5f5f5;
+        }
+        .follow-modal .list .user-item .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e8ecf1;
+            object-fit: cover;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 600;
+            color: #4f46e5;
+        }
+        .follow-modal .list .user-item .avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .follow-modal .list .user-item .info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .follow-modal .list .user-item .info .username {
+            font-weight: 600;
+            font-size: 15px;
+            color: #1a1a1a;
+        }
+        .follow-modal .list .user-item .info .display-name {
+            font-size: 13px;
+            color: #666;
+        }
+        .follow-modal .list .user-item .info .badge {
+            display: inline-block;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+        .follow-modal .list .user-item .info .badge.premium {
+            background: #fbbf24;
+            color: #78350f;
+        }
+        .follow-modal .list .user-item .info .badge.owner {
+            background: #4f46e5;
+            color: white;
+        }
+        .follow-modal .list .user-item .follow-btn {
+            padding: 6px 16px;
+            background: #1a1a1a;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .follow-modal .list .user-item .follow-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .follow-modal .list .user-item .follow-btn.following {
+            background: #e0e0e0;
+            color: #1a1a1a;
+        }
+        .follow-modal .list .user-item .follow-btn.following:hover {
+            background: #d0d0d0;
+        }
+        .follow-modal .loading {
+            text-align: center;
+            padding: 40px 0;
+            color: #666;
+        }
+        .follow-modal .loading .spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid #e0e0e0;
+            border-top-color: #4f46e5;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        .follow-modal .empty {
+            text-align: center;
+            padding: 40px 0;
+            color: #666;
+            grid-column: 1 / -1;
+        }
+
         /* ============================================================ */
         /* ===== SKELETON LOADING ANIMATIONS ===== */
         /* ============================================================ */
@@ -715,6 +886,22 @@
         </div>
     </div>
 
+    <!-- FOLLOW MODAL -->
+    <div class="follow-modal-overlay" id="followModal">
+        <div class="follow-modal">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <h2 id="followModalTitle">Followers</h2>
+                <button class="close-btn" id="followModalClose">✕</button>
+            </div>
+            <div class="list" id="followModalList">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- STICKY LOGOUT -->
     <div class="logout-sticky" id="logoutSticky" style="display:none;">
         <button class="btn-logout" id="logoutBtn">Sign Out</button>
@@ -735,6 +922,7 @@
         let loading = false;
         let hasMore = true;
         let isOwnProfile = false;
+        let followModalType = 'followers'; // 'followers' or 'following'
 
         // ============================================================
         //  DOM
@@ -743,6 +931,10 @@
         const popup = document.getElementById('popup');
         const logoutSticky = document.getElementById('logoutSticky');
         const reportModal = document.getElementById('reportModal');
+        const followModal = document.getElementById('followModal');
+        const followModalTitle = document.getElementById('followModalTitle');
+        const followModalList = document.getElementById('followModalList');
+        const followModalClose = document.getElementById('followModalClose');
 
         // ============================================================
         //  VERIFY USER
@@ -907,16 +1099,16 @@
                         </div>
                     </div>
                     <div class="stats-row">
-                        <div class="stat">
+                        <div class="stat" data-type="likes">
                             <div class="value">${stats.likes || 0}</div>
                             <div class="label">Loves</div>
                         </div>
-                        <div class="stat">
-                            <div class="value">${stats.followers || 0}</div>
+                        <div class="stat" data-type="followers" data-id="${p.id}">
+                            <div class="value" id="followerCount">${stats.followers || 0}</div>
                             <div class="label">Followers</div>
                         </div>
-                        <div class="stat">
-                            <div class="value">${stats.following || 0}</div>
+                        <div class="stat" data-type="following" data-id="${p.id}">
+                            <div class="value" id="followingCount">${stats.following || 0}</div>
                             <div class="label">Following</div>
                         </div>
                     </div>
@@ -944,6 +1136,15 @@
                     </div>
                 </div>
             `;
+
+            // ===== CLICK HANDLERS FOR STATS =====
+            document.querySelectorAll('.stat[data-type="followers"], .stat[data-type="following"]').forEach(el => {
+                el.addEventListener('click', () => {
+                    const type = el.dataset.type;
+                    const userId = el.dataset.id;
+                    openFollowModal(type, userId);
+                });
+            });
 
             document.querySelectorAll('.tab').forEach(tab => {
                 tab.addEventListener('click', () => {
@@ -978,6 +1179,147 @@
                 });
             }
         }
+
+        // ============================================================
+        //  FOLLOW MODAL
+        // ============================================================
+        function openFollowModal(type, userId) {
+            followModalType = type;
+            followModalTitle.textContent = type === 'followers' ? 'Followers' : 'Following';
+            followModalList.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading...</p>
+                </div>
+            `;
+            followModal.classList.add('active');
+            loadFollowList(type, userId);
+        }
+
+        async function loadFollowList(type, userId) {
+            try {
+                const action = type === 'followers' ? 'followers' : 'following';
+                const res = await fetch(`/api/follows?action=${action}&userId=${userId}`);
+                const data = await res.json();
+
+                const list = data[action] || [];
+
+                if (list.length === 0) {
+                    followModalList.innerHTML = `
+                        <div class="empty">
+                            <div class="icon">📭</div>
+                            <p>No ${type} yet.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                followModalList.innerHTML = '';
+
+                // Determine the correct key for the profile data
+                const profileKey = type === 'followers' ? 'profiles:follower_id' : 'profiles:following_id';
+
+                list.forEach(item => {
+                    const profile = item[profileKey] || item.profiles || {};
+                    const username = profile.username || 'Unknown';
+                    const displayName = profile.display_name || username;
+                    const avatarUrl = profile.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(username) + '&background=e0e0e0&color=4f46e5&size=40';
+                    const isPremium = profile.is_premium || false;
+                    const isOwner = profile.is_owner || false;
+
+                    const userItem = document.createElement('div');
+                    userItem.className = 'user-item';
+                    userItem.onclick = () => {
+                        followModal.classList.remove('active');
+                        window.location.href = `/@${username}`;
+                    };
+
+                    let badgeHtml = '';
+                    if (isOwner) {
+                        badgeHtml = `<span class="badge owner">Owner</span>`;
+                    } else if (isPremium) {
+                        badgeHtml = `<span class="badge premium">Premium</span>`;
+                    }
+
+                    let followBtnHtml = '';
+                    if (currentUser && currentUser.id !== profile.id) {
+                        // Check if already following (we'll determine this)
+                        followBtnHtml = `<button class="follow-btn" data-id="${profile.id}" data-username="${username}">Follow</button>`;
+                    }
+
+                    userItem.innerHTML = `
+                        <div class="avatar" style="background-image:url(${avatarUrl});background-size:cover;">
+                            ${!profile.avatar_url ? username.charAt(0).toUpperCase() : ''}
+                        </div>
+                        <div class="info">
+                            <div class="username">@${username}</div>
+                            <div class="display-name">${displayName}</div>
+                            ${badgeHtml}
+                        </div>
+                        ${followBtnHtml}
+                    `;
+
+                    followModalList.appendChild(userItem);
+                });
+
+                // Attach follow button handlers inside the modal
+                followModalList.querySelectorAll('.follow-btn').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        e.stopPropagation();
+                        if (!currentUser) {
+                            popup.classList.add('active');
+                            return;
+                        }
+                        const targetId = btn.dataset.id;
+                        const isFollowing = btn.classList.contains('following');
+                        const action = isFollowing ? 'unfollow' : 'follow';
+                        const method = isFollowing ? 'DELETE' : 'POST';
+
+                        try {
+                            const res = await fetch(`/api/follows?action=${action}`, {
+                                method,
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${token}`
+                                },
+                                body: JSON.stringify({ targetUserId: targetId })
+                            });
+                            if (res.ok) {
+                                if (isFollowing) {
+                                    btn.textContent = 'Follow';
+                                    btn.classList.remove('following');
+                                } else {
+                                    btn.textContent = 'Following';
+                                    btn.classList.add('following');
+                                }
+                            }
+                        } catch (err) {
+                            console.error(err);
+                        }
+                    });
+                });
+
+            } catch (err) {
+                console.error(err);
+                followModalList.innerHTML = `
+                    <div class="empty">
+                        <div class="icon">⚠️</div>
+                        <p>Error loading ${type}.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // ===== FOLLOW MODAL CLOSE HANDLERS =====
+        followModalClose.addEventListener('click', () => {
+            followModal.classList.remove('active');
+        });
+
+        followModal.addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                followModal.classList.remove('active');
+            }
+        });
 
         // ============================================================
         //  REPORT SUBMIT
@@ -1126,16 +1468,12 @@
             }
 
             const btn = document.getElementById('followBtn');
-            const statsValues = document.querySelectorAll('.stat .value');
-            let followerCountEl = null;
-            if (statsValues.length >= 2) {
-                followerCountEl = statsValues[1];
-            }
+            const followerCountEl = document.getElementById('followerCount');
 
-            // 1. FLIP isFollowing INSTANTLY (This is the core fix)
+            // 1. FLIP isFollowing INSTANTLY
             isFollowing = !isFollowing;
 
-            // 2. Update button text and class INSTANTLY based on the NEW isFollowing
+            // 2. Update button text and class INSTANTLY
             if (isFollowing) {
                 btn.textContent = 'Following';
                 btn.classList.add('following');
@@ -1144,7 +1482,7 @@
                 btn.classList.remove('following');
             }
 
-            // 3. Update follower count INSTANTLY based on the NEW isFollowing
+            // 3. Update follower count INSTANTLY
             if (followerCountEl) {
                 const currentFollowerCount = parseInt(followerCountEl.textContent) || 0;
                 if (isFollowing) {
@@ -1160,7 +1498,7 @@
                 followDebounceTimer = null;
             }
 
-            // 5. Store the FINAL state (the current isFollowing) and set a new timer
+            // 5. Store the FINAL state and set a new timer
             const finalActionState = isFollowing;
 
             followDebounceTimer = setTimeout(async () => {
