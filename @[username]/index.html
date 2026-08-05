@@ -1216,11 +1216,9 @@
 
                 followModalList.innerHTML = '';
 
-                // Determine the correct key for the profile data
-                const profileKey = type === 'followers' ? 'profiles:follower_id' : 'profiles:following_id';
-
                 list.forEach(item => {
-                    const profile = item[profileKey] || item.profiles || {};
+                    // ✅ FIX: The profile data is directly under 'profiles'
+                    const profile = item.profiles || {};
                     const username = profile.username || 'Unknown';
                     const displayName = profile.display_name || username;
                     const avatarUrl = profile.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(username) + '&background=e0e0e0&color=4f46e5&size=40';
@@ -1243,7 +1241,6 @@
 
                     let followBtnHtml = '';
                     if (currentUser && currentUser.id !== profile.id) {
-                        // Check if already following (we'll determine this)
                         followBtnHtml = `<button class="follow-btn" data-id="${profile.id}" data-username="${username}">Follow</button>`;
                     }
 
