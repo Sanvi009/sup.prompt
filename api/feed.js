@@ -67,54 +67,23 @@ export default async function handler(req, res) {
   //  PERSONALIZED FEED (Logged-in users)
   // ================================================================
   if (req.method === 'GET' && action === 'feed') {
-    const { limit = 50, offset = 0, exclude } = req.query;
+    const { limit = 50, offset = 0 } = req.query;
 
-    // 1. Get prompts the user has already viewed in the last 3 days
-    let viewedPromptIds = [];
-    if (userId) {
-      const threeDaysAgo = new Date();
-      threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-
-      const { data: viewed } = await supabaseAdmin
-        .from('user_activity')
-        .select('prompt_id')
-        .eq('user_id', userId)
-        .eq('action_type', 'view')
-        .gte('created_at', threeDaysAgo.toISOString());
-
-      if (viewed && viewed.length > 0) {
-        viewedPromptIds = viewed.map(v => v.prompt_id);
-      }
-    }
-
-    // 2. Parse exclude IDs from the request
-    let excludeIds = [];
-    if (exclude) {
-      excludeIds = exclude.split(',').filter(id => id);
-    }
-
-    // Combine viewed and exclude IDs
-    const allExcludeIds = [...viewedPromptIds, ...excludeIds];
-
-    // 3. Get boosted prompts (excluding recently viewed and session-excluded)
-    let boostedQuery = supabaseAdmin
+    // 1. Get boosted prompts
+    let query = supabaseAdmin
       .from('prompts')
       .select('*', { count: 'exact' })
       .eq('is_published', true)
       .eq('is_boosted', true)
       .order('created_at', { ascending: false });
 
-    if (allExcludeIds.length > 0) {
-      boostedQuery = boostedQuery.not('id', 'in', allExcludeIds);
-    }
-
-    const { data: boosted, error: boostError } = await boostedQuery;
+    const { data: boosted, error: boostError } = await query;
 
     if (boostError) {
       return res.status(500).json({ error: boostError.message });
     }
 
-    // 4. Get regular prompts (non-boosted, excluding recently viewed and session-excluded)
+    // 2. Get regular prompts (non-boosted)
     let regularQuery = supabaseAdmin
       .from('prompts')
       .select('*', { count: 'exact' })
@@ -122,10 +91,6 @@ export default async function handler(req, res) {
       .eq('is_boosted', false)
       .order('created_at', { ascending: false })
       .range(Number(offset), Number(offset) + Number(limit) - 1);
-
-    if (allExcludeIds.length > 0) {
-      regularQuery = regularQuery.not('id', 'in', allExcludeIds);
-    }
 
     const { data: regular, error: regularError } = await regularQuery;
 
@@ -135,7 +100,7 @@ export default async function handler(req, res) {
 
     let allPrompts = [...boosted, ...regular];
 
-    // 5. Personalize for logged-in users
+    // 3. Personalize for logged-in users
     if (userId && userCategories.length > 0) {
       const { data: userLikes } = await supabaseAdmin
         .from('likes')
@@ -153,12 +118,10 @@ export default async function handler(req, res) {
       const scored = allPrompts.map(prompt => {
         let score = 0;
 
-        // Following priority - if prompt creator is followed, boost score
         if (followingIds.length > 0) {
           // Placeholder for future creator_id support
         }
 
-        // Category matching (kept as-is for now)
         if (prompt.category_ids && prompt.category_ids.length > 0) {
           const matchedCategories = prompt.category_ids.filter(id => 
             userCategories.includes(id)
@@ -166,22 +129,17 @@ export default async function handler(req, res) {
           score += matchedCategories.length * 10;
         }
 
-        // Not yet liked bonus
         if (!likedIds.includes(prompt.id)) {
           score += 5;
         }
-
-        // Not yet saved bonus
         if (!savedIds.includes(prompt.id)) {
           score += 3;
         }
 
-        // Boosted bonus
         if (prompt.is_boosted) {
           score += 50;
         }
 
-        // Recency bonus (newer = higher score)
         const daysOld = (Date.now() - new Date(prompt.created_at).getTime()) / (1000 * 60 * 60 * 24);
         score += Math.max(0, 10 - daysOld);
 
@@ -193,7 +151,7 @@ export default async function handler(req, res) {
       allPrompts = allPrompts.slice(0, Number(limit));
     }
 
-    // 6. Get likes/saves/comments for each prompt
+    // 4. Get likes/saves/comments for each prompt
     const promptsWithCounts = await Promise.all(
       allPrompts.map(async (prompt) => {
         const { count: likes } = await supabaseAdmin
@@ -243,21 +201,24 @@ export default async function handler(req, res) {
       })
     );
 
-    // 7. Bulk view count update
+    // 🔥 BULK VIEW COUNT UPDATE (fixed — two-step approach)
     if (allPrompts.length > 0) {
       const promptIds = allPrompts.map(p => p.id);
       try {
+        // 1. Get current view counts
         const { data: currentPrompts } = await supabaseAdmin
           .from('prompts')
           .select('id, view_count')
           .in('id', promptIds);
 
         if (currentPrompts && currentPrompts.length > 0) {
+          // 2. Build update objects
           const updates = currentPrompts.map(p => ({
             id: p.id,
             view_count: (p.view_count || 0) + 1
           }));
 
+          // 3. Update each one individually
           for (const update of updates) {
             await supabaseAdmin
               .from('prompts')
@@ -266,11 +227,12 @@ export default async function handler(req, res) {
           }
         }
       } catch (err) {
+        // Silently fail — views are non-critical
         console.warn('View count update failed:', err.message);
       }
     }
 
-    // 8. Get Creative Peoples suggestions (for logged-in users only)
+    // 5. Get Creative Peoples suggestions (for logged-in users only)
     let suggestions = [];
     if (userId) {
       try {
@@ -319,21 +281,6 @@ export default async function handler(req, res) {
       }
     }
 
-    // 9. Insert view records into user_activity (fire and forget)
-    if (userId && promptsWithCounts.length > 0) {
-      const viewRecords = promptsWithCounts.map(p => ({
-        user_id: userId,
-        prompt_id: p.id,
-        action_type: 'view',
-        category_id: p.category_ids?.[0] || null,
-        created_at: new Date().toISOString()
-      }));
-      
-      // Fire and forget — don't wait for this
-      supabaseAdmin.from('user_activity').insert(viewRecords).then();
-    }
-
-    // 10. Return response with prompts and suggestions
     return res.status(200).json({
       prompts: promptsWithCounts,
       suggestions: suggestions,
@@ -448,21 +395,24 @@ export default async function handler(req, res) {
       })
     );
 
-    // Bulk view count update
+    // 🔥 BULK VIEW COUNT UPDATE (fixed — two-step approach)
     if (prompts.length > 0) {
       const promptIds = prompts.map(p => p.id);
       try {
+        // 1. Get current view counts
         const { data: currentPrompts } = await supabaseAdmin
           .from('prompts')
           .select('id, view_count')
           .in('id', promptIds);
 
         if (currentPrompts && currentPrompts.length > 0) {
+          // 2. Build update objects
           const updates = currentPrompts.map(p => ({
             id: p.id,
             view_count: (p.view_count || 0) + 1
           }));
 
+          // 3. Update each one individually
           for (const update of updates) {
             await supabaseAdmin
               .from('prompts')
@@ -471,6 +421,7 @@ export default async function handler(req, res) {
           }
         }
       } catch (err) {
+        // Silently fail — views are non-critical
         console.warn('View count update failed:', err.message);
       }
     }
