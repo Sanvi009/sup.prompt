@@ -760,9 +760,6 @@
         let creativeSectionCount = 0;
         let lastCreativeIndex = -1;
 
-        // Track prompts shown in this session
-        let shownPromptIds = new Set();
-
         // ============================================================
         //  DOM
         // ============================================================
@@ -882,17 +879,12 @@
                 localSaves = {};
                 creativeSectionCount = 0;
                 lastCreativeIndex = -1;
-                shownPromptIds = new Set();
                 renderSkeletons();
                 loader.style.display = 'block';
             }
 
             const action = token ? 'feed' : 'explore';
-            // Add exclude parameter with shown prompt IDs
-            const excludeParam = shownPromptIds.size > 0 
-                ? `&exclude=${Array.from(shownPromptIds).join(',')}` 
-                : '';
-            const url = `/api/feed?action=${action}&limit=${pageSize}&offset=${page * pageSize}${excludeParam}`;
+            const url = `/api/feed?action=${action}&limit=${pageSize}&offset=${page * pageSize}`;
 
             try {
                 const res = await fetch(url, {
@@ -918,9 +910,6 @@
                     // Initialize local state from server data
                     localLikes[p.id] = { count: p.like_count || 0, liked: p.liked || false };
                     localSaves[p.id] = { count: p.save_count || 0, saved: p.saved || false };
-                    
-                    // Track this prompt as shown in this session
-                    shownPromptIds.add(p.id);
                     
                     // Check if we should insert a creative section
                     const globalIndex = (page * pageSize) + i;
