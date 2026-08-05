@@ -157,6 +157,7 @@
             margin-bottom: 16px;
             overflow: hidden;
             transition: transform 0.1s;
+            transform: translateZ(0); /* GPU acceleration */
         }
         .post-card:active { transform: scale(0.99); }
 
@@ -741,7 +742,8 @@
         const token = localStorage.getItem('user_token');
         let user = null;
         let page = 0;
-        const pageSize = 10;
+        const initialPageSize = 6;
+        const subsequentPageSize = 8;
         let loading = false;
         let hasMore = true;
         let searchTimeout = null;
@@ -775,6 +777,18 @@
         const commentUserAvatar = document.getElementById('commentUserAvatar');
         const imageModal = document.getElementById('imageModal');
         const imageModalContent = document.getElementById('imageModalContent');
+
+        // ============================================================
+        //  HELPERS
+        // ============================================================
+        function getOptimizedImageUrl(url) {
+            if (!url) return '';
+            const screenWidth = window.innerWidth;
+            let width = 800;
+            if (screenWidth < 640) width = 400;
+            else if (screenWidth < 1024) width = 600;
+            return `${url}?width=${width}&format=webp`;
+        }
 
         // ============================================================
         //  VERIFY USER
@@ -884,7 +898,8 @@
             }
 
             const action = token ? 'feed' : 'explore';
-            const url = `/api/feed?action=${action}&limit=${pageSize}&offset=${page * pageSize}`;
+            const currentLimit = page === 0 ? initialPageSize : subsequentPageSize;
+            const url = `/api/feed?action=${action}&limit=${currentLimit}&offset=${page * initialPageSize}`;
 
             try {
                 const res = await fetch(url, {
@@ -903,6 +918,18 @@
                     return;
                 }
 
+                // Preload first image
+                if (prompts.length > 0 && reset) {
+                    const firstImage = getOptimizedImageUrl(prompts[0].image_main);
+                    if (firstImage) {
+                        const preload = document.createElement('link');
+                        preload.rel = 'preload';
+                        preload.as = 'image';
+                        preload.href = firstImage;
+                        document.head.appendChild(preload);
+                    }
+                }
+
                 // Render prompts with creative section insertion
                 for (let i = 0; i < prompts.length; i++) {
                     const p = prompts[i];
@@ -912,7 +939,7 @@
                     localSaves[p.id] = { count: p.save_count || 0, saved: p.saved || false };
                     
                     // Check if we should insert a creative section
-                    const globalIndex = (page * pageSize) + i;
+                    const globalIndex = (page * initialPageSize) + i;
                     const shouldInsert = shouldInsertCreativeSection(globalIndex);
                     
                     if (shouldInsert && suggestions.length > 0 && user) {
@@ -1114,6 +1141,9 @@
                 `;
             }
 
+            // Optimized image URL
+            const optimizedImage = getOptimizedImageUrl(p.image_main);
+
             card.innerHTML = `
                 <div class="post-header">
                     <div class="avatar">
@@ -1132,7 +1162,10 @@
                 </div>
                 ${descHTML}
                 <div class="post-image-wrap">
-                    <img src="${p.image_main}" 
+                    <img src="${optimizedImage}" 
+                         width="600" height="400"
+                         loading="lazy"
+                         decoding="async"
                          onerror="this.src='https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=600&h=400&fit=crop&auto=format'" 
                          alt="${p.title}" />
                 </div>
