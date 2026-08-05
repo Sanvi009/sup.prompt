@@ -6,6 +6,54 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
+// ================================================================
+// HELPER: Update user category weights
+// ================================================================
+async function updateCategoryWeights(userId, promptId, weightChange) {
+  if (!userId || !promptId || weightChange === 0) return;
+
+  // Get the prompt's category IDs
+  const { data: prompt, error: promptError } = await supabaseAdmin
+    .from('prompts')
+    .select('category_ids')
+    .eq('id', promptId)
+    .single();
+
+  if (promptError || !prompt || !prompt.category_ids) return;
+
+  // For each category, update or insert weight
+  for (const categoryId of prompt.category_ids) {
+    // Check if a row exists for this user + category
+    const { data: existing } = await supabaseAdmin
+      .from('user_category_weights')
+      .select('weight')
+      .eq('user_id', userId)
+      .eq('category_id', categoryId)
+      .maybeSingle();
+
+    if (existing) {
+      // Update existing row
+      await supabaseAdmin
+        .from('user_category_weights')
+        .update({ 
+          weight: existing.weight + weightChange,
+          last_updated: new Date().toISOString()
+        })
+        .eq('user_id', userId)
+        .eq('category_id', categoryId);
+    } else {
+      // Insert new row
+      await supabaseAdmin
+        .from('user_category_weights')
+        .insert({
+          user_id: userId,
+          category_id: categoryId,
+          weight: weightChange
+        });
+    }
+  }
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
@@ -86,6 +134,9 @@ export default async function handler(req, res) {
         action_type: 'like'
       });
 
+    // ===== NEW: Update category weights (+3 for like) =====
+    await updateCategoryWeights(userId, promptId, 3);
+
     const { count: likes } = await supabaseAdmin
       .from('likes')
       .select('*', { count: 'exact', head: true })
@@ -138,6 +189,9 @@ export default async function handler(req, res) {
       .eq('user_id', userId)
       .eq('prompt_id', promptId)
       .eq('action_type', 'like');
+
+    // ===== NEW: Update category weights (-3 for unlike) =====
+    await updateCategoryWeights(userId, promptId, -3);
 
     const { count: likes } = await supabaseAdmin
       .from('likes')
@@ -206,6 +260,9 @@ export default async function handler(req, res) {
         action_type: 'save'
       });
 
+    // ===== NEW: Update category weights (+5 for save) =====
+    await updateCategoryWeights(userId, promptId, 5);
+
     const { count: saves } = await supabaseAdmin
       .from('saves')
       .select('*', { count: 'exact', head: true })
@@ -258,6 +315,9 @@ export default async function handler(req, res) {
       .eq('user_id', userId)
       .eq('prompt_id', promptId)
       .eq('action_type', 'save');
+
+    // ===== NEW: Update category weights (-5 for unsave) =====
+    await updateCategoryWeights(userId, promptId, -5);
 
     const { count: saves } = await supabaseAdmin
       .from('saves')
