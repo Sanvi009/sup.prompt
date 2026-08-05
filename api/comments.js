@@ -6,6 +6,49 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
+// ================================================================
+// HELPER: Update user category weights
+// ================================================================
+async function updateCategoryWeights(userId, promptId, weightChange) {
+  if (!userId || !promptId || weightChange === 0) return;
+
+  const { data: prompt, error: promptError } = await supabaseAdmin
+    .from('prompts')
+    .select('category_ids')
+    .eq('id', promptId)
+    .single();
+
+  if (promptError || !prompt || !prompt.category_ids) return;
+
+  for (const categoryId of prompt.category_ids) {
+    const { data: existing } = await supabaseAdmin
+      .from('user_category_weights')
+      .select('weight')
+      .eq('user_id', userId)
+      .eq('category_id', categoryId)
+      .maybeSingle();
+
+    if (existing) {
+      await supabaseAdmin
+        .from('user_category_weights')
+        .update({ 
+          weight: existing.weight + weightChange,
+          last_updated: new Date().toISOString()
+        })
+        .eq('user_id', userId)
+        .eq('category_id', categoryId);
+    } else {
+      await supabaseAdmin
+        .from('user_category_weights')
+        .insert({
+          user_id: userId,
+          category_id: categoryId,
+          weight: weightChange
+        });
+    }
+  }
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
@@ -192,6 +235,9 @@ export default async function handler(req, res) {
         prompt_id: promptId,
         action_type: 'comment'
       });
+
+    // ===== NEW: Update category weights (+2 for comment) =====
+    await updateCategoryWeights(userId, promptId, 2);
 
     return res.status(201).json({
       success: true,
@@ -405,7 +451,7 @@ export default async function handler(req, res) {
           image_main
         )
       `, { count: 'exact' })
-      .eq('user_id', id)                   // ✅ FIXED: use user_id
+      .eq('user_id', id)
       .eq('is_hidden', false)
       .order('created_at', { ascending: false })
       .range(Number(offset), Number(offset) + Number(limit) - 1);
