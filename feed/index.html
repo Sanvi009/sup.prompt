@@ -314,6 +314,121 @@
         .btn-view-prompt:hover { background: #d8dadf; }
         .btn-view-prompt:active { transform: scale(0.98); }
 
+        /* ===== CREATIVE PEOPLES SECTION ===== */
+        .creative-section {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e4e6eb;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+            margin-bottom: 16px;
+            overflow: hidden;
+            padding: 16px 18px;
+        }
+        .creative-section .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .creative-section .header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #050505;
+        }
+        .creative-section .header .dismiss {
+            background: none;
+            border: none;
+            color: #65676b;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 500;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        .creative-section .header .dismiss:hover {
+            background: #f0f2f5;
+        }
+        .creative-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        .creative-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border: 1px solid transparent;
+        }
+        .creative-card:hover {
+            background: #f0f2f5;
+            border-color: #e4e6eb;
+        }
+        .creative-card .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e4e6eb;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+        .creative-card .avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .creative-card .info {
+            flex: 1;
+            min-width: 0;
+        }
+        .creative-card .info .username {
+            font-weight: 600;
+            font-size: 13px;
+            color: #050505;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .creative-card .info .display-name {
+            font-size: 12px;
+            color: #65676b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .creative-card .info .badges {
+            display: flex;
+            gap: 3px;
+            font-size: 11px;
+        }
+        .creative-card .follow-btn {
+            padding: 4px 14px;
+            background: #1877f2;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+            flex-shrink: 0;
+        }
+        .creative-card .follow-btn:hover {
+            background: #166fe5;
+        }
+        .creative-card .follow-btn.following {
+            background: #e4e6eb;
+            color: #050505;
+        }
+        .creative-card .follow-btn.following:hover {
+            background: #d8dadf;
+        }
+
         /* ===== FULL SCREEN IMAGE MODAL ===== */
         .image-modal-overlay {
             display: none;
@@ -562,6 +677,8 @@
             .comment-modal { padding: 16px; max-width: 98%; width: 98%; }
             .comment-modal .input-wrap input { font-size: 13px; padding: 8px 14px; }
             .comment-modal .input-wrap button { padding: 8px 16px; font-size: 13px; }
+            .creative-grid { grid-template-columns: 1fr; }
+            .creative-card { padding: 8px 10px; }
         }
     </style>
 </head>
@@ -635,6 +752,13 @@
         let localSaves = {};     // { promptId: { count, saved } }
         let likeDebounceTimers = {};
         let saveDebounceTimers = {};
+
+        // Follow debounce state
+        let followDebounceTimers = {};
+
+        // Creative section tracking
+        let creativeSectionCount = 0;
+        let lastCreativeIndex = -1;
 
         // ============================================================
         //  DOM
@@ -753,6 +877,8 @@
                 hasMore = true;
                 localLikes = {};
                 localSaves = {};
+                creativeSectionCount = 0;
+                lastCreativeIndex = -1;
                 renderSkeletons();
                 loader.style.display = 'block';
             }
@@ -766,6 +892,7 @@
                 });
                 const data = await res.json();
                 const prompts = data.prompts || [];
+                const suggestions = data.suggestions || [];
 
                 if (reset) feedContainer.innerHTML = '';
 
@@ -776,12 +903,25 @@
                     return;
                 }
 
-                prompts.forEach(p => {
+                // Render prompts with creative section insertion
+                for (let i = 0; i < prompts.length; i++) {
+                    const p = prompts[i];
+                    
                     // Initialize local state from server data
                     localLikes[p.id] = { count: p.like_count || 0, liked: p.liked || false };
                     localSaves[p.id] = { count: p.save_count || 0, saved: p.saved || false };
+                    
+                    // Check if we should insert a creative section
+                    const globalIndex = (page * pageSize) + i;
+                    const shouldInsert = shouldInsertCreativeSection(globalIndex);
+                    
+                    if (shouldInsert && suggestions.length > 0 && user) {
+                        feedContainer.appendChild(createCreativeSection(suggestions, globalIndex));
+                        creativeSectionCount++;
+                    }
+                    
                     feedContainer.appendChild(createPostElement(p));
-                });
+                }
 
                 hasMore = data.hasMore;
                 page++;
@@ -794,6 +934,144 @@
                 }
             }
             loading = false;
+        }
+
+        // ============================================================
+        //  CREATIVE SECTION INSERTION LOGIC
+        // ============================================================
+        function shouldInsertCreativeSection(globalIndex) {
+            if (!user) return false;
+            
+            // First section: after 10 prompts (index 9)
+            if (creativeSectionCount === 0 && globalIndex === 9) {
+                return true;
+            }
+            
+            // Subsequent sections: every 20 prompts
+            if (creativeSectionCount > 0 && globalIndex === 9 + (creativeSectionCount * 20)) {
+                return true;
+            }
+            
+            return false;
+        }
+
+        // ============================================================
+        //  CREATE CREATIVE SECTION
+        // ============================================================
+        function createCreativeSection(suggestions, globalIndex) {
+            const section = document.createElement('div');
+            section.className = 'creative-section';
+            section.dataset.index = globalIndex;
+
+            let html = `
+                <div class="header">
+                    <h3>✨ Creative Peoples</h3>
+                    <button class="dismiss" data-index="${globalIndex}">Dismiss</button>
+                </div>
+                <div class="creative-grid">
+            `;
+
+            suggestions.forEach(s => {
+                const avatarUrl = s.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(s.username) + '&background=4f46e5&color=fff&size=40';
+                const displayName = s.display_name || s.username;
+                let badges = '';
+                if (s.is_premium) badges += '⭐';
+                if (s.is_owner) badges += '👑';
+
+                html += `
+                    <div class="creative-card" onclick="window.location.href='/@${s.username}'">
+                        <div class="avatar">
+                            <img src="${avatarUrl}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(s.username)}&background=4f46e5&color=fff&size=40'" />
+                        </div>
+                        <div class="info">
+                            <div class="username">@${s.username}</div>
+                            <div class="display-name">${displayName} ${badges}</div>
+                        </div>
+                        <button class="follow-btn" data-id="${s.id}" data-username="${s.username}">Follow</button>
+                    </div>
+                `;
+            });
+
+            html += `</div></div>`;
+            section.innerHTML = html;
+
+            // Add follow button event listeners
+            section.querySelectorAll('.follow-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    handleFollow(e.currentTarget);
+                });
+            });
+
+            // Dismiss handler
+            section.querySelector('.dismiss').addEventListener('click', (e) => {
+                e.stopPropagation();
+                section.style.display = 'none';
+            });
+
+            return section;
+        }
+
+        // ============================================================
+        //  FOLLOW BUTTON (Optimistic UI + Debounced API Sync)
+        // ============================================================
+        function updateFollowUI(btn, isFollowing) {
+            if (isFollowing) {
+                btn.textContent = 'Following';
+                btn.classList.add('following');
+            } else {
+                btn.textContent = 'Follow';
+                btn.classList.remove('following');
+            }
+        }
+
+        function handleFollow(btn) {
+            if (!user) {
+                popup.classList.add('active');
+                return;
+            }
+
+            const userId = btn.dataset.id;
+            const isFollowing = btn.classList.contains('following');
+            const newState = !isFollowing;
+
+            // 1. Instant optimistic UI update
+            updateFollowUI(btn, newState);
+
+            // 2. Clear existing timer for this user
+            if (followDebounceTimers[userId]) {
+                clearTimeout(followDebounceTimers[userId]);
+            }
+
+            // 3. Set new timer (800ms debounce)
+            followDebounceTimers[userId] = setTimeout(async () => {
+                // Check if the user changed their mind during debounce
+                const finalState = btn.classList.contains('following');
+                const action = finalState ? 'follow' : 'unfollow';
+                const method = finalState ? 'POST' : 'DELETE';
+
+                try {
+                    const res = await fetch(`/api/follows?action=${action}`, {
+                        method,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ targetUserId: userId })
+                    });
+
+                    if (!res.ok) {
+                        // API failed: revert silently
+                        updateFollowUI(btn, !finalState);
+                    }
+                } catch (err) {
+                    // Network error: revert silently
+                    updateFollowUI(btn, !finalState);
+                    console.error(err);
+                }
+
+                delete followDebounceTimers[userId];
+            }, 800);
         }
 
         // ============================================================
