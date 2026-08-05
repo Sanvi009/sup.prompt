@@ -1237,6 +1237,10 @@
 
                 followModalList.innerHTML = '';
 
+                // ✅ Step 1: Build user items first (without follow status)
+                const userItems = [];
+                const userProfileIds = [];
+
                 list.forEach(item => {
                     const profile = item.profiles || {};
                     const username = profile.username || 'Unknown';
@@ -1259,9 +1263,10 @@
                         badgeHtml = `<span class="badge premium">Premium</span>`;
                     }
 
+                    // We'll fill the follow button later
                     let followBtnHtml = '';
                     if (currentUser && currentUser.id !== profile.id) {
-                        followBtnHtml = `<button class="follow-btn" data-id="${profile.id}" data-username="${username}">Follow</button>`;
+                        followBtnHtml = `<button class="follow-btn" data-id="${profile.id}" data-username="${username}" style="background:#1a1a1a;color:white;padding:6px 16px;border:none;border-radius:8px;font-weight:500;font-size:12px;cursor:pointer;transition:all 0.2s;flex-shrink:0;">Follow</button>`;
                     }
 
                     userItem.innerHTML = `
@@ -1276,10 +1281,52 @@
                         ${followBtnHtml}
                     `;
 
-                    followModalList.appendChild(userItem);
+                    userItems.push(userItem);
+                    if (currentUser && currentUser.id !== profile.id) {
+                        userProfileIds.push(profile.id);
+                    }
                 });
 
-                // Attach follow button handlers inside the modal
+                // ✅ Step 2: Fetch follow status for all users in parallel
+                if (currentUser && userProfileIds.length > 0) {
+                    const statusPromises = userProfileIds.map(async (pid) => {
+                        const statusRes = await fetch(`/api/follows?action=status&targetId=${pid}`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        const statusData = await statusRes.json();
+                        return { userId: pid, isFollowing: statusData.isFollowing || false };
+                    });
+                    const statusResults = await Promise.all(statusPromises);
+                    const statusMap = {};
+                    statusResults.forEach(r => { statusMap[r.userId] = r.isFollowing; });
+
+                    // ✅ Step 3: Update the buttons with correct status
+                    userItems.forEach(item => {
+                        const btn = item.querySelector('.follow-btn');
+                        if (btn) {
+                            const userId = btn.dataset.id;
+                            const isFollowing = statusMap[userId] || false;
+                            if (isFollowing) {
+                                btn.textContent = 'Following';
+                                btn.classList.add('following');
+                                btn.style.background = '#e0e0e0';
+                                btn.style.color = '#1a1a1a';
+                            } else {
+                                btn.textContent = 'Follow';
+                                btn.classList.remove('following');
+                                btn.style.background = '#1a1a1a';
+                                btn.style.color = 'white';
+                            }
+                        }
+                    });
+                }
+
+                // ✅ Step 4: Append all items to the modal list
+                userItems.forEach(item => {
+                    followModalList.appendChild(item);
+                });
+
+                // ✅ Step 5: Attach follow button handlers inside the modal
                 followModalList.querySelectorAll('.follow-btn').forEach(btn => {
                     btn.addEventListener('click', async (e) => {
                         e.stopPropagation();
@@ -1305,9 +1352,13 @@
                                 if (isFollowing) {
                                     btn.textContent = 'Follow';
                                     btn.classList.remove('following');
+                                    btn.style.background = '#1a1a1a';
+                                    btn.style.color = 'white';
                                 } else {
                                     btn.textContent = 'Following';
                                     btn.classList.add('following');
+                                    btn.style.background = '#e0e0e0';
+                                    btn.style.color = '#1a1a1a';
                                 }
                             }
                         } catch (err) {
