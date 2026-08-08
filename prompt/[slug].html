@@ -182,15 +182,6 @@
             cursor: pointer;
         }
         .post-header .user-info .name:hover { text-decoration: underline; }
-        .post-header .user-info .badge {
-            background: #1877f2;
-            color: white;
-            font-size: 10px;
-            font-weight: 600;
-            padding: 1px 7px;
-            border-radius: 12px;
-            letter-spacing: 0.2px;
-        }
         .post-header .user-info .meta {
             font-size: 13px;
             color: #65676b;
@@ -716,6 +707,91 @@
         }
         .popup .btn-secondary:hover { background: #d8dadf; }
 
+        /* ============================================================ */
+        /* ===== PURE CSS BADGES (Copied from profile page) ===== */
+        /* ============================================================ */
+
+        /* --- Base badge container (inline with text) --- */
+        .badge-container {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            position: relative;
+            flex-shrink: 0;
+            vertical-align: middle;
+        }
+
+        /* --- PREMIUM BADGE (Blue Verification Tick) --- */
+        .badge-premium {
+            background: #1d9bf0;
+            border-radius: 50%;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .badge-premium::after {
+            content: '';
+            display: block;
+            width: 6px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg) translate(-1px, -1px);
+            border-radius: 1px;
+        }
+
+        /* --- OWNER BADGE (Black Circle + Gold Crown) --- */
+        .badge-owner {
+            background: #1a1a1a;
+            border-radius: 50%;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            position: relative;
+        }
+        /* The crown shape inside the black circle */
+        .badge-owner::before {
+            content: '';
+            display: block;
+            width: 12px;
+            height: 10px;
+            background: #f5a623;
+            clip-path: polygon(
+                0% 100%, 
+                15% 100%, 
+                15% 40%, 
+                35% 70%, 
+                50% 20%, 
+                65% 70%, 
+                85% 40%, 
+                85% 100%, 
+                100% 100%, 
+                100% 100%, 
+                0% 100%
+            );
+            position: relative;
+            top: -1px;
+        }
+        /* The crown's bottom base line */
+        .badge-owner::after {
+            content: '';
+            display: block;
+            width: 10px;
+            height: 2px;
+            background: #f5a623;
+            border-radius: 1px;
+            position: absolute;
+            bottom: 5px;
+        }
+
         /* ===== RESPONSIVE ===== */
         @media (max-width: 640px) {
             .container { padding: 12px 8px 60px; }
@@ -986,7 +1062,7 @@
                         <div class="user-info">
                             <div class="name" onclick="window.location.href='/@raafiiih'">
                                 RAAFIIIH
-                                <img src="/badge.png" class="badge" onerror="this.style.display='none'" alt="Verified" />
+                                <span class="badge-container"><span class="badge-premium"></span></span>
                             </div>
                             <div class="meta">${date} · ${p.view_count || 0} views</div>
                         </div>
