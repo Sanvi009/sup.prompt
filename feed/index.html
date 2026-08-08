@@ -1516,13 +1516,21 @@
             const likeIcon = c.liked ? `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>` : `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
             const likeClass = c.liked ? 'liked' : '';
 
+            // Build badge HTML
+            let badgeHtml = '';
+            if (c.profiles?.is_owner) {
+                badgeHtml = `<span class="badge-container"><span class="badge-owner"></span></span>`;
+            } else if (c.profiles?.is_premium) {
+                badgeHtml = `<span class="badge-container"><span class="badge-premium"></span></span>`;
+            }
+
             let html = `
                 <div class="avatar-small" style="background-image:url(${avatar});background-size:cover;background-position:center;">
                     ${!c.profiles?.avatar_url ? displayName.charAt(0).toUpperCase() : ''}
                 </div>
                 <div class="body">
                     <div class="row">
-                        <span class="name" onclick="window.location.href='/@${username}'">${displayName}</span>
+                        <span class="name" onclick="window.location.href='/@${username}'">${displayName} ${badgeHtml}</span>
                         <span class="time">${time}</span>
                     </div>
                     <div class="content">${c.content}</div>
@@ -1670,7 +1678,9 @@
                     id: user.id,
                     username: user.username,
                     display_name: user.display_name || user.username,
-                    avatar_url: user.avatar_url
+                    avatar_url: user.avatar_url,
+                    is_premium: user.is_premium || false,
+                    is_owner: user.is_owner || false
                 },
                 liked: false,
                 replies: []
