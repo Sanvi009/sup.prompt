@@ -72,7 +72,7 @@ export default async function handler(req, res) {
     // 1. Get boosted prompts
     let query = supabaseAdmin
       .from('prompts')
-      .select('id, slug, title, image_main, view_count, like_count, save_count, comment_count, created_at, is_boosted, category_ids', { count: 'exact' })
+      .select('id, slug, title, description, image_main, view_count, like_count, save_count, comment_count, created_at, is_boosted, category_ids', { count: 'exact' })
       .eq('is_published', true)
       .eq('is_boosted', true)
       .order('created_at', { ascending: false });
@@ -86,7 +86,7 @@ export default async function handler(req, res) {
     // 2. Get regular prompts (non-boosted)
     let regularQuery = supabaseAdmin
       .from('prompts')
-      .select('id, slug, title, image_main, view_count, like_count, save_count, comment_count, created_at, is_boosted, category_ids', { count: 'exact' })
+      .select('id, slug, title, description, image_main, view_count, like_count, save_count, comment_count, created_at, is_boosted, category_ids', { count: 'exact' })
       .eq('is_published', true)
       .eq('is_boosted', false)
       .order('created_at', { ascending: false })
@@ -320,7 +320,7 @@ export default async function handler(req, res) {
 
     const { data: prompts, error: promptError, count } = await supabaseAdmin
       .from('prompts')
-      .select('id, slug, title, image_main, view_count, like_count, save_count, comment_count, created_at, is_boosted, category_ids', { count: 'exact' })
+      .select('id, slug, title, description, image_main, view_count, like_count, save_count, comment_count, created_at, is_boosted, category_ids', { count: 'exact' })
       .eq('is_published', true)
       .or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,prompt_text.ilike.%${searchTerm}%`)
       .order('created_at', { ascending: false })
@@ -366,7 +366,7 @@ export default async function handler(req, res) {
 
     const { data: prompts, error, count } = await supabaseAdmin
       .from('prompts')
-      .select('id, slug, title, image_main, view_count, like_count, save_count, comment_count, created_at, is_boosted, category_ids', { count: 'exact' })
+      .select('id, slug, title, description, image_main, view_count, like_count, save_count, comment_count, created_at, is_boosted, category_ids', { count: 'exact' })
       .eq('is_published', true)
       .order('created_at', { ascending: false })
       .range(Number(offset), Number(offset) + Number(limit) - 1);
