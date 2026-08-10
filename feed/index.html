@@ -1395,13 +1395,8 @@
                         });
                     }
                 } catch (err) {
-                    // Revert silently on network error
-                    const revertedLiked = !finalState.liked;
-                    const revertedCount = revertedLiked ? finalState.count + 1 : finalState.count - 1;
-                    localLikes[promptId] = { count: revertedCount, liked: revertedLiked };
-                    document.querySelectorAll(`.like-btn[data-id="${promptId}"]`).forEach(el => {
-                        updateLikeUI(el, promptId, revertedCount, revertedLiked);
-                    });
+                    // ❌ REMOVED REVERT LOGIC — just log the error
+                    console.error('Like action failed (server may still have changed DB):', err);
                 }
                 delete likeDebounceTimers[promptId];
             }, 800);
@@ -1461,12 +1456,8 @@
                         });
                     }
                 } catch (err) {
-                    const revertedSaved = !finalState.saved;
-                    const revertedCount = revertedSaved ? finalState.count + 1 : finalState.count - 1;
-                    localSaves[promptId] = { count: revertedCount, saved: revertedSaved };
-                    document.querySelectorAll(`.save-btn[data-id="${promptId}"]`).forEach(el => {
-                        updateSaveUI(el, promptId, revertedCount, revertedSaved);
-                    });
+                    // ❌ REMOVED REVERT LOGIC — just log the error
+                    console.error('Save action failed (server may still have changed DB):', err);
                 }
                 delete saveDebounceTimers[promptId];
             }, 800);
