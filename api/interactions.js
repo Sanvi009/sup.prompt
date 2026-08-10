@@ -73,10 +73,15 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: error.message });
     }
 
-    await supabaseAdmin
+    // ✅ FIX: Atomic increment (no race conditions)
+    const { error: updateError } = await supabaseAdmin
       .from('prompts')
-      .update({ like_count: prompt.like_count + 1 })
+      .update({ like_count: supabaseAdmin.raw('like_count + 1') })
       .eq('id', promptId);
+
+    if (updateError) {
+      return res.status(500).json({ error: updateError.message });
+    }
 
     const { count: likes } = await supabaseAdmin
       .from('likes')
@@ -119,10 +124,15 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: error.message });
     }
 
-    await supabaseAdmin
+    // ✅ FIX: Atomic decrement with safety check (never goes below 0)
+    const { error: updateError } = await supabaseAdmin
       .from('prompts')
-      .update({ like_count: prompt.like_count - 1 })
+      .update({ like_count: supabaseAdmin.raw('GREATEST(0, like_count - 1)') })
       .eq('id', promptId);
+
+    if (updateError) {
+      return res.status(500).json({ error: updateError.message });
+    }
 
     const { count: likes } = await supabaseAdmin
       .from('likes')
@@ -178,10 +188,15 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: error.message });
     }
 
-    await supabaseAdmin
+    // ✅ FIX: Atomic increment
+    const { error: updateError } = await supabaseAdmin
       .from('prompts')
-      .update({ save_count: prompt.save_count + 1 })
+      .update({ save_count: supabaseAdmin.raw('save_count + 1') })
       .eq('id', promptId);
+
+    if (updateError) {
+      return res.status(500).json({ error: updateError.message });
+    }
 
     const { count: saves } = await supabaseAdmin
       .from('saves')
@@ -224,10 +239,15 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: error.message });
     }
 
-    await supabaseAdmin
+    // ✅ FIX: Atomic decrement with safety check
+    const { error: updateError } = await supabaseAdmin
       .from('prompts')
-      .update({ save_count: prompt.save_count - 1 })
+      .update({ save_count: supabaseAdmin.raw('GREATEST(0, save_count - 1)') })
       .eq('id', promptId);
+
+    if (updateError) {
+      return res.status(500).json({ error: updateError.message });
+    }
 
     const { count: saves } = await supabaseAdmin
       .from('saves')
