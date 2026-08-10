@@ -180,18 +180,15 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: error.message });
     }
 
-    await supabaseAdmin
+    // ✅ FIX: Atomic increment for comment_count
+    const { error: updateError } = await supabaseAdmin
       .from('prompts')
-      .update({ comment_count: prompt.comment_count + 1 })
+      .update({ comment_count: supabaseAdmin.raw('comment_count + 1') })
       .eq('id', promptId);
 
-    await supabaseAdmin
-      .from('user_activity')
-      .insert({
-        user_id: userId,
-        prompt_id: promptId,
-        action_type: 'comment'
-      });
+    if (updateError) {
+      return res.status(500).json({ error: updateError.message });
+    }
 
     return res.status(201).json({
       success: true,
@@ -233,6 +230,7 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: 'You can only delete your own comments' });
     }
 
+    // Admin: hide instead of delete
     if (isAdmin && comment.user_id !== userId) {
       const { error } = await supabaseAdmin
         .from('comments')
@@ -249,6 +247,7 @@ export default async function handler(req, res) {
       });
     }
 
+    // Regular user: delete permanently
     const { error } = await supabaseAdmin
       .from('comments')
       .delete()
@@ -258,10 +257,15 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: error.message });
     }
 
-    await supabaseAdmin
+    // ✅ FIX: Atomic decrement with safety check
+    const { error: updateError } = await supabaseAdmin
       .from('prompts')
-      .update({ comment_count: prompt.comment_count - 1 })
+      .update({ comment_count: supabaseAdmin.raw('GREATEST(0, comment_count - 1)') })
       .eq('id', comment.prompt_id);
+
+    if (updateError) {
+      return res.status(500).json({ error: updateError.message });
+    }
 
     return res.status(200).json({
       success: true,
@@ -405,7 +409,7 @@ export default async function handler(req, res) {
           image_main
         )
       `, { count: 'exact' })
-      .eq('user_id', id)                   // ✅ FIXED: use user_id
+      .eq('user_id', id)
       .eq('is_hidden', false)
       .order('created_at', { ascending: false })
       .range(Number(offset), Number(offset) + Number(limit) - 1);
