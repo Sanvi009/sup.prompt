@@ -17,7 +17,6 @@ export default async function handler(req, res) {
 
   const authHeader = req.headers.authorization;
   let userId = null;
-  let userCategories = [];
   let followingIds = [];
 
   if (authHeader && authHeader.startsWith('Bearer ')) {
@@ -27,26 +26,6 @@ export default async function handler(req, res) {
       userId = decoded.id;
 
       if (userId) {
-        const { data: activity } = await supabaseAdmin
-          .from('user_activity')
-          .select('category_id, action_type')
-          .eq('user_id', userId);
-
-        if (activity && activity.length > 0) {
-          const categoryCounts = {};
-          activity.forEach(a => {
-            if (a.category_id) {
-              const key = a.category_id;
-              if (!categoryCounts[key]) categoryCounts[key] = 0;
-              categoryCounts[key] += 1;
-            }
-          });
-
-          userCategories = Object.entries(categoryCounts)
-            .sort((a, b) => b[1] - a[1])
-            .map(entry => entry[0]);
-        }
-
         const { data: follows } = await supabaseAdmin
           .from('follows')
           .select('following_id')
@@ -100,8 +79,8 @@ export default async function handler(req, res) {
 
     let allPrompts = [...boosted, ...regular];
 
-    // 3. Personalize for logged-in users
-    if (userId && userCategories.length > 0) {
+    // 3. Personalize for logged-in users (remove category-based scoring)
+    if (userId) {
       const { data: userLikes } = await supabaseAdmin
         .from('likes')
         .select('prompt_id')
@@ -122,12 +101,7 @@ export default async function handler(req, res) {
           // Placeholder for future creator_id support
         }
 
-        if (prompt.category_ids && prompt.category_ids.length > 0) {
-          const matchedCategories = prompt.category_ids.filter(id => 
-            userCategories.includes(id)
-          );
-          score += matchedCategories.length * 10;
-        }
+        // Category matching removed entirely
 
         if (!likedIds.includes(prompt.id)) {
           score += 5;
