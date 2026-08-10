@@ -78,14 +78,6 @@ export default async function handler(req, res) {
       .update({ like_count: prompt.like_count + 1 })
       .eq('id', promptId);
 
-    await supabaseAdmin
-      .from('user_activity')
-      .insert({
-        user_id: userId,
-        prompt_id: promptId,
-        action_type: 'like'
-      });
-
     const { count: likes } = await supabaseAdmin
       .from('likes')
       .select('*', { count: 'exact', head: true })
@@ -131,13 +123,6 @@ export default async function handler(req, res) {
       .from('prompts')
       .update({ like_count: prompt.like_count - 1 })
       .eq('id', promptId);
-
-    await supabaseAdmin
-      .from('user_activity')
-      .delete()
-      .eq('user_id', userId)
-      .eq('prompt_id', promptId)
-      .eq('action_type', 'like');
 
     const { count: likes } = await supabaseAdmin
       .from('likes')
@@ -198,14 +183,6 @@ export default async function handler(req, res) {
       .update({ save_count: prompt.save_count + 1 })
       .eq('id', promptId);
 
-    await supabaseAdmin
-      .from('user_activity')
-      .insert({
-        user_id: userId,
-        prompt_id: promptId,
-        action_type: 'save'
-      });
-
     const { count: saves } = await supabaseAdmin
       .from('saves')
       .select('*', { count: 'exact', head: true })
@@ -251,13 +228,6 @@ export default async function handler(req, res) {
       .from('prompts')
       .update({ save_count: prompt.save_count - 1 })
       .eq('id', promptId);
-
-    await supabaseAdmin
-      .from('user_activity')
-      .delete()
-      .eq('user_id', userId)
-      .eq('prompt_id', promptId)
-      .eq('action_type', 'save');
 
     const { count: saves } = await supabaseAdmin
       .from('saves')
