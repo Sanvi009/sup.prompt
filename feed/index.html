@@ -461,7 +461,7 @@
             border-radius: 4px;
         }
 
-        /* ===== COMMENT MODAL - COMPLETELY REWRITTEN ===== */
+        /* ===== COMMENT MODAL - NATIVE APP STYLE ===== */
         .comment-modal-overlay {
             display: none;
             position: fixed;
@@ -487,7 +487,7 @@
             overflow: hidden;
         }
         
-        /* ===== PINNED HEADER ===== */
+        /* Pinned header */
         .comment-modal-header {
             flex-shrink: 0;
             display: flex;
@@ -516,7 +516,7 @@
         }
         .comment-modal-header .close-btn:hover { background: #f0f2f5; }
         
-        /* ===== SCROLLABLE COMMENT LIST ===== */
+        /* Scrollable comment list */
         .comment-modal-list {
             flex: 1;
             overflow-y: auto;
@@ -526,7 +526,7 @@
         .comment-modal-list::-webkit-scrollbar { width: 4px; }
         .comment-modal-list::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
 
-        /* ===== PINNED BOTTOM INPUT ===== */
+        /* Pinned bottom input */
         .comment-modal-input {
             flex-shrink: 0;
             display: flex;
@@ -587,7 +587,7 @@
         .comment-modal-input button:hover { background: #166fe5; }
         .comment-modal-input button:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* ===== COMMENT ITEMS ===== */
+        /* Comment items */
         .comment-item {
             display: flex;
             gap: 10px;
@@ -651,7 +651,7 @@
         .comment-item .body .actions button.liked svg { fill: #e74c3c; }
         .comment-item .body .actions svg { width: 16px; height: 16px; fill: currentColor; }
         
-        /* ===== REPLIES ===== */
+        /* Replies */
         .comment-item .replies {
             margin-top: 8px;
             margin-left: 42px;
@@ -659,50 +659,8 @@
             flex-direction: column;
             gap: 10px;
         }
-        
-        /* ===== REPLY INPUT - FIXED LAYOUT ===== */
-        .comment-item .reply-input-wrap {
-            margin-top: 8px;
-            margin-left: 42px;
-            display: none;
-            gap: 8px;
-            flex-wrap: wrap;
-            width: 100%;
-        }
-        .comment-item .reply-input-wrap.visible {
-            display: flex;
-        }
-        .comment-item .reply-input-wrap input {
-            flex: 1;
-            min-width: 80px;
-            padding: 8px 14px;
-            border: 1px solid #e4e6eb;
-            border-radius: 20px;
-            font-size: 13px;
-            font-family: inherit;
-            background: #f0f2f5;
-            transition: border 0.2s, background 0.2s;
-        }
-        .comment-item .reply-input-wrap input:focus {
-            outline: none;
-            border-color: #1877f2;
-            background: white;
-        }
-        .comment-item .reply-input-wrap button {
-            padding: 8px 16px;
-            background: #1877f2;
-            color: white;
-            border: none;
-            border-radius: 20px;
-            font-weight: 500;
-            font-size: 13px;
-            cursor: pointer;
-            transition: background 0.2s;
-            flex-shrink: 0;
-        }
-        .comment-item .reply-input-wrap button:hover { background: #166fe5; }
 
-        /* ===== SKELETON FOR COMMENTS ===== */
+        /* Skeleton for comments */
         .skeleton-comment {
             display: flex; gap: 10px; margin-bottom: 12px; padding: 4px 0;
         }
@@ -760,10 +718,9 @@
         .popup .btn-secondary:hover { background: #d8dadf; }
 
         /* ============================================================ */
-        /* ===== PURE CSS BADGES (Copied from profile page) ===== */
+        /* ===== PURE CSS BADGES ===== */
         /* ============================================================ */
 
-        /* --- Base badge container (inline with text) --- */
         .badge-container {
             display: inline-flex;
             align-items: center;
@@ -774,8 +731,6 @@
             flex-shrink: 0;
             vertical-align: middle;
         }
-
-        /* --- PREMIUM BADGE (Blue Verification Tick) --- */
         .badge-premium {
             background: #1d9bf0;
             border-radius: 50%;
@@ -796,8 +751,6 @@
             transform: rotate(45deg) translate(-1px, -1px);
             border-radius: 1px;
         }
-
-        /* --- OWNER BADGE (Black Circle + Gold Crown) --- */
         .badge-owner {
             background: #1a1a1a;
             border-radius: 50%;
@@ -809,7 +762,6 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.2);
             position: relative;
         }
-        /* The crown shape inside the black circle */
         .badge-owner::before {
             content: '';
             display: block;
@@ -832,7 +784,6 @@
             position: relative;
             top: -1px;
         }
-        /* The crown's bottom base line */
         .badge-owner::after {
             content: '';
             display: block;
@@ -865,15 +816,11 @@
             .creative-grid { grid-template-columns: 1fr; }
             .creative-card { padding: 8px 10px; }
             .comment-item .replies { margin-left: 28px; }
-            .comment-item .reply-input-wrap { margin-left: 28px; }
         }
         @media (max-width: 400px) {
             .comment-modal-input { flex-direction: column; }
             .comment-modal-input input { width: 100%; }
             .comment-modal-input button { width: 100%; }
-            .comment-item .reply-input-wrap { flex-direction: column; }
-            .comment-item .reply-input-wrap input { width: 100%; }
-            .comment-item .reply-input-wrap button { width: 100%; }
         }
     </style>
 </head>
@@ -901,7 +848,7 @@
         <img id="imageModalContent" src="" alt="Full view" />
     </div>
 
-    <!-- COMMENT MODAL - REWRITTEN STRUCTURE -->
+    <!-- COMMENT MODAL - NATIVE APP STYLE -->
     <div class="comment-modal-overlay" id="commentModal">
         <div class="comment-modal">
             <div class="comment-modal-header">
@@ -942,6 +889,8 @@
         let hasMore = true;
         let searchTimeout = null;
         let currentPromptIdForComments = null;
+        let replyToCommentId = null;
+        let replyToUsername = null;
 
         // Local state trackers for debounced optimistic updates
         let localLikes = {};      // { promptId: { count, liked } }
@@ -982,6 +931,20 @@
             if (screenWidth < 640) width = 400;
             else if (screenWidth < 1024) width = 600;
             return `${url}?width=${width}&format=webp`;
+        }
+
+        // ============================================================
+        //  FORMAT VIEW COUNT (NEW)
+        // ============================================================
+        function formatViewCount(count) {
+            if (count < 1000) return count.toString();
+            const thousands = count / 1000;
+            if (thousands < 10) {
+                // Show one decimal place for 1.0k - 9.9k
+                return thousands.toFixed(1) + 'k';
+            }
+            // Show whole number for 10k and above
+            return Math.round(thousands) + 'k';
         }
 
         // ============================================================
@@ -1322,6 +1285,7 @@
             const saveIconHtml = localSave.saved ? bookmarkFilled : bookmarkIcon;
 
             const date = new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            const formattedViews = formatViewCount(p.view_count || 0);
 
             // Description logic
             let descHTML = '';
@@ -1348,7 +1312,7 @@
                             RAAFIIIH
                             <span class="badge-container"><span class="badge-premium"></span></span>
                         </div>
-                        <div class="meta">${date} · ${p.view_count || 0} views</div>
+                        <div class="meta">${date} · ${formattedViews} views</div>
                     </div>
                 </div>
                 <div class="post-title">
@@ -1570,14 +1534,18 @@
         }
 
         // ============================================================
-        //  COMMENT MODAL - REWRITTEN FUNCTIONS
+        //  COMMENT MODAL - REWRITTEN WITH GLOBAL REPLY INPUT
         // ============================================================
         let commentLikeTimers = {};
+        let tempComments = {}; // Store temp comment elements for optimistic updates
 
         async function openCommentModal(promptId) {
             currentPromptIdForComments = promptId;
+            replyToCommentId = null;
+            replyToUsername = null;
             commentModal.classList.add('active');
             commentInput.value = '';
+            commentInput.placeholder = 'Write a comment...';
             renderCommentSkeletons(3);
 
             // Reset scroll position to top
@@ -1610,6 +1578,7 @@
         function createCommentElement(c, isReply = false) {
             const div = document.createElement('div');
             div.className = 'comment-item';
+            div.dataset.id = c.id;
 
             const avatar = c.profiles?.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(c.profiles?.username || '?') + '&background=e4e6eb&color=1877f2&size=32';
             const displayName = c.profiles?.display_name || c.profiles?.username || 'Anonymous';
@@ -1641,7 +1610,7 @@
                             ${likeIcon} ${c.likes_count || 0}
                         </button>
                         <span style="color:#d1d5db;">·</span>
-                        ${!isReply ? `<button class="reply-toggle" data-id="${c.id}">Reply</button>` : ''}
+                        ${!isReply ? `<button class="reply-toggle" data-id="${c.id}" data-username="${username}">Reply</button>` : ''}
                     </div>
             `;
 
@@ -1651,15 +1620,6 @@
                     html += createCommentElement(r, true).outerHTML;
                 });
                 html += `</div>`;
-            }
-
-            if (!isReply) {
-                html += `
-                    <div class="reply-input-wrap" id="replyForm_${c.id}">
-                        <input type="text" placeholder="Write a reply..." id="replyInput_${c.id}" />
-                        <button class="reply-submit" data-id="${c.id}">Reply</button>
-                    </div>
-                `;
             }
 
             html += `</div></div>`;
@@ -1675,52 +1635,13 @@
             if (replyToggle) {
                 replyToggle.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    const form = document.getElementById(`replyForm_${c.id}`);
-                    if (form) {
-                        const isVisible = form.classList.contains('visible');
-                        form.classList.toggle('visible');
-                        if (!isVisible) {
-                            // Auto-scroll to show the reply input
-                            setTimeout(() => {
-                                form.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            }, 50);
-                        }
-                    }
+                    const username = replyToggle.dataset.username;
+                    replyToCommentId = c.id;
+                    replyToUsername = username;
+                    commentInput.value = `@${username} `;
+                    commentInput.placeholder = `Reply to @${username}...`;
+                    commentInput.focus();
                 });
-            }
-
-            const replySubmit = div.querySelector('.reply-submit');
-            if (replySubmit) {
-                replySubmit.addEventListener('click', async () => {
-                    if (!user) { popup.classList.add('active'); return; }
-                    const input = document.getElementById(`replyInput_${c.id}`);
-                    const content = input.value.trim();
-                    if (!content) return;
-                    try {
-                        const res = await fetch('/api/comments?action=add', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                            body: JSON.stringify({ promptId: currentPromptIdForComments, content, parentId: c.id })
-                        });
-                        if (res.ok) { 
-                            input.value = ''; 
-                            const form = document.getElementById(`replyForm_${c.id}`);
-                            if (form) form.classList.remove('visible');
-                            openCommentModal(currentPromptIdForComments); 
-                        }
-                    } catch (err) { console.error(err); }
-                });
-                
-                // Enter key support
-                const input = replySubmit.previousElementSibling;
-                if (input && input.tagName === 'INPUT') {
-                    input.addEventListener('keydown', (e) => {
-                        if (e.key === 'Enter') {
-                            e.preventDefault();
-                            replySubmit.click();
-                        }
-                    });
-                }
             }
 
             return div;
@@ -1750,6 +1671,7 @@
             const newCount = newLiked ? currentCount + 1 : currentCount - 1;
             btn.dataset.count = newCount;
 
+            // OPTIMISTIC UI UPDATE
             updateCommentLikeUI(btn, newCount, newLiked);
 
             if (commentLikeTimers[commentId]) {
@@ -1786,12 +1708,33 @@
         }
 
         // ============================================================
-        //  POST NEW COMMENT (Instant Append, No Reload)
+        //  POST NEW COMMENT / REPLY (Instant Append + Optimistic)
         // ============================================================
         commentSubmitBtn.addEventListener('click', async () => {
             if (!user) { popup.classList.add('active'); return; }
-            const content = commentInput.value.trim();
+            let content = commentInput.value.trim();
             if (!content || !currentPromptIdForComments) return;
+            
+            // Extract parentId from reply mention
+            let parentId = null;
+            if (replyToCommentId && replyToUsername) {
+                const mention = `@${replyToUsername}`;
+                if (content.startsWith(mention)) {
+                    parentId = replyToCommentId;
+                    // Remove the mention from the actual content
+                    content = content.substring(mention.length).trim();
+                    if (!content) {
+                        commentInput.value = `@${replyToUsername} `;
+                        commentInput.focus();
+                        return;
+                    }
+                } else {
+                    // User cleared the mention, treat as normal comment
+                    replyToCommentId = null;
+                    replyToUsername = null;
+                }
+            }
+
             commentSubmitBtn.disabled = true;
 
             // 1. Create temporary comment object
@@ -1811,43 +1754,103 @@
                     is_owner: user.is_owner || false
                 },
                 liked: false,
-                replies: []
+                replies: [],
+                parent_id: parentId
             };
 
-            // 2. Append instantly to the list
-            const noCommentsMsg = commentList.querySelector('div[style*="No comments yet"]');
-            if (noCommentsMsg) commentList.innerHTML = '';
-            commentList.prepend(createCommentElement(tempComment));
+            // 2. If it's a reply, find parent and append under it
+            if (parentId) {
+                const parentEl = commentList.querySelector(`.comment-item[data-id="${parentId}"]`);
+                if (parentEl) {
+                    let repliesContainer = parentEl.querySelector('.replies');
+                    if (!repliesContainer) {
+                        repliesContainer = document.createElement('div');
+                        repliesContainer.className = 'replies';
+                        // Insert replies container before the closing of the body
+                        const body = parentEl.querySelector('.body');
+                        body.appendChild(repliesContainer);
+                    }
+                    const replyEl = createCommentElement(tempComment, true);
+                    repliesContainer.appendChild(replyEl);
+                    // Scroll to show the new reply
+                    setTimeout(() => {
+                        replyEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 50);
+                } else {
+                    // Parent not found, treat as top-level
+                    const noCommentsMsg = commentList.querySelector('div[style*="No comments yet"]');
+                    if (noCommentsMsg) commentList.innerHTML = '';
+                    commentList.prepend(createCommentElement(tempComment));
+                }
+            } else {
+                // Top-level comment
+                const noCommentsMsg = commentList.querySelector('div[style*="No comments yet"]');
+                if (noCommentsMsg) commentList.innerHTML = '';
+                commentList.prepend(createCommentElement(tempComment));
+            }
+
+            // Clear input and reply state
+            commentInput.value = '';
+            commentInput.placeholder = 'Write a comment...';
+            replyToCommentId = null;
+            replyToUsername = null;
 
             // 3. Send API request
             try {
                 const res = await fetch('/api/comments?action=add', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ promptId: currentPromptIdForComments, content })
+                    body: JSON.stringify({ 
+                        promptId: currentPromptIdForComments, 
+                        content,
+                        parentId: parentId || null
+                    })
                 });
                 if (res.ok) {
                     // Success: Replace temp ID with real data by re-fetching silently
-                    commentInput.value = '';
                     const fetchRes = await fetch(`/api/comments?action=list&promptId=${currentPromptIdForComments}&limit=50&offset=0`, {
                         headers: token ? { 'Authorization': `Bearer ${token}` } : {}
                     });
                     const data = await fetchRes.json();
                     renderCommentsInModal(data.comments || []);
                 } else {
-                    // Failed: Remove the temp comment
-                    const tempEl = commentList.querySelector(`[data-id="${tempId}"]`);
-                    if (tempEl) tempEl.remove();
+                    // Failed: Remove the temp comment(s)
+                    const tempEls = commentList.querySelectorAll(`[data-id^="temp_"]`);
+                    tempEls.forEach(el => el.remove());
+                    // Also remove empty replies containers if they exist
+                    document.querySelectorAll('.replies:empty').forEach(el => el.remove());
                     alert('Failed to post comment. Please try again.');
                 }
             } catch (err) {
-                // Failed: Remove the temp comment
-                const tempEl = commentList.querySelector(`[data-id="${tempId}"]`);
-                if (tempEl) tempEl.remove();
+                // Failed: Remove the temp comment(s)
+                const tempEls = commentList.querySelectorAll(`[data-id^="temp_"]`);
+                tempEls.forEach(el => el.remove());
+                document.querySelectorAll('.replies:empty').forEach(el => el.remove());
                 alert('Failed to post comment. Please try again.');
             }
 
             commentSubmitBtn.disabled = false;
+        });
+
+        // Enter key support for comment input
+        commentInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                commentSubmitBtn.click();
+            }
+        });
+
+        // Handle clearing reply state when user deletes the @mention
+        commentInput.addEventListener('input', () => {
+            if (replyToUsername && replyToCommentId) {
+                const currentValue = commentInput.value.trim();
+                const mention = `@${replyToUsername}`;
+                if (!currentValue.startsWith(mention)) {
+                    replyToCommentId = null;
+                    replyToUsername = null;
+                    commentInput.placeholder = 'Write a comment...';
+                }
+            }
         });
 
         // ============================================================
@@ -1874,9 +1877,15 @@
         // ============================================================
         document.getElementById('closeCommentModal').addEventListener('click', () => {
             commentModal.classList.remove('active');
+            replyToCommentId = null;
+            replyToUsername = null;
         });
         commentModal.addEventListener('click', (e) => {
-            if (e.target === e.currentTarget) commentModal.classList.remove('active');
+            if (e.target === e.currentTarget) {
+                commentModal.classList.remove('active');
+                replyToCommentId = null;
+                replyToUsername = null;
+            }
         });
 
         imageModal.addEventListener('click', () => {
