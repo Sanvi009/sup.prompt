@@ -1561,27 +1561,6 @@
             }
         });
 
-        // Enter key support for comment input
-        document.getElementById('commentInput').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                document.querySelector('.comment-submit').click();
-            }
-        });
-
-        // Handle clearing reply state when user deletes the @mention
-        document.getElementById('commentInput').addEventListener('input', () => {
-            if (replyToUsername && replyToCommentId) {
-                const currentValue = document.getElementById('commentInput').value.trim();
-                const mention = `@${replyToUsername}`;
-                if (!currentValue.startsWith(mention)) {
-                    replyToCommentId = null;
-                    replyToUsername = null;
-                    document.getElementById('commentInput').placeholder = 'Write a comment...';
-                }
-            }
-        });
-
         // ============================================================
         //  RELATED
         // ============================================================
