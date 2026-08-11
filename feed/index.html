@@ -461,7 +461,7 @@
             border-radius: 4px;
         }
 
-        /* ===== COMMENT MODAL ===== */
+        /* ===== COMMENT MODAL - COMPLETELY REWRITTEN ===== */
         .comment-modal-overlay {
             display: none;
             position: fixed;
@@ -473,10 +473,10 @@
             justify-content: center;
         }
         .comment-modal-overlay.active { display: flex; }
+        
         .comment-modal {
             background: white;
             border-radius: 16px;
-            padding: 24px;
             max-width: 480px;
             width: 92%;
             max-height: 90vh;
@@ -484,17 +484,26 @@
             flex-direction: column;
             box-shadow: 0 20px 60px rgba(0,0,0,0.2);
             position: relative;
+            overflow: hidden;
         }
-        .comment-modal .header {
+        
+        /* ===== PINNED HEADER ===== */
+        .comment-modal-header {
+            flex-shrink: 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 16px;
+            padding: 16px 20px 12px;
             border-bottom: 1px solid #e4e6eb;
-            padding-bottom: 12px;
+            background: white;
+            z-index: 2;
         }
-        .comment-modal .header h3 { font-size: 20px; font-weight: 700; }
-        .comment-modal .header .close-btn {
+        .comment-modal-header h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #050505;
+        }
+        .comment-modal-header .close-btn {
             background: none;
             border: none;
             font-size: 24px;
@@ -503,30 +512,82 @@
             padding: 4px 8px;
             border-radius: 50%;
             transition: background 0.2s;
+            line-height: 1;
         }
-        .comment-modal .header .close-btn:hover { background: #f0f2f5; }
+        .comment-modal-header .close-btn:hover { background: #f0f2f5; }
         
-        .comment-modal .comments-list {
+        /* ===== SCROLLABLE COMMENT LIST ===== */
+        .comment-modal-list {
             flex: 1;
             overflow-y: auto;
-            padding-right: 4px;
-            margin-bottom: 12px;
-            max-height: 400px;
+            padding: 16px 20px 12px;
+            min-height: 0;
         }
-        .comment-modal .comments-list::-webkit-scrollbar { width: 4px; }
-        .comment-modal .comments-list::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+        .comment-modal-list::-webkit-scrollbar { width: 4px; }
+        .comment-modal-list::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
 
-        /* Skeleton for comments */
-        .skeleton-comment {
-            display: flex; gap: 10px; margin-bottom: 12px; padding: 4px 0;
+        /* ===== PINNED BOTTOM INPUT ===== */
+        .comment-modal-input {
+            flex-shrink: 0;
+            display: flex;
+            gap: 10px;
+            padding: 12px 20px 16px;
+            border-top: 1px solid #e4e6eb;
+            background: white;
+            z-index: 2;
         }
-        .skeleton-comment .avatar { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; }
-        .skeleton-comment .body { flex: 1; display: flex; flex-direction: column; gap: 6px; }
-        .skeleton-comment .body .line { height: 14px; width: 60%; border-radius: 6px; }
-        .skeleton-comment .body .line.short { width: 30%; }
-        .skeleton-comment .body .line.long { width: 80%; }
+        .comment-modal-input .avatar-small {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #e4e6eb;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #1877f2;
+            font-size: 14px;
+            object-fit: cover;
+        }
+        .comment-modal-input .avatar-small img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .comment-modal-input input {
+            flex: 1;
+            padding: 10px 16px;
+            border: 1px solid #e4e6eb;
+            border-radius: 24px;
+            font-size: 14px;
+            font-family: inherit;
+            background: #f0f2f5;
+            transition: border 0.2s, background 0.2s;
+            min-width: 0;
+        }
+        .comment-modal-input input:focus {
+            outline: none;
+            border-color: #1877f2;
+            background: white;
+        }
+        .comment-modal-input button {
+            padding: 8px 20px;
+            background: #1877f2;
+            color: white;
+            border: none;
+            border-radius: 24px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        .comment-modal-input button:hover { background: #166fe5; }
+        .comment-modal-input button:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* Comment Items */
+        /* ===== COMMENT ITEMS ===== */
         .comment-item {
             display: flex;
             gap: 10px;
@@ -540,7 +601,7 @@
             flex-shrink: 0;
             object-fit: cover;
         }
-        .comment-item .body { flex: 1; }
+        .comment-item .body { flex: 1; min-width: 0; }
         .comment-item .body .row {
             display: flex;
             align-items: center;
@@ -555,13 +616,21 @@
         }
         .comment-item .body .row .name:hover { text-decoration: underline; }
         .comment-item .body .row .time { font-size: 12px; color: #65676b; }
-        .comment-item .body .content { font-size: 15px; color: #050505; line-height: 1.5; margin-top: 2px; }
+        .comment-item .body .content {
+            font-size: 15px;
+            color: #050505;
+            line-height: 1.5;
+            margin-top: 2px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
         .comment-item .body .actions {
             display: flex;
             gap: 14px;
             margin-top: 4px;
             font-size: 13px;
             color: #65676b;
+            flex-wrap: wrap;
         }
         .comment-item .body .actions button {
             background: none;
@@ -575,59 +644,73 @@
             gap: 4px;
             padding: 2px 4px;
             border-radius: 4px;
+            transition: color 0.15s, background 0.15s;
         }
         .comment-item .body .actions button:hover { background: #f0f2f5; color: #1877f2; }
         .comment-item .body .actions button.liked { color: #e74c3c; }
         .comment-item .body .actions button.liked svg { fill: #e74c3c; }
         .comment-item .body .actions svg { width: 16px; height: 16px; fill: currentColor; }
-        .comment-item .replies { margin-top: 8px; margin-left: 42px; display: flex; flex-direction: column; gap: 10px; }
+        
+        /* ===== REPLIES ===== */
+        .comment-item .replies {
+            margin-top: 8px;
+            margin-left: 42px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        /* ===== REPLY INPUT - FIXED LAYOUT ===== */
         .comment-item .reply-input-wrap {
-            margin-top: 8px; margin-left: 42px; display: flex; gap: 8px;
+            margin-top: 8px;
+            margin-left: 42px;
+            display: none;
+            gap: 8px;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+        .comment-item .reply-input-wrap.visible {
+            display: flex;
         }
         .comment-item .reply-input-wrap input {
-            flex: 1; padding: 8px 14px; border: 1px solid #e4e6eb; border-radius: 20px; font-size: 13px; font-family: inherit; background: #f0f2f5; transition: border 0.2s;
+            flex: 1;
+            min-width: 80px;
+            padding: 8px 14px;
+            border: 1px solid #e4e6eb;
+            border-radius: 20px;
+            font-size: 13px;
+            font-family: inherit;
+            background: #f0f2f5;
+            transition: border 0.2s, background 0.2s;
         }
-        .comment-item .reply-input-wrap input:focus { outline: none; border-color: #1877f2; background: white; }
+        .comment-item .reply-input-wrap input:focus {
+            outline: none;
+            border-color: #1877f2;
+            background: white;
+        }
         .comment-item .reply-input-wrap button {
-            padding: 8px 16px; background: #1877f2; color: white; border: none; border-radius: 20px; font-weight: 500; font-size: 13px; cursor: pointer; transition: background 0.2s;
+            padding: 8px 16px;
+            background: #1877f2;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+            flex-shrink: 0;
         }
         .comment-item .reply-input-wrap button:hover { background: #166fe5; }
 
-        .comment-modal .input-wrap {
-            display: flex;
-            gap: 10px;
-            border-top: 1px solid #e4e6eb;
-            padding-top: 12px;
+        /* ===== SKELETON FOR COMMENTS ===== */
+        .skeleton-comment {
+            display: flex; gap: 10px; margin-bottom: 12px; padding: 4px 0;
         }
-        .comment-modal .input-wrap .avatar-small {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: #e4e6eb;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            color: #1877f2;
-            font-size: 14px;
-            object-fit: cover;
-        }
-        .comment-modal .input-wrap .avatar-small img {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-        .comment-modal .input-wrap input {
-            flex: 1; padding: 10px 16px; border: 1px solid #e4e6eb; border-radius: 24px; font-size: 14px; font-family: inherit; background: #f0f2f5; transition: border 0.2s;
-        }
-        .comment-modal .input-wrap input:focus { outline: none; border-color: #1877f2; background: white; }
-        .comment-modal .input-wrap button {
-            padding: 8px 20px; background: #1877f2; color: white; border: none; border-radius: 24px; font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s;
-        }
-        .comment-modal .input-wrap button:hover { background: #166fe5; }
-        .comment-modal .input-wrap button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .skeleton-comment .avatar { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; }
+        .skeleton-comment .body { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+        .skeleton-comment .body .line { height: 14px; width: 60%; border-radius: 6px; }
+        .skeleton-comment .body .line.short { width: 30%; }
+        .skeleton-comment .body .line.long { width: 80%; }
 
         /* ===== LOADER & INFINITE SCROLL ===== */
         .loader {
@@ -772,11 +855,25 @@
             .post-title h2 { font-size: 14px; }
             .action-bar button { font-size: 13px; padding: 6px 8px; }
             .action-bar button svg { width: 20px; height: 20px; }
-            .comment-modal { padding: 16px; max-width: 98%; width: 98%; }
-            .comment-modal .input-wrap input { font-size: 13px; padding: 8px 14px; }
-            .comment-modal .input-wrap button { padding: 8px 16px; font-size: 13px; }
+            .comment-modal { max-width: 98%; width: 98%; }
+            .comment-modal-header { padding: 12px 16px 10px; }
+            .comment-modal-header h3 { font-size: 16px; }
+            .comment-modal-list { padding: 12px 16px 8px; }
+            .comment-modal-input { padding: 10px 16px 14px; gap: 8px; }
+            .comment-modal-input input { font-size: 13px; padding: 8px 14px; }
+            .comment-modal-input button { padding: 8px 16px; font-size: 13px; }
             .creative-grid { grid-template-columns: 1fr; }
             .creative-card { padding: 8px 10px; }
+            .comment-item .replies { margin-left: 28px; }
+            .comment-item .reply-input-wrap { margin-left: 28px; }
+        }
+        @media (max-width: 400px) {
+            .comment-modal-input { flex-direction: column; }
+            .comment-modal-input input { width: 100%; }
+            .comment-modal-input button { width: 100%; }
+            .comment-item .reply-input-wrap { flex-direction: column; }
+            .comment-item .reply-input-wrap input { width: 100%; }
+            .comment-item .reply-input-wrap button { width: 100%; }
         }
     </style>
 </head>
@@ -804,17 +901,17 @@
         <img id="imageModalContent" src="" alt="Full view" />
     </div>
 
-    <!-- COMMENT MODAL -->
+    <!-- COMMENT MODAL - REWRITTEN STRUCTURE -->
     <div class="comment-modal-overlay" id="commentModal">
         <div class="comment-modal">
-            <div class="header">
+            <div class="comment-modal-header">
                 <h3>Comments</h3>
                 <button class="close-btn" id="closeCommentModal">✕</button>
             </div>
-            <div class="comments-list" id="commentList">
+            <div class="comment-modal-list" id="commentList">
                 <!-- Skeleton comments will be injected here -->
             </div>
-            <div class="input-wrap">
+            <div class="comment-modal-input">
                 <div class="avatar-small" id="commentUserAvatar">?</div>
                 <input type="text" id="commentInput" placeholder="Write a comment..." />
                 <button id="commentSubmitBtn">Post</button>
@@ -1473,7 +1570,7 @@
         }
 
         // ============================================================
-        //  COMMENT MODAL
+        //  COMMENT MODAL - REWRITTEN FUNCTIONS
         // ============================================================
         let commentLikeTimers = {};
 
@@ -1482,6 +1579,9 @@
             commentModal.classList.add('active');
             commentInput.value = '';
             renderCommentSkeletons(3);
+
+            // Reset scroll position to top
+            commentList.scrollTop = 0;
 
             try {
                 const res = await fetch(`/api/comments?action=list&promptId=${promptId}&limit=50&offset=0`, {
@@ -1503,6 +1603,8 @@
             comments.forEach(c => {
                 commentList.appendChild(createCommentElement(c));
             });
+            // Auto-scroll to top when comments load
+            commentList.scrollTop = 0;
         }
 
         function createCommentElement(c, isReply = false) {
@@ -1553,7 +1655,7 @@
 
             if (!isReply) {
                 html += `
-                    <div class="reply-input-wrap" id="replyForm_${c.id}" style="display:none;">
+                    <div class="reply-input-wrap" id="replyForm_${c.id}">
                         <input type="text" placeholder="Write a reply..." id="replyInput_${c.id}" />
                         <button class="reply-submit" data-id="${c.id}">Reply</button>
                     </div>
@@ -1571,9 +1673,19 @@
 
             const replyToggle = div.querySelector('.reply-toggle');
             if (replyToggle) {
-                replyToggle.addEventListener('click', () => {
+                replyToggle.addEventListener('click', (e) => {
+                    e.stopPropagation();
                     const form = document.getElementById(`replyForm_${c.id}`);
-                    if (form) form.style.display = form.style.display === 'none' ? 'flex' : 'none';
+                    if (form) {
+                        const isVisible = form.classList.contains('visible');
+                        form.classList.toggle('visible');
+                        if (!isVisible) {
+                            // Auto-scroll to show the reply input
+                            setTimeout(() => {
+                                form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }, 50);
+                        }
+                    }
                 });
             }
 
@@ -1590,9 +1702,25 @@
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                             body: JSON.stringify({ promptId: currentPromptIdForComments, content, parentId: c.id })
                         });
-                        if (res.ok) { input.value = ''; openCommentModal(currentPromptIdForComments); }
+                        if (res.ok) { 
+                            input.value = ''; 
+                            const form = document.getElementById(`replyForm_${c.id}`);
+                            if (form) form.classList.remove('visible');
+                            openCommentModal(currentPromptIdForComments); 
+                        }
                     } catch (err) { console.error(err); }
                 });
+                
+                // Enter key support
+                const input = replySubmit.previousElementSibling;
+                if (input && input.tagName === 'INPUT') {
+                    input.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            replySubmit.click();
+                        }
+                    });
+                }
             }
 
             return div;
