@@ -336,7 +336,7 @@
             color: #65676b;
         }
 
-        /* ===== COMMENTS SECTION (NOW AFTER ACTION BAR) ===== */
+        /* ===== COMMENTS SECTION ===== */
         .comments-section {
             padding: 14px 18px 20px;
             border-bottom: 1px solid #e4e6eb;
@@ -359,64 +359,12 @@
             font-weight: 500;
         }
 
-        .comment-input-wrap {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-        }
-        .comment-input-wrap .avatar-small {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: #e4e6eb;
-            flex-shrink: 0;
-            object-fit: cover;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            color: #1877f2;
-            font-size: 14px;
-        }
-        .comment-input-wrap input {
-            flex: 1;
-            min-width: 160px;
-            padding: 10px 16px;
-            border: 1px solid #e4e6eb;
-            border-radius: 24px;
-            font-size: 14px;
-            font-family: inherit;
-            background: #f0f2f5;
-            transition: border 0.2s, background 0.2s, box-shadow 0.2s;
-        }
-        .comment-input-wrap input:focus {
-            outline: none;
-            border-color: #1877f2;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(24,119,242,0.1);
-        }
-        .comment-input-wrap .btn-submit {
-            padding: 8px 20px;
-            background: #1877f2;
-            color: white;
-            border: none;
-            border-radius: 24px;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background 0.2s, transform 0.1s;
-            flex-shrink: 0;
-        }
-        .comment-input-wrap .btn-submit:hover { background: #166fe5; }
-        .comment-input-wrap .btn-submit:active { transform: scale(0.96); }
-        .comment-input-wrap .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
-
         /* ===== COMMENT ITEMS ===== */
         .comments-list {
             display: flex;
             flex-direction: column;
             gap: 12px;
+            margin-bottom: 14px;
         }
         .comment-item {
             display: flex;
@@ -508,7 +456,7 @@
         }
 
         .load-more-comments {
-            margin-top: 14px;
+            margin-bottom: 14px;
             text-align: center;
         }
         .load-more-comments button {
@@ -525,7 +473,61 @@
         }
         .load-more-comments button:hover { background: #e7f3ff; }
 
-        /* ===== PROMPT TEXT & COPY (MOVED AFTER COMMENTS) ===== */
+        /* ===== COMMENT INPUT (MOVED TO BOTTOM) ===== */
+        .comment-input-wrap {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+        .comment-input-wrap .avatar-small {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #e4e6eb;
+            flex-shrink: 0;
+            object-fit: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #1877f2;
+            font-size: 14px;
+        }
+        .comment-input-wrap input {
+            flex: 1;
+            min-width: 160px;
+            padding: 10px 16px;
+            border: 1px solid #e4e6eb;
+            border-radius: 24px;
+            font-size: 14px;
+            font-family: inherit;
+            background: #f0f2f5;
+            transition: border 0.2s, background 0.2s, box-shadow 0.2s;
+        }
+        .comment-input-wrap input:focus {
+            outline: none;
+            border-color: #1877f2;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(24,119,242,0.1);
+        }
+        .comment-input-wrap .btn-submit {
+            padding: 8px 20px;
+            background: #1877f2;
+            color: white;
+            border: none;
+            border-radius: 24px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            flex-shrink: 0;
+        }
+        .comment-input-wrap .btn-submit:hover { background: #166fe5; }
+        .comment-input-wrap .btn-submit:active { transform: scale(0.96); }
+        .comment-input-wrap .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* ===== PROMPT TEXT & COPY ===== */
         .prompt-text-wrap {
             padding: 16px 18px 20px;
             border-bottom: 1px solid #e4e6eb;
@@ -1083,24 +1085,25 @@
                         </div>
                     </div>
 
-                    <!-- Comments Section (NOW after Action Bar) -->
+                    <!-- Comments Section -->
                     <div class="comments-section" id="commentsSection">
                         <div class="header">
                             <h3>Comments</h3>
                             <span class="count" id="commentCount">0</span>
                         </div>
+                        <div class="comments-list" id="commentsList"></div>
+                        <div class="load-more-comments" id="loadMoreWrap" style="display:none;">
+                            <button id="loadMoreBtn">Load more comments</button>
+                        </div>
+                        <!-- Comment Input moved to bottom -->
                         <div class="comment-input-wrap">
                             <div class="avatar-small">${user ? user.username.charAt(0).toUpperCase() : '?'}</div>
                             <input type="text" id="commentInput" placeholder="Write a comment..." />
                             <button class="btn-submit comment-submit">Post</button>
                         </div>
-                        <div class="comments-list" id="commentsList"></div>
-                        <div class="load-more-comments" id="loadMoreWrap" style="display:none;">
-                            <button id="loadMoreBtn">Load more comments</button>
-                        </div>
                     </div>
 
-                    <!-- Prompt Text & Copy Button (NOW after Comments) -->
+                    <!-- Prompt Text & Copy Button -->
                     <div class="prompt-text-wrap">
                         <div class="label">Prompt</div>
                         <div class="text" id="promptText">${p.prompt_text}</div>
