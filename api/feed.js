@@ -79,7 +79,7 @@ export default async function handler(req, res) {
 
     let allPrompts = [...boosted, ...regular];
 
-    // 3. Personalize for logged-in users (remove category-based scoring)
+    // 3. Personalize for logged-in users
     if (userId) {
       const { data: userLikes } = await supabaseAdmin
         .from('likes')
@@ -97,11 +97,10 @@ export default async function handler(req, res) {
       const scored = allPrompts.map(prompt => {
         let score = 0;
 
+        // Future creator_id support placeholder
         if (followingIds.length > 0) {
           // Placeholder for future creator_id support
         }
-
-        // Category matching removed entirely
 
         if (!likedIds.includes(prompt.id)) {
           score += 5;
@@ -125,92 +124,45 @@ export default async function handler(req, res) {
       allPrompts = allPrompts.slice(0, Number(limit));
     }
 
-    // 4. Get likes/saves/comments for each prompt
-    const promptsWithCounts = await Promise.all(
-      allPrompts.map(async (prompt) => {
-        const { count: likes } = await supabaseAdmin
-          .from('likes')
-          .select('*', { count: 'exact', head: true })
-          .eq('prompt_id', prompt.id);
-
-        const { count: saves } = await supabaseAdmin
-          .from('saves')
-          .select('*', { count: 'exact', head: true })
-          .eq('prompt_id', prompt.id);
-
-        const { count: comments } = await supabaseAdmin
-          .from('comments')
-          .select('*', { count: 'exact', head: true })
-          .eq('prompt_id', prompt.id)
-          .eq('is_hidden', false);
-
-        let liked = false;
-        let saved = false;
-        if (userId) {
-          const { data: like } = await supabaseAdmin
-            .from('likes')
-            .select('id')
-            .eq('user_id', userId)
-            .eq('prompt_id', prompt.id)
-            .maybeSingle();
-          liked = !!like;
-
-          const { data: save } = await supabaseAdmin
-            .from('saves')
-            .select('id')
-            .eq('user_id', userId)
-            .eq('prompt_id', prompt.id)
-            .maybeSingle();
-          saved = !!save;
-        }
-
-        return {
-          ...prompt,
-          like_count: likes || 0,
-          save_count: saves || 0,
-          comment_count: comments || 0,
-          liked,
-          saved
-        };
-      })
-    );
-
-    // 🔥 BULK VIEW COUNT UPDATE (fixed — two-step approach)
-    if (allPrompts.length > 0) {
+    // 4. Batch check: Did the user like/save these prompts?
+    let likedMap = {};
+    let savedMap = {};
+    if (userId && allPrompts.length > 0) {
       const promptIds = allPrompts.map(p => p.id);
-      try {
-        // 1. Get current view counts
-        const { data: currentPrompts } = await supabaseAdmin
-          .from('prompts')
-          .select('id, view_count')
-          .in('id', promptIds);
+      
+      const { data: likesData } = await supabaseAdmin
+        .from('likes')
+        .select('prompt_id')
+        .eq('user_id', userId)
+        .in('prompt_id', promptIds);
 
-        if (currentPrompts && currentPrompts.length > 0) {
-          // 2. Build update objects
-          const updates = currentPrompts.map(p => ({
-            id: p.id,
-            view_count: (p.view_count || 0) + 1
-          }));
+      const { data: savesData } = await supabaseAdmin
+        .from('saves')
+        .select('prompt_id')
+        .eq('user_id', userId)
+        .in('prompt_id', promptIds);
 
-          // 3. Update each one individually
-          for (const update of updates) {
-            await supabaseAdmin
-              .from('prompts')
-              .update({ view_count: update.view_count })
-              .eq('id', update.id);
-          }
-        }
-      } catch (err) {
-        // Silently fail — views are non-critical
-        console.warn('View count update failed:', err.message);
-      }
+      likesData?.forEach(l => { likedMap[l.prompt_id] = true; });
+      savesData?.forEach(s => { savedMap[s.prompt_id] = true; });
     }
 
-    // 5. Get Creative Peoples suggestions (for logged-in users only)
+    // 5. Map the final data
+    const promptsWithState = allPrompts.map(prompt => ({
+      ...prompt,
+      liked: likedMap[prompt.id] || false,
+      saved: savedMap[prompt.id] || false
+    }));
+
+    // 6. Batch insert views into the views table (triggers auto-update view_count)
+    if (promptsWithState.length > 0) {
+      const viewInserts = promptsWithState.map(p => ({ prompt_id: p.id }));
+      await supabaseAdmin.from('views').insert(viewInserts).select();
+    }
+
+    // 7. Get Creative Peoples suggestions (for logged-in users only)
     let suggestions = [];
     if (userId) {
       try {
-        // Get top users by follower count
         const { data: topUsers, error: topError } = await supabaseAdmin
           .from('profiles')
           .select(`
@@ -226,7 +178,6 @@ export default async function handler(req, res) {
           .limit(50);
 
         if (!topError && topUsers && topUsers.length > 0) {
-          // Get follower counts for each user
           const usersWithFollowers = await Promise.all(
             topUsers.map(async (user) => {
               const { count: followers } = await supabaseAdmin
@@ -237,15 +188,12 @@ export default async function handler(req, res) {
             })
           );
 
-          // Sort by follower count (highest first)
           usersWithFollowers.sort((a, b) => b.followers - a.followers);
 
-          // Filter out already followed users and the current user
           const available = usersWithFollowers.filter(u => 
             u.id !== userId && !followingIds.includes(u.id)
           );
 
-          // Get top 20, then pick 4 random
           const top20 = available.slice(0, 20);
           const shuffled = top20.sort(() => Math.random() - 0.5);
           suggestions = shuffled.slice(0, 4);
@@ -256,10 +204,10 @@ export default async function handler(req, res) {
     }
 
     return res.status(200).json({
-      prompts: promptsWithCounts,
+      prompts: promptsWithState,
       suggestions: suggestions,
-      total: promptsWithCounts.length,
-      hasMore: promptsWithCounts.length === Number(limit)
+      total: promptsWithState.length,
+      hasMore: promptsWithState.length === Number(limit)
     });
   }
 
@@ -304,29 +252,10 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: promptError.message });
     }
 
-    const promptsWithCounts = await Promise.all(
-      prompts.map(async (prompt) => {
-        const { count: likes } = await supabaseAdmin
-          .from('likes')
-          .select('*', { count: 'exact', head: true })
-          .eq('prompt_id', prompt.id);
-
-        const { count: saves } = await supabaseAdmin
-          .from('saves')
-          .select('*', { count: 'exact', head: true })
-          .eq('prompt_id', prompt.id);
-
-        return {
-          ...prompt,
-          like_count: likes || 0,
-          save_count: saves || 0
-        };
-      })
-    );
-
+    // No counting needed - counts are already in the prompts table!
     return res.status(200).json({
       users: users || [],
-      prompts: promptsWithCounts,
+      prompts: prompts || [],
       total: count || 0,
       hasMore: (Number(offset) + Number(limit)) < (count || 0)
     });
@@ -349,59 +278,14 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: error.message });
     }
 
-    const promptsWithCounts = await Promise.all(
-      prompts.map(async (prompt) => {
-        const { count: likes } = await supabaseAdmin
-          .from('likes')
-          .select('*', { count: 'exact', head: true })
-          .eq('prompt_id', prompt.id);
-
-        const { count: saves } = await supabaseAdmin
-          .from('saves')
-          .select('*', { count: 'exact', head: true })
-          .eq('prompt_id', prompt.id);
-
-        return {
-          ...prompt,
-          like_count: likes || 0,
-          save_count: saves || 0
-        };
-      })
-    );
-
-    // 🔥 BULK VIEW COUNT UPDATE (fixed — two-step approach)
+    // Batch insert views into the views table (triggers auto-update view_count)
     if (prompts.length > 0) {
-      const promptIds = prompts.map(p => p.id);
-      try {
-        // 1. Get current view counts
-        const { data: currentPrompts } = await supabaseAdmin
-          .from('prompts')
-          .select('id, view_count')
-          .in('id', promptIds);
-
-        if (currentPrompts && currentPrompts.length > 0) {
-          // 2. Build update objects
-          const updates = currentPrompts.map(p => ({
-            id: p.id,
-            view_count: (p.view_count || 0) + 1
-          }));
-
-          // 3. Update each one individually
-          for (const update of updates) {
-            await supabaseAdmin
-              .from('prompts')
-              .update({ view_count: update.view_count })
-              .eq('id', update.id);
-          }
-        }
-      } catch (err) {
-        // Silently fail — views are non-critical
-        console.warn('View count update failed:', err.message);
-      }
+      const viewInserts = prompts.map(p => ({ prompt_id: p.id }));
+      await supabaseAdmin.from('views').insert(viewInserts).select();
     }
 
     return res.status(200).json({
-      prompts: promptsWithCounts,
+      prompts: prompts || [],
       total: count || 0,
       hasMore: (Number(offset) + Number(limit)) < (count || 0)
     });
