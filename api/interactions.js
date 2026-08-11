@@ -60,6 +60,7 @@ export default async function handler(req, res) {
       return res.status(409).json({ error: 'Already liked this prompt' });
     }
 
+    // ✅ INSERT ONLY — Database trigger will add +1 to like_count automatically
     const { data, error } = await supabaseAdmin
       .from('likes')
       .insert({
@@ -73,11 +74,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: error.message });
     }
 
-    await supabaseAdmin
-      .from('prompts')
-      .update({ like_count: prompt.like_count + 1 })
-      .eq('id', promptId);
-
+    // Fetch the updated count just to be safe
     const { count: likes } = await supabaseAdmin
       .from('likes')
       .select('*', { count: 'exact', head: true })
@@ -109,6 +106,7 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: 'You have not liked this prompt' });
     }
 
+    // ✅ DELETE ONLY — Database trigger will subtract -1 from like_count automatically
     const { error } = await supabaseAdmin
       .from('likes')
       .delete()
@@ -118,11 +116,6 @@ export default async function handler(req, res) {
     if (error) {
       return res.status(500).json({ error: error.message });
     }
-
-    await supabaseAdmin
-      .from('prompts')
-      .update({ like_count: prompt.like_count - 1 })
-      .eq('id', promptId);
 
     const { count: likes } = await supabaseAdmin
       .from('likes')
@@ -165,6 +158,7 @@ export default async function handler(req, res) {
       return res.status(409).json({ error: 'Already saved this prompt' });
     }
 
+    // ✅ INSERT ONLY — Database trigger will add +1 to save_count automatically
     const { data, error } = await supabaseAdmin
       .from('saves')
       .insert({
@@ -177,11 +171,6 @@ export default async function handler(req, res) {
     if (error) {
       return res.status(500).json({ error: error.message });
     }
-
-    await supabaseAdmin
-      .from('prompts')
-      .update({ save_count: prompt.save_count + 1 })
-      .eq('id', promptId);
 
     const { count: saves } = await supabaseAdmin
       .from('saves')
@@ -214,6 +203,7 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: 'You have not saved this prompt' });
     }
 
+    // ✅ DELETE ONLY — Database trigger will subtract -1 from save_count automatically
     const { error } = await supabaseAdmin
       .from('saves')
       .delete()
@@ -223,11 +213,6 @@ export default async function handler(req, res) {
     if (error) {
       return res.status(500).json({ error: error.message });
     }
-
-    await supabaseAdmin
-      .from('prompts')
-      .update({ save_count: prompt.save_count - 1 })
-      .eq('id', promptId);
 
     const { count: saves } = await supabaseAdmin
       .from('saves')
