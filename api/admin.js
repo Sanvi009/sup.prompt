@@ -454,18 +454,7 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'User ID and Prompt ID required' });
       }
 
-      // First, get the current prompt data
-      const { data: prompt, error: promptError } = await supabaseAdmin
-        .from('prompts')
-        .select('id, like_count')
-        .eq('id', promptId)
-        .single();
-
-      if (promptError || !prompt) {
-        return res.status(404).json({ error: 'Prompt not found' });
-      }
-
-      // Then delete the like
+      // ✅ DELETE ONLY — Database trigger will subtract -1 from like_count automatically
       const { error } = await supabaseAdmin
         .from('likes')
         .delete()
@@ -474,16 +463,6 @@ export default async function handler(req, res) {
 
       if (error) {
         return res.status(500).json({ error: error.message });
-      }
-
-      // Finally update the count using the fetched prompt data
-      const { error: updateError } = await supabaseAdmin
-        .from('prompts')
-        .update({ like_count: Math.max(0, prompt.like_count - 1) })
-        .eq('id', promptId);
-
-      if (updateError) {
-        return res.status(500).json({ error: updateError.message });
       }
 
       return res.status(200).json({
@@ -500,18 +479,7 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'User ID and Prompt ID required' });
       }
 
-      // First, get the current prompt data
-      const { data: prompt, error: promptError } = await supabaseAdmin
-        .from('prompts')
-        .select('id, save_count')
-        .eq('id', promptId)
-        .single();
-
-      if (promptError || !prompt) {
-        return res.status(404).json({ error: 'Prompt not found' });
-      }
-
-      // Then delete the save
+      // ✅ DELETE ONLY — Database trigger will subtract -1 from save_count automatically
       const { error } = await supabaseAdmin
         .from('saves')
         .delete()
@@ -520,16 +488,6 @@ export default async function handler(req, res) {
 
       if (error) {
         return res.status(500).json({ error: error.message });
-      }
-
-      // Finally update the count using the fetched prompt data
-      const { error: updateError } = await supabaseAdmin
-        .from('prompts')
-        .update({ save_count: Math.max(0, prompt.save_count - 1) })
-        .eq('id', promptId);
-
-      if (updateError) {
-        return res.status(500).json({ error: updateError.message });
       }
 
       return res.status(200).json({
@@ -580,31 +538,7 @@ export default async function handler(req, res) {
         return res.status(404).json({ error: 'Comment not found' });
       }
 
-      // Get the current prompt data
-      const { data: prompt, error: promptError } = await supabaseAdmin
-        .from('prompts')
-        .select('id, comment_count')
-        .eq('id', comment.prompt_id)
-        .single();
-
-      if (promptError || !prompt) {
-        // If prompt doesn't exist, just delete the comment without updating count
-        const { error: deleteError } = await supabaseAdmin
-          .from('comments')
-          .delete()
-          .eq('id', commentId);
-
-        if (deleteError) {
-          return res.status(500).json({ error: deleteError.message });
-        }
-
-        return res.status(200).json({
-          success: true,
-          message: 'Comment deleted permanently'
-        });
-      }
-
-      // Delete the comment
+      // ✅ DELETE ONLY — Database trigger will subtract -1 from comment_count automatically
       const { error: deleteError } = await supabaseAdmin
         .from('comments')
         .delete()
@@ -612,16 +546,6 @@ export default async function handler(req, res) {
 
       if (deleteError) {
         return res.status(500).json({ error: deleteError.message });
-      }
-
-      // Update the comment count using the fetched prompt data
-      const { error: updateError } = await supabaseAdmin
-        .from('prompts')
-        .update({ comment_count: Math.max(0, prompt.comment_count - 1) })
-        .eq('id', prompt.id);
-
-      if (updateError) {
-        return res.status(500).json({ error: updateError.message });
       }
 
       return res.status(200).json({
