@@ -150,6 +150,7 @@ export default async function handler(req, res) {
       }
     }
 
+    // ✅ INSERT ONLY — Database trigger will add +1 to prompts.comment_count automatically
     const { data: comment, error } = await supabaseAdmin
       .from('comments')
       .insert({
@@ -180,11 +181,9 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: error.message });
     }
 
-    await supabaseAdmin
-      .from('prompts')
-      .update({ comment_count: prompt.comment_count + 1 })
-      .eq('id', promptId);
+    // ✅ Removed manual prompt comment_count update
 
+    // Keep user_activity for algorithm (optional, doesn't affect counts)
     await supabaseAdmin
       .from('user_activity')
       .insert({
@@ -233,6 +232,7 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: 'You can only delete your own comments' });
     }
 
+    // Admin hiding (soft delete)
     if (isAdmin && comment.user_id !== userId) {
       const { error } = await supabaseAdmin
         .from('comments')
@@ -249,6 +249,7 @@ export default async function handler(req, res) {
       });
     }
 
+    // ✅ DELETE ONLY — Database trigger will subtract -1 from prompts.comment_count automatically
     const { error } = await supabaseAdmin
       .from('comments')
       .delete()
@@ -258,10 +259,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: error.message });
     }
 
-    await supabaseAdmin
-      .from('prompts')
-      .update({ comment_count: prompt.comment_count - 1 })
-      .eq('id', comment.prompt_id);
+    // ✅ Removed manual prompt comment_count update
 
     return res.status(200).json({
       success: true,
@@ -302,6 +300,7 @@ export default async function handler(req, res) {
       return res.status(409).json({ error: 'Already liked this comment' });
     }
 
+    // ✅ INSERT ONLY — Database trigger will add +1 to comments.likes_count automatically
     const { error } = await supabaseAdmin
       .from('comment_likes')
       .insert({
@@ -313,10 +312,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: error.message });
     }
 
-    await supabaseAdmin
-      .from('comments')
-      .update({ likes_count: comment.likes_count + 1 })
-      .eq('id', commentId);
+    // ✅ Removed manual comments.likes_count update
 
     return res.status(201).json({
       success: true,
@@ -358,6 +354,7 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: 'You have not liked this comment' });
     }
 
+    // ✅ DELETE ONLY — Database trigger will subtract -1 from comments.likes_count automatically
     const { error } = await supabaseAdmin
       .from('comment_likes')
       .delete()
@@ -368,10 +365,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: error.message });
     }
 
-    await supabaseAdmin
-      .from('comments')
-      .update({ likes_count: comment.likes_count - 1 })
-      .eq('id', commentId);
+    // ✅ Removed manual comments.likes_count update
 
     return res.status(200).json({
       success: true,
@@ -405,7 +399,7 @@ export default async function handler(req, res) {
           image_main
         )
       `, { count: 'exact' })
-      .eq('user_id', id)                   // ✅ FIXED: use user_id
+      .eq('user_id', id)
       .eq('is_hidden', false)
       .order('created_at', { ascending: false })
       .range(Number(offset), Number(offset) + Number(limit) - 1);
