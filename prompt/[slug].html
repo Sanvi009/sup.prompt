@@ -1275,7 +1275,7 @@
         }
 
         // ============================================================
-        //  COMMENTS - REWRITTEN WITH GLOBAL REPLY INPUT & OPTIMISTIC UI
+        //  COMMENTS - FIXED: Replies appear nested instantly
         // ============================================================
         let commentLikeTimers = {};
 
@@ -1355,7 +1355,7 @@
         }
 
         // ============================================================
-        //  COMMENT EVENTS - REWRITTEN
+        //  COMMENT EVENTS - FIXED: Replies appear nested instantly
         // ============================================================
         document.addEventListener('click', async (e) => {
             const submitBtn = e.target.closest('.comment-submit');
@@ -1411,6 +1411,7 @@
                 if (noCommentsMsg) list.innerHTML = '';
 
                 if (parentId) {
+                    // ✅ REPLY: Find parent and nest under it
                     const parentEl = list.querySelector(`.comment-item[data-id="${parentId}"]`);
                     if (parentEl) {
                         let repliesContainer = parentEl.querySelector('.replies');
@@ -1429,9 +1430,11 @@
                             }, 50);
                         }
                     } else {
+                        // Parent not found — fallback to top-level
                         list.insertAdjacentHTML('afterbegin', renderComment(tempComment));
                     }
                 } else {
+                    // ✅ TOP-LEVEL: Insert at top of list
                     list.insertAdjacentHTML('afterbegin', renderComment(tempComment));
                 }
 
