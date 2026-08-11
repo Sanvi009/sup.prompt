@@ -506,39 +506,6 @@
             flex-direction: column;
             gap: 10px;
         }
-        .comment-item .reply-input-wrap {
-            margin-top: 8px;
-            margin-left: 42px;
-            display: flex;
-            gap: 8px;
-        }
-        .comment-item .reply-input-wrap input {
-            flex: 1;
-            padding: 8px 14px;
-            border: 1px solid #e4e6eb;
-            border-radius: 20px;
-            font-size: 13px;
-            font-family: inherit;
-            background: #f0f2f5;
-            transition: border 0.2s, background 0.2s;
-        }
-        .comment-item .reply-input-wrap input:focus {
-            outline: none;
-            border-color: #1877f2;
-            background: white;
-        }
-        .comment-item .reply-input-wrap button {
-            padding: 8px 16px;
-            background: #1877f2;
-            color: white;
-            border: none;
-            border-radius: 20px;
-            font-weight: 500;
-            font-size: 13px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .comment-item .reply-input-wrap button:hover { background: #166fe5; }
 
         .load-more-comments {
             margin-top: 14px;
@@ -815,7 +782,6 @@
             .popup { padding: 32px 24px; }
             .popup h2 { font-size: 20px; }
             .comment-item .replies { margin-left: 28px; }
-            .comment-item .reply-input-wrap { margin-left: 28px; }
             .comment-input-wrap { gap: 6px; }
             .comment-input-wrap input { min-width: 120px; padding: 8px 14px; }
             .comment-input-wrap .btn-submit { padding: 8px 16px; font-size: 13px; }
@@ -871,6 +837,8 @@
         let loadingComments = false;
         let pendingLike = false;
         let pendingSave = false;
+        let replyToCommentId = null;
+        let replyToUsername = null;
 
         // ============================================================
         //  DOM
@@ -1304,8 +1272,10 @@
         }
 
         // ============================================================
-        //  COMMENTS
+        //  COMMENTS - REWRITTEN WITH GLOBAL REPLY INPUT & OPTIMISTIC UI
         // ============================================================
+        let commentLikeTimers = {};
+
         async function loadComments(reset = false) {
             if (loadingComments) return;
             if (!reset && !hasMoreComments) return;
@@ -1343,7 +1313,6 @@
             const avatar = c.profiles?.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(c.profiles?.username || '?') + '&background=e4e6eb&color=1877f2&size=28';
             const displayName = c.profiles?.display_name || c.profiles?.username || 'Anonymous';
             const username = c.profiles?.username || 'anonymous';
-            // Relative time
             const time = timeAgo(c.created_at);
             const likeIcon = c.liked ? `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>` : `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
             const likeClass = c.liked ? 'liked' : '';
@@ -1368,40 +1337,108 @@
                         </div>
                         <div class="content">${c.content}</div>
                         <div class="actions">
-                            <button class="comment-like-btn ${likeClass}" data-id="${c.id}">
+                            <button class="comment-like-btn ${likeClass}" data-id="${c.id}" data-count="${c.likes_count || 0}">
                                 ${likeIcon} ${c.likes_count || 0}
                             </button>
                             <span style="color:#d1d5db;">·</span>
-                            ${!isReply ? `<button class="reply-toggle" data-id="${c.id}">Reply</button>` : ''}
+                            ${!isReply ? `<button class="reply-toggle" data-id="${c.id}" data-username="${username}">Reply</button>` : ''}
                         </div>
             `;
             if (!isReply && c.replies && c.replies.length > 0) {
                 html += `<div class="replies">${c.replies.map(r => renderComment(r, true)).join('')}</div>`;
-            }
-            if (!isReply) {
-                html += `
-                    <div class="reply-input-wrap" id="replyForm_${c.id}" style="display:none;">
-                        <input type="text" placeholder="Write a reply..." id="replyInput_${c.id}" />
-                        <button class="reply-submit" data-id="${c.id}">Reply</button>
-                    </div>
-                `;
             }
             html += `</div></div>`;
             return html;
         }
 
         // ============================================================
-        //  COMMENT EVENTS
+        //  COMMENT EVENTS - REWRITTEN
         // ============================================================
         document.addEventListener('click', async (e) => {
             const submitBtn = e.target.closest('.comment-submit');
             if (submitBtn) {
                 e.preventDefault();
                 if (!user) { popup.classList.add('active'); return; }
-                const input = document.getElementById('commentInput');
-                const content = input.value.trim();
+                let content = document.getElementById('commentInput').value.trim();
                 if (!content) return;
+                
+                let parentId = null;
+                if (replyToCommentId && replyToUsername) {
+                    const mention = `@${replyToUsername}`;
+                    if (content.startsWith(mention)) {
+                        parentId = replyToCommentId;
+                        content = content.substring(mention.length).trim();
+                        if (!content) {
+                            document.getElementById('commentInput').value = `@${replyToUsername} `;
+                            document.getElementById('commentInput').focus();
+                            return;
+                        }
+                    } else {
+                        replyToCommentId = null;
+                        replyToUsername = null;
+                    }
+                }
+
                 submitBtn.disabled = true;
+
+                // OPTIMISTIC: Create temp comment
+                const tempId = 'temp_' + Date.now();
+                const tempComment = {
+                    id: tempId,
+                    user_id: user.id,
+                    content: content,
+                    likes_count: 0,
+                    created_at: new Date().toISOString(),
+                    profiles: {
+                        id: user.id,
+                        username: user.username,
+                        display_name: user.display_name || user.username,
+                        avatar_url: user.avatar_url,
+                        is_premium: user.is_premium || false,
+                        is_owner: user.is_owner || false
+                    },
+                    liked: false,
+                    replies: [],
+                    parent_id: parentId
+                };
+
+                // Add temp comment to UI
+                const list = document.getElementById('commentsList');
+                const noCommentsMsg = list.querySelector('div[style*="No comments yet"]');
+                if (noCommentsMsg) list.innerHTML = '';
+
+                if (parentId) {
+                    const parentEl = list.querySelector(`.comment-item[data-id="${parentId}"]`);
+                    if (parentEl) {
+                        let repliesContainer = parentEl.querySelector('.replies');
+                        if (!repliesContainer) {
+                            repliesContainer = document.createElement('div');
+                            repliesContainer.className = 'replies';
+                            const body = parentEl.querySelector('.body');
+                            body.appendChild(repliesContainer);
+                        }
+                        repliesContainer.insertAdjacentHTML('beforeend', renderComment(tempComment, true));
+                        // Scroll to reply
+                        const newReply = repliesContainer.lastElementChild;
+                        if (newReply) {
+                            setTimeout(() => {
+                                newReply.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }, 50);
+                        }
+                    } else {
+                        list.insertAdjacentHTML('afterbegin', renderComment(tempComment));
+                    }
+                } else {
+                    list.insertAdjacentHTML('afterbegin', renderComment(tempComment));
+                }
+
+                // Clear input
+                document.getElementById('commentInput').value = '';
+                document.getElementById('commentInput').placeholder = 'Write a comment...';
+                replyToCommentId = null;
+                replyToUsername = null;
+
+                // Send API request
                 try {
                     const res = await fetch('/api/comments?action=add', {
                         method: 'POST',
@@ -1409,58 +1446,139 @@
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${token}`
                         },
-                        body: JSON.stringify({ promptId, content })
+                        body: JSON.stringify({ promptId, content, parentId })
                     });
-                    if (res.ok) { input.value = ''; loadComments(true); }
-                } catch (err) { console.error(err); }
+                    if (res.ok) {
+                        // Success: refetch to get real data
+                        const fetchRes = await fetch(`/api/comments?action=list&promptId=${promptId}&limit=${commentLimit}&offset=0`, {
+                            headers: user ? { 'Authorization': `Bearer ${token}` } : {}
+                        });
+                        const data = await fetchRes.json();
+                        renderComments(data.comments || [], true);
+                        commentOffset = data.comments.length;
+                        hasMoreComments = data.hasMore;
+                        document.getElementById('loadMoreWrap').style.display = hasMoreComments ? 'block' : 'none';
+                        document.getElementById('commentCount').textContent = data.total || 0;
+                    } else {
+                        // Failed: remove temp comments
+                        const tempEls = list.querySelectorAll('[data-id^="temp_"]');
+                        tempEls.forEach(el => el.remove());
+                        document.querySelectorAll('.replies:empty').forEach(el => el.remove());
+                        alert('Failed to post comment. Please try again.');
+                    }
+                } catch (err) {
+                    // Failed: remove temp comments
+                    const tempEls = list.querySelectorAll('[data-id^="temp_"]');
+                    tempEls.forEach(el => el.remove());
+                    document.querySelectorAll('.replies:empty').forEach(el => el.remove());
+                    alert('Failed to post comment. Please try again.');
+                }
+
                 submitBtn.disabled = false;
             }
 
             const replyToggle = e.target.closest('.reply-toggle');
             if (replyToggle) {
+                e.preventDefault();
+                const username = replyToggle.dataset.username;
                 const id = replyToggle.dataset.id;
-                const form = document.getElementById(`replyForm_${id}`);
-                if (form) form.style.display = form.style.display === 'none' ? 'flex' : 'none';
-            }
-
-            const replySubmit = e.target.closest('.reply-submit');
-            if (replySubmit) {
-                if (!user) { popup.classList.add('active'); return; }
-                const id = replySubmit.dataset.id;
-                const input = document.getElementById(`replyInput_${id}`);
-                const content = input.value.trim();
-                if (!content) return;
-                try {
-                    const res = await fetch('/api/comments?action=add', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({ promptId, content, parentId: id })
-                    });
-                    if (res.ok) { input.value = ''; loadComments(true); }
-                } catch (err) { console.error(err); }
+                replyToCommentId = id;
+                replyToUsername = username;
+                const input = document.getElementById('commentInput');
+                input.value = `@${username} `;
+                input.placeholder = `Reply to @${username}...`;
+                input.focus();
             }
 
             const likeBtn = e.target.closest('.comment-like-btn');
             if (likeBtn) {
                 if (!user) { popup.classList.add('active'); return; }
                 const commentId = likeBtn.dataset.id;
-                const liked = likeBtn.classList.contains('liked');
-                const action = liked ? 'unlike-comment' : 'like-comment';
-                const method = liked ? 'DELETE' : 'POST';
-                try {
-                    const res = await fetch(`/api/comments?action=${action}`, {
-                        method,
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({ commentId })
-                    });
-                    if (res.ok) { loadComments(true); }
-                } catch (err) { console.error(err); }
+                const currentCount = parseInt(likeBtn.dataset.count) || 0;
+                const isLiked = likeBtn.classList.contains('liked');
+                const newLiked = !isLiked;
+                const newCount = newLiked ? currentCount + 1 : currentCount - 1;
+                likeBtn.dataset.count = newCount;
+
+                // Optimistic UI update
+                const likeIcon = newLiked ? `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>` : `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+                if (newLiked) {
+                    likeBtn.classList.add('liked');
+                    likeBtn.innerHTML = `${likeIcon} ${newCount}`;
+                } else {
+                    likeBtn.classList.remove('liked');
+                    likeBtn.innerHTML = `${likeIcon} ${newCount}`;
+                }
+
+                if (commentLikeTimers[commentId]) {
+                    clearTimeout(commentLikeTimers[commentId]);
+                }
+
+                commentLikeTimers[commentId] = setTimeout(async () => {
+                    const finalLiked = likeBtn.classList.contains('liked');
+                    const action = finalLiked ? 'like-comment' : 'unlike-comment';
+                    const method = finalLiked ? 'POST' : 'DELETE';
+
+                    try {
+                        const res = await fetch(`/api/comments?action=${action}`, {
+                            method,
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({ commentId })
+                        });
+                        if (!res.ok) {
+                            // Revert silently
+                            const revertLiked = !finalLiked;
+                            const revertCount = revertLiked ? parseInt(likeBtn.dataset.count) + 1 : parseInt(likeBtn.dataset.count) - 1;
+                            likeBtn.dataset.count = revertCount;
+                            const revertIcon = revertLiked ? `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>` : `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+                            if (revertLiked) {
+                                likeBtn.classList.add('liked');
+                                likeBtn.innerHTML = `${revertIcon} ${revertCount}`;
+                            } else {
+                                likeBtn.classList.remove('liked');
+                                likeBtn.innerHTML = `${revertIcon} ${revertCount}`;
+                            }
+                        }
+                    } catch (err) {
+                        // Revert silently
+                        const revertLiked = !finalLiked;
+                        const revertCount = revertLiked ? parseInt(likeBtn.dataset.count) + 1 : parseInt(likeBtn.dataset.count) - 1;
+                        likeBtn.dataset.count = revertCount;
+                        const revertIcon = revertLiked ? `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>` : `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+                        if (revertLiked) {
+                            likeBtn.classList.add('liked');
+                            likeBtn.innerHTML = `${revertIcon} ${revertCount}`;
+                        } else {
+                            likeBtn.classList.remove('liked');
+                            likeBtn.innerHTML = `${revertIcon} ${revertCount}`;
+                        }
+                    }
+                    delete commentLikeTimers[commentId];
+                }, 800);
+            }
+        });
+
+        // Enter key support for comment input
+        document.getElementById('commentInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.querySelector('.comment-submit').click();
+            }
+        });
+
+        // Handle clearing reply state when user deletes the @mention
+        document.getElementById('commentInput').addEventListener('input', () => {
+            if (replyToUsername && replyToCommentId) {
+                const currentValue = document.getElementById('commentInput').value.trim();
+                const mention = `@${replyToUsername}`;
+                if (!currentValue.startsWith(mention)) {
+                    replyToCommentId = null;
+                    replyToUsername = null;
+                    document.getElementById('commentInput').placeholder = 'Write a comment...';
+                }
             }
         });
 
