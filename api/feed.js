@@ -17,24 +17,12 @@ export default async function handler(req, res) {
 
   const authHeader = req.headers.authorization;
   let userId = null;
-  let followingIds = [];
 
   if (authHeader && authHeader.startsWith('Bearer ')) {
     try {
       const token = authHeader.split(' ')[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       userId = decoded.id;
-
-      if (userId) {
-        const { data: follows } = await supabaseAdmin
-          .from('follows')
-          .select('following_id')
-          .eq('follower_id', userId);
-
-        if (follows) {
-          followingIds = follows.map(f => f.following_id);
-        }
-      }
     } catch (err) {
       // Token invalid, treat as guest
     }
@@ -48,82 +36,22 @@ export default async function handler(req, res) {
   if (req.method === 'GET' && action === 'feed') {
     const { limit = 50, offset = 0 } = req.query;
 
-    // 1. Get boosted prompts
+    // 1. Get all prompts (Boosted first, then newest)
     let query = supabaseAdmin
       .from('prompts')
       .select('id, slug, title, description, image_main, view_count, created_at, is_boosted, category_ids', { count: 'exact' })
       .eq('is_published', true)
-      .eq('is_boosted', true)
-      .order('created_at', { ascending: false });
-
-    const { data: boosted, error: boostError } = await query;
-
-    if (boostError) {
-      return res.status(500).json({ error: boostError.message });
-    }
-
-    // 2. Get regular prompts (non-boosted)
-    let regularQuery = supabaseAdmin
-      .from('prompts')
-      .select('id, slug, title, description, image_main, view_count, created_at, is_boosted, category_ids', { count: 'exact' })
-      .eq('is_published', true)
-      .eq('is_boosted', false)
-      .order('created_at', { ascending: false })
+      .order('is_boosted', { ascending: false }) // Boosted first
+      .order('created_at', { ascending: false }) // Then newest
       .range(Number(offset), Number(offset) + Number(limit) - 1);
 
-    const { data: regular, error: regularError } = await regularQuery;
+    const { data: allPrompts, error: queryError, count } = await query;
 
-    if (regularError) {
-      return res.status(500).json({ error: regularError.message });
+    if (queryError) {
+      return res.status(500).json({ error: queryError.message });
     }
 
-    let allPrompts = [...boosted, ...regular];
-
-    // 3. Personalize for logged-in users
-    if (userId) {
-      const { data: userLikes } = await supabaseAdmin
-        .from('likes')
-        .select('prompt_id')
-        .eq('user_id', userId);
-
-      const { data: userSaves } = await supabaseAdmin
-        .from('saves')
-        .select('prompt_id')
-        .eq('user_id', userId);
-
-      const likedIds = userLikes ? userLikes.map(l => l.prompt_id) : [];
-      const savedIds = userSaves ? userSaves.map(s => s.prompt_id) : [];
-
-      const scored = allPrompts.map(prompt => {
-        let score = 0;
-
-        if (followingIds.length > 0) {
-          // Placeholder for future creator_id support
-        }
-
-        if (!likedIds.includes(prompt.id)) {
-          score += 5;
-        }
-        if (!savedIds.includes(prompt.id)) {
-          score += 3;
-        }
-
-        if (prompt.is_boosted) {
-          score += 50;
-        }
-
-        const daysOld = (Date.now() - new Date(prompt.created_at).getTime()) / (1000 * 60 * 60 * 24);
-        score += Math.max(0, 10 - daysOld);
-
-        return { ...prompt, _score: score };
-      });
-
-      scored.sort((a, b) => b._score - a._score);
-      allPrompts = scored.map(({ _score, ...prompt }) => prompt);
-      allPrompts = allPrompts.slice(0, Number(limit));
-    }
-
-    // 4. Batch check: Did the user like/save these prompts?
+    // 2. Batch check: Did the user like/save these prompts?
     let likedMap = {};
     let savedMap = {};
     if (userId && allPrompts.length > 0) {
@@ -145,20 +73,20 @@ export default async function handler(req, res) {
       savesData?.forEach(s => { savedMap[s.prompt_id] = true; });
     }
 
-    // 5. Map the final data (NO LIKES/SAVES/COMMENT COUNTS IN FEED)
+    // 3. Map the final data (NO LIKES/SAVES/COMMENT COUNTS IN FEED)
     const promptsWithState = allPrompts.map(prompt => ({
       ...prompt,
       liked: likedMap[prompt.id] || false,
       saved: savedMap[prompt.id] || false
     }));
 
-    // 6. Batch insert views into the views table (triggers auto-update view_count)
+    // 4. Batch insert views into the views table (triggers auto-update view_count)
     if (promptsWithState.length > 0) {
       const viewInserts = promptsWithState.map(p => ({ prompt_id: p.id }));
       await supabaseAdmin.from('views').insert(viewInserts).select();
     }
 
-    // 7. Get Creative Peoples suggestions (for logged-in users only)
+    // 5. Get Creative Peoples suggestions (for logged-in users only)
     let suggestions = [];
     if (userId) {
       try {
@@ -189,9 +117,8 @@ export default async function handler(req, res) {
 
           usersWithFollowers.sort((a, b) => b.followers - a.followers);
 
-          const available = usersWithFollowers.filter(u => 
-            u.id !== userId && !followingIds.includes(u.id)
-          );
+          // Filter out the current user
+          const available = usersWithFollowers.filter(u => u.id !== userId);
 
           const top20 = available.slice(0, 20);
           const shuffled = top20.sort(() => Math.random() - 0.5);
@@ -205,8 +132,8 @@ export default async function handler(req, res) {
     return res.status(200).json({
       prompts: promptsWithState,
       suggestions: suggestions,
-      total: promptsWithState.length,
-      hasMore: promptsWithState.length === Number(limit)
+      total: count || 0,
+      hasMore: (Number(offset) + Number(limit)) < (count || 0)
     });
   }
 
