@@ -337,30 +337,68 @@
             margin-bottom: 8px;
             color: #111827;
         }
+        .modal .modal-body .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .modal .modal-body .section-header .select-all-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #64748b;
+            cursor: pointer;
+        }
+        .modal .modal-body .section-header .select-all-wrap input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        .modal .modal-body .batch-delete-btn {
+            padding: 6px 14px;
+            background: #dc2626;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .modal .modal-body .batch-delete-btn.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal .modal-body .batch-delete-btn:hover {
+            background: #b91c1c;
+        }
         .modal .modal-body .prompt-item {
             padding: 8px 12px;
             background: #f8fafc;
             border-radius: 6px;
             margin-bottom: 4px;
             display: flex;
-            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
             font-size: 14px;
         }
-        .modal .modal-body .prompt-item a {
+        .modal .modal-body .prompt-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .modal .modal-body .prompt-item .item-title {
+            flex: 1;
+        }
+        .modal .modal-body .prompt-item .item-title a {
             color: #4f46e5;
             text-decoration: none;
-        }
-        .modal .modal-body .prompt-item .actions {
-            display: flex;
-            gap: 8px;
-        }
-        .modal .modal-body .prompt-item .actions button {
-            padding: 2px 8px;
-            border: none;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 500;
-            cursor: pointer;
         }
         .modal .modal-actions {
             display: flex;
@@ -778,6 +816,40 @@
                 const data = await res.json();
                 const user = data.user;
 
+                // Helper to build a section with checkboxes
+                function buildSection(type, items, label, idField) {
+                    if (items.length === 0) {
+                        return `<p style="color:#64748b;font-size:14px;margin-top:8px;">No ${label.toLowerCase()}</p>`;
+                    }
+
+                    let html = `
+                        <div class="section-header">
+                            <div class="select-all-wrap">
+                                <input type="checkbox" class="select-all-${type}" data-type="${type}" />
+                                <span>Select All</span>
+                            </div>
+                            <button class="batch-delete-btn" data-type="${type}" data-userid="${userId}">Delete Selected ${label}</button>
+                        </div>
+                    `;
+
+                    items.forEach(item => {
+                        const title = item.prompts?.title || 'Unknown';
+                        const slug = item.prompts?.slug || '';
+                        const id = item[idField];
+
+                        html += `
+                            <div class="prompt-item">
+                                <input type="checkbox" class="item-check-${type}" data-type="${type}" data-id="${id}" />
+                                <div class="item-title">
+                                    ${slug ? `<a href="/prompt/${slug}" target="_blank">${title}</a>` : title}
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    return html;
+                }
+
                 body.innerHTML = `
                     <div class="detail-row">
                         <div class="label">Username</div>
@@ -805,121 +877,95 @@
                     </div>
 
                     <div class="section-title">❤️ Liked Prompts (${data.likes.length})</div>
-                    ${data.likes.length === 0 ? '<p style="color:#64748b;font-size:14px;">No likes</p>' : 
-                        data.likes.map(l => `
-                            <div class="prompt-item">
-                                <span>${l.prompts?.title || 'Unknown'}</span>
-                                <div class="actions">
-                                    <button class="remove-like" data-userid="${userId}" data-promptid="${l.prompt_id}">Remove</button>
-                                </div>
-                            </div>
-                        `).join('')
-                    }
+                    ${buildSection('likes', data.likes, 'Likes', 'prompt_id')}
 
                     <div class="section-title">💾 Saved Prompts (${data.saves.length})</div>
-                    ${data.saves.length === 0 ? '<p style="color:#64748b;font-size:14px;">No saves</p>' : 
-                        data.saves.map(s => `
-                            <div class="prompt-item">
-                                <span>${s.prompts?.title || 'Unknown'}</span>
-                                <div class="actions">
-                                    <button class="remove-save" data-userid="${userId}" data-promptid="${s.prompt_id}">Remove</button>
-                                </div>
-                            </div>
-                        `).join('')
-                    }
+                    ${buildSection('saves', data.saves, 'Saves', 'prompt_id')}
 
                     <div class="section-title">💬 Comments (${data.comments.length})</div>
-                    ${data.comments.length === 0 ? '<p style="color:#64748b;font-size:14px;">No comments</p>' : 
-                        data.comments.map(c => `
-                            <div class="prompt-item">
-                                <span>"${c.content.substring(0, 50)}${c.content.length > 50 ? '...' : ''}"</span>
-                                <div class="actions">
-                                    <button class="hide-comment" data-commentid="${c.id}">Hide</button>
-                                    <button class="delete-comment" data-commentid="${c.id}">Delete</button>
-                                </div>
-                            </div>
-                        `).join('')
-                    }
+                    ${buildSection('comments', data.comments, 'Comments', 'id')}
                 `;
 
-                document.querySelectorAll('.remove-like').forEach(btn => {
-                    btn.addEventListener('click', async () => {
-                        const uid = btn.dataset.userid;
-                        const pid = btn.dataset.promptid;
-                        const res = await fetch('/api/admin?action=users&sub=remove-like', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${token}`
-                            },
-                            body: JSON.stringify({ userId: uid, promptId: pid })
-                        });
-                        if (res.ok) {
-                            showUserDetails(userId);
-                        } else {
-                            alert('Failed to remove like');
-                        }
-                    });
-                });
+                // ===== BATCH SELECT/DELETE LOGIC =====
+                function setupBatchLogic(type) {
+                    const selectAll = document.querySelector(`.select-all-${type}`);
+                    const deleteBtn = document.querySelector(`.batch-delete-btn[data-type="${type}"]`);
 
-                document.querySelectorAll('.remove-save').forEach(btn => {
-                    btn.addEventListener('click', async () => {
-                        const uid = btn.dataset.userid;
-                        const pid = btn.dataset.promptid;
-                        const res = await fetch('/api/admin?action=users&sub=remove-save', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${token}`
-                            },
-                            body: JSON.stringify({ userId: uid, promptId: pid })
-                        });
-                        if (res.ok) {
-                            showUserDetails(userId);
-                        } else {
-                            alert('Failed to remove save');
-                        }
-                    });
-                });
+                    if (!selectAll || !deleteBtn) return;
 
-                document.querySelectorAll('.hide-comment').forEach(btn => {
-                    btn.addEventListener('click', async () => {
-                        const cid = btn.dataset.commentid;
-                        const res = await fetch('/api/admin?action=users&sub=hide-comment', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${token}`
-                            },
-                            body: JSON.stringify({ commentId: cid })
-                        });
-                        if (res.ok) {
-                            showUserDetails(userId);
+                    // Update button state based on checked items
+                    function updateButtonState() {
+                        const checks = document.querySelectorAll(`.item-check-${type}:checked`);
+                        if (checks.length > 0) {
+                            deleteBtn.classList.add('active');
                         } else {
-                            alert('Failed to hide comment');
+                            deleteBtn.classList.remove('active');
                         }
-                    });
-                });
+                    }
 
-                document.querySelectorAll('.delete-comment').forEach(btn => {
-                    btn.addEventListener('click', async () => {
-                        if (!confirm('Delete this comment permanently?')) return;
-                        const cid = btn.dataset.commentid;
-                        const res = await fetch('/api/admin?action=users&sub=delete-comment', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${token}`
-                            },
-                            body: JSON.stringify({ commentId: cid })
+                    // Select All toggle
+                    selectAll.addEventListener('change', (e) => {
+                        const isChecked = e.target.checked;
+                        document.querySelectorAll(`.item-check-${type}`).forEach(cb => {
+                            cb.checked = isChecked;
                         });
-                        if (res.ok) {
-                            showUserDetails(userId);
-                        } else {
-                            alert('Failed to delete comment');
+                        updateButtonState();
+                    });
+
+                    // Individual checkbox changes
+                    document.querySelectorAll(`.item-check-${type}`).forEach(cb => {
+                        cb.addEventListener('change', updateButtonState);
+                    });
+
+                    // Batch Delete click
+                    deleteBtn.addEventListener('click', async () => {
+                        const checkedIds = [];
+                        document.querySelectorAll(`.item-check-${type}:checked`).forEach(cb => {
+                            checkedIds.push(cb.dataset.id);
+                        });
+
+                        if (checkedIds.length === 0) return;
+
+                        const confirmMsg = `Delete ${checkedIds.length} selected ${type}?`;
+                        if (!confirm(confirmMsg)) return;
+
+                        deleteBtn.textContent = 'Deleting...';
+                        deleteBtn.classList.remove('active');
+
+                        try {
+                            const res = await fetch('/api/admin?action=users&sub=batch-remove-interactions', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${token}`
+                                },
+                                body: JSON.stringify({
+                                    userId: userId,
+                                    type: type,
+                                    ids: checkedIds
+                                })
+                            });
+
+                            if (res.ok) {
+                                showUserDetails(userId); // Refresh the modal
+                            } else {
+                                const data = await res.json();
+                                alert(data.error || `Failed to delete ${type}`);
+                                deleteBtn.textContent = 'Delete Selected';
+                            }
+                        } catch (err) {
+                            alert('Error: ' + err.message);
+                            deleteBtn.textContent = 'Delete Selected';
                         }
                     });
-                });
+                }
+
+                // Initialize batch logic for all three sections
+                setTimeout(() => {
+                    setupBatchLogic('likes');
+                    setupBatchLogic('saves');
+                    setupBatchLogic('comments');
+                }, 100);
 
             } catch (err) {
                 body.innerHTML = `<p style="color:#dc2626;text-align:center;">Error: ${err.message}</p>`;
