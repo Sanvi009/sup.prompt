@@ -34,16 +34,64 @@ export default async function handler(req, res) {
   //  PERSONALIZED FEED (Logged-in users)
   // ================================================================
   if (req.method === 'GET' && action === 'feed') {
-    const { limit = 50, offset = 0 } = req.query;
+    const { limit = 50, offset = 0, filter = 'all' } = req.query;
 
-    // 1. Get all prompts (Boosted first, then newest)
+    // ===== NEW: Determine ORDER BY based on filter =====
+    let orderBy = 'is_boosted DESC, created_at DESC'; // default: All
+
+    switch (filter) {
+      case 'latest':
+        orderBy = 'created_at DESC';
+        break;
+      case 'oldest':
+        orderBy = 'created_at ASC';
+        break;
+      case 'most_liked':
+        orderBy = 'like_count DESC';
+        break;
+      case 'most_saved':
+        orderBy = 'save_count DESC';
+        break;
+      case 'most_viewed':
+        orderBy = 'view_count DESC';
+        break;
+      case 'most_commented':
+        orderBy = 'comment_count DESC';
+        break;
+      default:
+        orderBy = 'is_boosted DESC, created_at DESC'; // All
+        break;
+    }
+    // ===== END NEW: ORDER BY logic =====
+
+    // 1. Get all prompts with the selected ordering
     let query = supabaseAdmin
       .from('prompts')
       .select('id, slug, title, description, image_main, view_count, created_at, is_boosted, category_ids', { count: 'exact' })
       .eq('is_published', true)
-      .order('is_boosted', { ascending: false }) // Boosted first
-      .order('created_at', { ascending: false }) // Then newest
+      .order(orderBy, { ascending: false }) // Apply the dynamic order
       .range(Number(offset), Number(offset) + Number(limit) - 1);
+
+    // Special case: 'oldest' needs ascending order
+    if (filter === 'oldest') {
+      query = supabaseAdmin
+        .from('prompts')
+        .select('id, slug, title, description, image_main, view_count, created_at, is_boosted, category_ids', { count: 'exact' })
+        .eq('is_published', true)
+        .order('created_at', { ascending: true })
+        .range(Number(offset), Number(offset) + Number(limit) - 1);
+    }
+
+    // Special case: 'all' needs boosted first then newest
+    if (filter === 'all') {
+      query = supabaseAdmin
+        .from('prompts')
+        .select('id, slug, title, description, image_main, view_count, created_at, is_boosted, category_ids', { count: 'exact' })
+        .eq('is_published', true)
+        .order('is_boosted', { ascending: false })
+        .order('created_at', { ascending: false })
+        .range(Number(offset), Number(offset) + Number(limit) - 1);
+    }
 
     const { data: allPrompts, error: queryError, count } = await query;
 
@@ -191,14 +239,66 @@ export default async function handler(req, res) {
   //  EXPLORE (Guest feed)
   // ================================================================
   if (req.method === 'GET' && action === 'explore') {
-    const { limit = 50, offset = 0 } = req.query;
+    const { limit = 50, offset = 0, filter = 'all' } = req.query;
 
-    const { data: prompts, error, count } = await supabaseAdmin
+    // ===== NEW: Determine ORDER BY based on filter (same as feed) =====
+    let orderBy = 'is_boosted DESC, created_at DESC'; // default: All
+
+    switch (filter) {
+      case 'latest':
+        orderBy = 'created_at DESC';
+        break;
+      case 'oldest':
+        orderBy = 'created_at ASC';
+        break;
+      case 'most_liked':
+        orderBy = 'like_count DESC';
+        break;
+      case 'most_saved':
+        orderBy = 'save_count DESC';
+        break;
+      case 'most_viewed':
+        orderBy = 'view_count DESC';
+        break;
+      case 'most_commented':
+        orderBy = 'comment_count DESC';
+        break;
+      default:
+        orderBy = 'is_boosted DESC, created_at DESC'; // All
+        break;
+    }
+    // ===== END NEW: ORDER BY logic =====
+
+    // 1. Get all prompts with the selected ordering
+    let query = supabaseAdmin
       .from('prompts')
       .select('id, slug, title, description, image_main, view_count, created_at, is_boosted, category_ids', { count: 'exact' })
       .eq('is_published', true)
-      .order('created_at', { ascending: false })
+      .order(orderBy, { ascending: false })
       .range(Number(offset), Number(offset) + Number(limit) - 1);
+
+    // Special case: 'oldest' needs ascending order
+    if (filter === 'oldest') {
+      query = supabaseAdmin
+        .from('prompts')
+        .select('id, slug, title, description, image_main, view_count, created_at, is_boosted, category_ids', { count: 'exact' })
+        .eq('is_published', true)
+        .order('created_at', { ascending: true })
+        .range(Number(offset), Number(offset) + Number(limit) - 1);
+    }
+
+    // Special case: 'all' needs boosted first then newest
+    if (filter === 'all') {
+      query = supabaseAdmin
+        .from('prompts')
+        .select('id, slug, title, description, image_main, view_count, created_at, is_boosted, category_ids', { count: 'exact' })
+        .eq('is_published', true)
+        .order('is_boosted', { ascending: false })
+        .order('created_at', { ascending: false })
+        .range(Number(offset), Number(offset) + Number(limit) - 1);
+    }
+
+    const { data: prompts, error, count } = await query;
 
     if (error) {
       return res.status(500).json({ error: error.message });
