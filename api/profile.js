@@ -19,29 +19,27 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  // Verify authentication
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-
-  const token = authHeader.split(' ')[1];
-  let userId;
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    userId = decoded.id;
-  } catch (err) {
-    return res.status(401).json({ error: 'Invalid token' });
-  }
-
   const { action } = req.query;
   const { targetUserId } = req.query; // For viewing other profiles
 
   // ================================================================
-  // GET PROFILE
+  // GET PROFILE (PUBLIC - NO LOGIN REQUIRED)
   // ================================================================
   if (req.method === 'GET') {
-    // If no targetUserId is provided, fall back to the authenticated user
+    // Identify the user if a token is provided (for follow status), otherwise null
+    let userId = null;
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      try {
+        const token = authHeader.split(' ')[1];
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        userId = decoded.id;
+      } catch (err) {
+        // Token invalid, but we still allow viewing the profile
+      }
+    }
+
+    // If no targetUserId is provided, fall back to the authenticated user (own profile)
     const id = targetUserId || userId;
 
     // Determine if the user is viewing their own profile
@@ -120,7 +118,7 @@ export default async function handler(req, res) {
 
     // Check if current user follows this profile
     let isFollowing = false;
-    if (targetUserId && targetUserId !== userId) {
+    if (targetUserId && targetUserId !== userId && userId) {
       const { data: follow } = await supabaseAdmin
         .from('follows')
         .select('id')
@@ -144,9 +142,22 @@ export default async function handler(req, res) {
   }
 
   // ================================================================
-  // UPDATE PROFILE
+  // UPDATE PROFILE (PROTECTED - LOGIN REQUIRED)
   // ================================================================
   if (req.method === 'PUT') {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    const token = authHeader.split(' ')[1];
+    let userId;
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      userId = decoded.id;
+    } catch (err) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
     const { display_name, bio, avatar_url, email, phone_number } = req.body;
 
     const updates = {};
@@ -209,9 +220,22 @@ export default async function handler(req, res) {
   }
 
   // ================================================================
-  // CHANGE USERNAME (once a month)
+  // CHANGE USERNAME (PROTECTED - LOGIN REQUIRED)
   // ================================================================
   if (req.method === 'POST' && action === 'change-username') {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    const token = authHeader.split(' ')[1];
+    let userId;
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      userId = decoded.id;
+    } catch (err) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
     const { new_username } = req.body;
 
     if (!new_username || new_username.length < 3) {
@@ -282,9 +306,22 @@ export default async function handler(req, res) {
   }
 
   // ================================================================
-  // AVATAR UPLOAD (handled by Supabase Storage, just update URL)
+  // AVATAR UPLOAD (PROTECTED - LOGIN REQUIRED)
   // ================================================================
   if (req.method === 'POST' && action === 'avatar') {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    const token = authHeader.split(' ')[1];
+    let userId;
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      userId = decoded.id;
+    } catch (err) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
     const { avatar_url } = req.body;
     
     if (!avatar_url) {
@@ -309,9 +346,22 @@ export default async function handler(req, res) {
   }
 
   // ================================================================
-  // DELETE AVATAR (WITH STORAGE CLEANUP)
+  // DELETE AVATAR (PROTECTED - LOGIN REQUIRED)
   // ================================================================
   if (req.method === 'DELETE' && action === 'avatar') {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    const token = authHeader.split(' ')[1];
+    let userId;
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      userId = decoded.id;
+    } catch (err) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
     try {
       // 1. List all files in user_avatars that start with this user's ID
       const { data: fileList, error: listError } = await supabaseAdmin
