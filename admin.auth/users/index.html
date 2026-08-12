@@ -833,15 +833,34 @@
                     `;
 
                     items.forEach(item => {
-                        const title = item.prompts?.title || 'Unknown';
-                        const slug = item.prompts?.slug || '';
                         const id = item[idField];
+                        let displayText = '';
+
+                        if (type === 'comments') {
+                            // ✅ Show the actual comment content
+                            displayText = `"${item.content}"`;
+                            if (item.content.length > 80) {
+                                displayText = `"${item.content.substring(0, 80)}..."`;
+                            }
+                            // Add the prompt title in smaller text below
+                            const promptTitle = item.prompts?.title || 'Unknown Prompt';
+                            displayText += ` <span style="color:#64748b;font-size:13px;font-weight:400;">— on "${promptTitle}"</span>`;
+                        } else {
+                            // Show prompt title for likes/saves
+                            const title = item.prompts?.title || 'Unknown';
+                            const slug = item.prompts?.slug || '';
+                            if (slug) {
+                                displayText = `<a href="/prompt/${slug}" target="_blank">${title}</a>`;
+                            } else {
+                                displayText = title;
+                            }
+                        }
 
                         html += `
                             <div class="prompt-item">
                                 <input type="checkbox" class="item-check-${type}" data-type="${type}" data-id="${id}" />
                                 <div class="item-title">
-                                    ${slug ? `<a href="/prompt/${slug}" target="_blank">${title}</a>` : title}
+                                    ${displayText}
                                 </div>
                             </div>
                         `;
