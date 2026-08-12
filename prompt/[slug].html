@@ -932,6 +932,19 @@
         }
 
         // ============================================================
+        //  ===== NEW: FORMAT COUNT HELPER (matches feed) =====
+        // ============================================================
+        function formatCount(count) {
+            if (count < 1000) return count.toString();
+            const thousands = count / 1000;
+            if (thousands < 10) {
+                return thousands.toFixed(1) + 'k';
+            }
+            return Math.round(thousands) + 'k';
+        }
+        // ============================================================
+
+        // ============================================================
         //  LOAD PROMPT
         // ============================================================
         async function loadPrompt() {
@@ -1022,6 +1035,13 @@
             const optimizedMain = getOptimizedImageUrl(p.image_main);
             const optimizedOptional = getOptimizedImageUrl(p.image_optional);
 
+            // ===== NEW: Format counts using formatCount() =====
+            const formattedViews = formatCount(p.view_count || 0);
+            const formattedLikes = formatCount(likeCount);
+            const formattedSaves = formatCount(saveCount);
+            const formattedComments = formatCount(p.comment_count || 0);
+            // ===== END NEW =====
+
             container.innerHTML = `
                 <div class="post-card">
                     <!-- Header -->
@@ -1034,7 +1054,7 @@
                                 SPAIROGRAM
                                 <span class="badge-container"><span class="badge-premium"></span></span>
                             </div>
-                            <div class="meta">${date} · ${p.view_count || 0} views</div>
+                            <div class="meta">${date} · ${formattedViews} views</div>
                         </div>
                     </div>
 
@@ -1058,7 +1078,7 @@
                              decoding="async"
                              style="display:block;width:100%;max-height:400px;object-fit:cover;" />` : ''}
                         <div class="view-count">
-                            ${viewIcon} ${p.view_count || 0}
+                            ${viewIcon} ${formattedViews}
                         </div>
                     </div>
 
@@ -1066,13 +1086,13 @@
                     <div class="action-bar">
                         <div class="left">
                             <button class="like-btn ${likeClass}" id="likeBtn">
-                                ${likeIcon} <span class="count">${likeCount}</span>
+                                ${likeIcon} <span class="count">${formattedLikes}</span>
                             </button>
                             <button class="save-btn ${saveClass}" id="saveBtn">
-                                ${saveIcon} <span class="count">${saveCount}</span>
+                                ${saveIcon} <span class="count">${formattedSaves}</span>
                             </button>
                             <button class="comment-btn" id="commentBtn">
-                                ${commentIcon} <span class="count">${p.comment_count || 0}</span>
+                                ${commentIcon} <span class="count">${formattedComments}</span>
                             </button>
                             <button class="share-btn" id="shareBtn">
                                 ${shareIcon}
@@ -1089,7 +1109,7 @@
                     <div class="comments-section" id="commentsSection">
                         <div class="header">
                             <h3>Comments</h3>
-                            <span class="count" id="commentCount">0</span>
+                            <span class="count" id="commentCount">${formattedComments}</span>
                         </div>
                         <div class="comments-list" id="commentsList"></div>
                         <div class="load-more-comments" id="loadMoreWrap" style="display:none;">
@@ -1165,8 +1185,10 @@
         function updateInteractions() {
             const likeBtn = document.getElementById('likeBtn');
             const saveBtn = document.getElementById('saveBtn');
-            likeBtn.innerHTML = `${liked ? '<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>' : '<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>'} <span class="count">${likeCount}</span>`;
-            saveBtn.innerHTML = `${saved ? '<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>' : '<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>'} <span class="count">${saveCount}</span>`;
+            const formattedLikes = formatCount(likeCount);
+            const formattedSaves = formatCount(saveCount);
+            likeBtn.innerHTML = `${liked ? '<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>' : '<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>'} <span class="count">${formattedLikes}</span>`;
+            saveBtn.innerHTML = `${saved ? '<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>' : '<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>'} <span class="count">${formattedSaves}</span>`;
             likeBtn.className = `like-btn ${liked ? 'liked' : ''}`;
             saveBtn.className = `save-btn ${saved ? 'saved' : ''}`;
         }
@@ -1295,7 +1317,7 @@
                 commentOffset += data.comments.length;
                 hasMoreComments = data.hasMore;
                 document.getElementById('loadMoreWrap').style.display = hasMoreComments ? 'block' : 'none';
-                document.getElementById('commentCount').textContent = data.total || 0;
+                document.getElementById('commentCount').textContent = formatCount(data.total || 0);
             } catch (err) { console.error(err); }
             loadingComments = false;
         }
@@ -1464,7 +1486,7 @@
                         commentOffset = data.comments.length;
                         hasMoreComments = data.hasMore;
                         document.getElementById('loadMoreWrap').style.display = hasMoreComments ? 'block' : 'none';
-                        document.getElementById('commentCount').textContent = data.total || 0;
+                        document.getElementById('commentCount').textContent = formatCount(data.total || 0);
                     } else {
                         // Failed: remove temp comments
                         const tempEls = list.querySelectorAll('[data-id^="temp_"]');
