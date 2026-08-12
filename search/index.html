@@ -223,16 +223,14 @@
             font-weight: 600;
             font-size: 15px;
             color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
         .user-item .info .display-name {
             font-size: 14px;
             color: #64748b;
-        }
-        .user-item .info .badges {
-            display: flex;
-            gap: 4px;
-            font-size: 14px;
-            align-items: center;
+            margin-top: 2px;
         }
         .user-item .follow-btn {
             padding: 6px 16px;
@@ -710,7 +708,7 @@
                         const avatarUrl = u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.username) + '&background=4f46e5&color=fff&size=40';
                         const displayName = u.display_name || u.username;
 
-                        // Build proper CSS badges instead of emojis
+                        // Build proper CSS badges side-by-side with username
                         let badgesHtml = '';
                         if (u.is_owner) {
                             badgesHtml = `<span class="badge-container"><span class="badge-owner"></span></span>`;
@@ -729,9 +727,8 @@
                                 ${!u.avatar_url ? displayName.charAt(0).toUpperCase() : ''}
                             </div>
                             <div class="info">
-                                <div class="username">@${u.username}</div>
+                                <div class="username">@${u.username} ${badgesHtml}</div>
                                 <div class="display-name">${displayName}</div>
-                                <div class="badges">${badgesHtml}</div>
                             </div>
                             ${followBtn}
                         `;
@@ -847,9 +844,8 @@
                                 ${!u.avatar_url ? displayName.charAt(0).toUpperCase() : ''}
                             </div>
                             <div class="info">
-                                <div class="username">@${u.username}</div>
+                                <div class="username">@${u.username} ${badgesHtml}</div>
                                 <div class="display-name">${displayName}</div>
-                                <div class="badges">${badgesHtml}</div>
                             </div>
                             ${followBtn}
                         `;
