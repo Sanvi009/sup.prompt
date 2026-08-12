@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Add Prompt — Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #f8fafc;
+            color: #111827;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .top-nav .brand {
+            font-size: 22px;
+            font-weight: 700;
+            color: #111827;
+        }
+        .top-nav .brand span {
+            color: #4f46e5;
+        }
+        .top-nav .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        .top-nav .nav-links a {
+            text-decoration: none;
+            color: #64748b;
+            font-weight: 500;
+            font-size: 14px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .top-nav .nav-links a:hover {
+            background: #f1f5f9;
+            color: #111827;
+        }
+        .top-nav .nav-links a.active {
+            background: #eef2ff;
+            color: #4f46e5;
+        }
+        .top-nav .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .top-nav .nav-actions .btn-logout {
+            padding: 8px 16px;
+            background: #fee2e2;
+            color: #dc2626;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .top-nav .nav-actions .btn-logout:hover {
+            background: #fecaca;
+        }
+        .page-header {
+            margin-bottom: 24px;
+        }
+        .page-header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #111827;
+        }
+        .page-header p {
+            color: #64748b;
+            font-size: 15px;
+            margin-top: 4px;
+        }
+        .form-card {
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            font-size: 14px;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+        .form-group label .required {
+            color: #dc2626;
+        }
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background: white;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .form-group select[multiple] {
+            min-height: 120px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+        .form-actions .btn-secondary {
+            padding: 10px 20px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .form-actions .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+        .form-actions .btn-primary {
+            padding: 10px 24px;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .form-actions .btn-primary:hover {
+            background: #4338ca;
+            transform: translateY(-1px);
+        }
+        .form-actions .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .error-box {
+            color: #dc2626;
+            font-size: 14px;
+            text-align: center;
+            margin-top: 12px;
+        }
+        .success-box {
+            color: #16a34a;
+            font-size: 14px;
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        /* ===== DRAG & DROP IMAGE UPLOAD (Added) ===== */
+        .drop-zone {
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #f9fafb;
+            position: relative;
+        }
+        .drop-zone:hover,
+        .drop-zone.dragover {
+            border-color: #4f46e5;
+            background: #eef2ff;
+        }
+        .drop-zone .preview {
+            max-width: 100%;
+            max-height: 150px;
+            object-fit: contain;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            display: none;
+        }
+        .drop-zone .placeholder {
+            color: #64748b;
+            font-size: 13px;
+            display: block;
+        }
+        .drop-zone .placeholder svg {
+            width: 24px;
+            height: 24px;
+            fill: #64748b;
+            margin-bottom: 4px;
+        }
+        .drop-zone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .drop-zone.has-file .placeholder {
+            display: none;
+        }
+        .drop-zone.has-file .preview {
+            display: block;
+        }
+
+        @media (max-width: 640px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .form-card {
+                padding: 20px;
+            }
+            .top-nav {
+                flex-direction: column;
+                gap: 12px;
+            }
+            .top-nav .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="top-nav">
+            <div class="brand">📚 <span>Admin</span></div>
+            <div class="nav-links">
+                <a href="/admin.auth/dashboard/">Dashboard</a>
+                <a href="/admin.auth/users/">Users</a>
+                <a href="/admin.auth/prompts/">Prompts</a>
+                <a href="/admin.auth/add/" class="active">Add Prompt</a>
+                <a href="/admin.auth/reports/users/">Reports</a>
+                <a href="/admin.auth/premium/">Premium</a>
+            </div>
+            <div class="nav-actions">
+                <button class="btn-logout" id="logoutBtn">Sign Out</button>
+            </div>
+        </div>
+
+        <div class="page-header">
+            <h1>➕ Add New Prompt</h1>
+            <p>Create a new AI prompt for your library</p>
+        </div>
+
+        <div class="form-card">
+            <form id="addPromptForm">
+                <div class="form-group">
+                    <label for="title">Title <span class="required">*</span></label>
+                    <input type="text" id="title" placeholder="e.g. Cyberpunk City at Night" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" rows="2" placeholder="Short description of the prompt..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="promptText">Prompt Text <span class="required">*</span></label>
+                    <textarea id="promptText" rows="4" placeholder="The actual AI prompt text..." required></textarea>
+                </div>
+
+                <div class="form-row">
+                    <!-- ===== DRAG & DROP MAIN IMAGE ===== -->
+                    <div class="form-group">
+                        <label for="mainImage">Main Image <span class="required">*</span></label>
+                        <div class="drop-zone" id="mainImageDropZone">
+                            <img class="preview" id="mainImagePreview" />
+                            <div class="placeholder">
+                                <svg viewBox="0 0 24 24"><path d="M19 7v2h-4V7h4zm-4 10h4v-2h-4v2zm-2-6h6v2h-6v-2zm-4 0h2v2H9v-2zm0 4h2v2H9v-2zm-4-4h2v2H5v-2zm0 4h2v2H5v-2z"/></svg>
+                                <br />Drag & drop or click to upload
+                            </div>
+                            <input type="file" id="mainImage" accept="image/*" required />
+                        </div>
+                        <div class="helper">Required. This will be the cover image.</div>
+                    </div>
+
+                    <!-- ===== DRAG & DROP OPTIONAL IMAGE ===== -->
+                    <div class="form-group">
+                        <label for="optionalImage">Optional Image</label>
+                        <div class="drop-zone" id="optionalImageDropZone">
+                            <img class="preview" id="optionalImagePreview" />
+                            <div class="placeholder">
+                                <svg viewBox="0 0 24 24"><path d="M19 7v2h-4V7h4zm-4 10h4v-2h-4v2zm-2-6h6v2h-6v-2zm-4 0h2v2H9v-2zm0 4h2v2H9v-2zm-4-4h2v2H5v-2zm0 4h2v2H5v-2z"/></svg>
+                                <br />Drag & drop or click to upload
+                            </div>
+                            <input type="file" id="optionalImage" accept="image/*" />
+                        </div>
+                        <div class="helper">Optional. Additional image for the prompt.</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="categorySelect">Categories</label>
+                    <select id="categorySelect" multiple>
+                        <option value="" disabled>Loading categories...</option>
+                    </select>
+                    <div class="helper">Hold Ctrl/Cmd to select multiple categories.</div>
+                    <div style="display:flex;gap:8px;margin-top:8px;">
+                        <input type="text" id="newCategoryInput" placeholder="Add new category..." style="flex:1;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;" />
+                        <button type="button" id="addCategoryBtn" style="padding:8px 16px;background:#10b981;color:white;border:none;border-radius:6px;font-weight:500;cursor:pointer;font-size:13px;">Add</button>
+                    </div>
+                </div>
+
+                <div class="error-box" id="errorBox"></div>
+                <div class="success-box" id="successBox" style="display:none;"></div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" id="cancelBtn">Cancel</button>
+                    <button type="submit" class="btn-primary" id="submitBtn">Create Prompt</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('admin_token');
+        if (!token) {
+            window.location.href = '/admin.auth/';
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('admin_token');
+            window.location.href = '/admin.auth/';
+        });
+
+        document.getElementById('cancelBtn').addEventListener('click', () => {
+            window.location.href = '/admin.auth/prompts/';
+        });
+
+        async function loadCategories() {
+            const select = document.getElementById('categorySelect');
+            select.innerHTML = '<option value="" disabled>Loading categories...</option>';
+
+            try {
+                const configRes = await fetch('/api/supabase-config');
+                const config = await configRes.json();
+
+                const sb = supabase.createClient(config.url, config.anonKey);
+
+                const { data, error } = await sb
+                    .from('categories')
+                    .select('*')
+                    .order('name');
+
+                if (error) throw error;
+
+                select.innerHTML = '';
+                data.forEach(cat => {
+                    const opt = document.createElement('option');
+                    opt.value = cat.id;
+                    opt.textContent = cat.name;
+                    select.appendChild(opt);
+                });
+
+            } catch (err) {
+                select.innerHTML = '<option value="" disabled>Error loading categories</option>';
+                console.error('Error loading categories:', err);
+            }
+        }
+
+        document.getElementById('addCategoryBtn').addEventListener('click', async () => {
+            const input = document.getElementById('newCategoryInput');
+            const name = input.value.trim();
+            if (!name) return;
+
+            try {
+                const configRes = await fetch('/api/supabase-config');
+                const config = await configRes.json();
+
+                const client = supabase.createClient(config.url, config.anonKey);
+
+                const { error } = await client
+                    .from('categories')
+                    .insert({ name });
+
+                if (error) throw error;
+
+                input.value = '';
+                loadCategories();
+
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        });
+
+        document.getElementById('newCategoryInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('addCategoryBtn').click();
+            }
+        });
+
+        // ===== DRAG & DROP SETUP FOR ADD PROMPT =====
+        function setupDropZone(dropZoneId, previewId, fileInputId) {
+            const dropZone = document.getElementById(dropZoneId);
+            const preview = document.getElementById(previewId);
+            const fileInput = document.getElementById(fileInputId);
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('dragover');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                if (e.dataTransfer.files.length > 0) {
+                    fileInput.files = e.dataTransfer.files;
+                    handleFileSelect(e.dataTransfer.files[0]);
+                }
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleFileSelect(e.target.files[0]);
+                }
+            });
+
+            function handleFileSelect(file) {
+                if (!file.type.startsWith('image/')) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    dropZone.classList.add('has-file');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        setupDropZone('mainImageDropZone', 'mainImagePreview', 'mainImage');
+        setupDropZone('optionalImageDropZone', 'optionalImagePreview', 'optionalImage');
+
+        async function uploadImage(file, promptId, type) {
+            if (!file) return null;
+
+            try {
+                const configRes = await fetch('/api/supabase-config');
+                const config = await configRes.json();
+
+                const s = supabase.createClient(config.url, config.anonKey);
+
+                const ext = file.name.split('.').pop();
+                const timestamp = Date.now();
+                const random = Math.random().toString(36).substring(2, 6);
+                const filename = `${promptId}_${type}_${timestamp}_${random}.${ext}`;
+
+                const { error } = await s.storage
+                    .from('prompt_images')
+                    .upload(filename, file, { upsert: false });
+
+                if (error) throw error;
+
+                const { data: urlData } = s.storage
+                    .from('prompt_images')
+                    .getPublicUrl(filename);
+
+                return urlData.publicUrl;
+            } catch (err) {
+                throw new Error('Upload failed: ' + err.message);
+            }
+        }
+
+        function generateSlug(title) {
+            return title.toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/^-+|-+$/g, '');
+        }
+
+        document.getElementById('addPromptForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const errorBox = document.getElementById('errorBox');
+            const successBox = document.getElementById('successBox');
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating...';
+            errorBox.textContent = '';
+            successBox.style.display = 'none';
+
+            const title = document.getElementById('title').value.trim();
+            const description = document.getElementById('description').value.trim();
+            const promptText = document.getElementById('promptText').value.trim();
+            const mainFile = document.getElementById('mainImage').files[0];
+            const optionalFile = document.getElementById('optionalImage').files[0];
+            const select = document.getElementById('categorySelect');
+            const selected = Array.from(select.selectedOptions).map(opt => opt.value);
+
+            if (!title || !promptText) {
+                errorBox.textContent = 'Title and Prompt Text are required.';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create Prompt';
+                return;
+            }
+
+            if (!mainFile) {
+                errorBox.textContent = 'Main Image is required.';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create Prompt';
+                return;
+            }
+
+            try {
+                let slug = generateSlug(title);
+
+                const configRes = await fetch('/api/supabase-config');
+                const config = await configRes.json();
+
+                const db = supabase.createClient(config.url, config.anonKey);
+
+                const { data: existing } = await db
+                    .from('prompts')
+                    .select('slug')
+                    .eq('slug', slug)
+                    .maybeSingle();
+
+                if (existing) {
+                    slug += '-' + Math.random().toString(36).substring(2, 6);
+                }
+
+                const { data: newPrompt, error: insertError } = await db
+                    .from('prompts')
+                    .insert({
+                        slug,
+                        title,
+                        description: description || null,
+                        prompt_text: promptText,
+                        category_ids: selected,
+                        image_main: '',
+                        image_optional: '',
+                        is_published: true,
+                        is_boosted: false
+                    })
+                    .select()
+                    .single();
+
+                if (insertError) {
+                    errorBox.textContent = 'Insert failed: ' + insertError.message;
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Create Prompt';
+                    return;
+                }
+
+                let mainUrl = null;
+                if (mainFile) {
+                    try {
+                        mainUrl = await uploadImage(mainFile, newPrompt.id, 'main');
+                    } catch (uploadErr) {
+                        errorBox.textContent = 'Upload error: ' + uploadErr.message;
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Create Prompt';
+                        return;
+                    }
+                }
+
+                let optionalUrl = null;
+                if (optionalFile) {
+                    try {
+                        optionalUrl = await uploadImage(optionalFile, newPrompt.id, 'optional');
+                    } catch (uploadErr) {
+                        console.warn('Optional image upload failed:', uploadErr.message);
+                    }
+                }
+
+                if (!mainUrl) {
+                    errorBox.textContent = 'Main image upload failed (unknown reason).';
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Create Prompt';
+                    return;
+                }
+
+                const { error: updateError } = await db
+                    .from('prompts')
+                    .update({
+                        image_main: mainUrl,
+                        image_optional: optionalUrl
+                    })
+                    .eq('id', newPrompt.id);
+
+                if (updateError) {
+                    errorBox.textContent = 'Update failed: ' + updateError.message;
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Create Prompt';
+                    return;
+                }
+
+                successBox.textContent = '✅ Prompt created successfully! You can now add another.';
+                successBox.style.display = 'block';
+                errorBox.textContent = '';
+
+                document.getElementById('addPromptForm').reset();
+
+                // Clear previews after reset
+                document.getElementById('mainImagePreview').src = '';
+                document.getElementById('mainImagePreview').style.display = 'none';
+                document.getElementById('mainImageDropZone').classList.remove('has-file');
+                document.getElementById('optionalImagePreview').src = '';
+                document.getElementById('optionalImagePreview').style.display = 'none';
+                document.getElementById('optionalImageDropZone').classList.remove('has-file');
+
+                submitBtn.disabled = true;
+                submitBtn.textContent = '✅ Done (Refresh to add more)';
+
+            } catch (err) {
+                errorBox.textContent = 'Error: ' + err.message;
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create Prompt';
+            }
+        });
+
+        loadCategories();
+    </script>
+</body>
+</html>
