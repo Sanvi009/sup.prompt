@@ -107,6 +107,45 @@
             background: white;
         }
         header .controls input::placeholder { color: #65676b; }
+        
+        /* ===== NEW: FILTER DROPDOWN ===== */
+        header .controls .filter-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        header .controls .filter-wrap select {
+            padding: 8px 32px 8px 14px;
+            border: none;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            font-family: inherit;
+            background: #f0f2f5;
+            color: #050505;
+            cursor: pointer;
+            outline: none;
+            appearance: none;
+            -webkit-appearance: none;
+            transition: all 0.15s;
+            min-width: 90px;
+        }
+        header .controls .filter-wrap select:focus {
+            box-shadow: 0 0 0 2px #1877f2;
+            background: white;
+        }
+        header .controls .filter-wrap::after {
+            content: '▾';
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            color: #65676b;
+            pointer-events: none;
+        }
+        /* ===== END NEW FILTER DROPDOWN ===== */
+
         header .controls .profile-btn {
             width: 40px;
             height: 40px;
@@ -830,6 +869,19 @@
             <span>spairogram</span>
         </a>
         <div class="controls">
+            <!-- NEW: Filter Dropdown -->
+            <div class="filter-wrap">
+                <select id="filterSelect">
+                    <option value="all">All</option>
+                    <option value="latest">Latest</option>
+                    <option value="oldest">Oldest</option>
+                    <option value="most_liked">Most Liked</option>
+                    <option value="most_saved">Most Saved</option>
+                    <option value="most_viewed">Most Viewed</option>
+                    <option value="most_commented">Most Commented</option>
+                </select>
+            </div>
+            <!-- END NEW: Filter Dropdown -->
             <input type="text" id="searchInput" placeholder="Search prompts..." />
             <button class="profile-btn" id="profileBtn">👤</button>
         </div>
@@ -904,6 +956,9 @@
         let creativeSectionCount = 0;
         let lastCreativeIndex = -1;
 
+        // ===== NEW: Filter state =====
+        let currentFilter = 'all';
+
         // ============================================================
         //  DOM
         // ============================================================
@@ -919,6 +974,8 @@
         const commentUserAvatar = document.getElementById('commentUserAvatar');
         const imageModal = document.getElementById('imageModal');
         const imageModalContent = document.getElementById('imageModalContent');
+        // ===== NEW: Filter dropdown =====
+        const filterSelect = document.getElementById('filterSelect');
 
         // ============================================================
         //  HELPERS
@@ -1055,7 +1112,8 @@
 
             const action = token ? 'feed' : 'explore';
             const currentLimit = page === 0 ? initialPageSize : subsequentPageSize;
-            const url = `/api/feed?action=${action}&limit=${currentLimit}&offset=${page * initialPageSize}`;
+            // ===== NEW: Add filter parameter to URL =====
+            const url = `/api/feed?action=${action}&limit=${currentLimit}&offset=${page * initialPageSize}&filter=${currentFilter}`;
 
             try {
                 const res = await fetch(url, {
@@ -1945,10 +2003,38 @@
         });
 
         // ============================================================
+        //  ===== NEW: FILTER DROPDOWN LOGIC =====
+        // ============================================================
+        function initFilter() {
+            // Load saved filter from sessionStorage
+            const savedFilter = sessionStorage.getItem('feedFilter');
+            if (savedFilter && ['all', 'latest', 'oldest', 'most_liked', 'most_saved', 'most_viewed', 'most_commented'].includes(savedFilter)) {
+                currentFilter = savedFilter;
+                filterSelect.value = savedFilter;
+            } else {
+                currentFilter = 'all';
+                filterSelect.value = 'all';
+            }
+        }
+
+        filterSelect.addEventListener('change', () => {
+            const newFilter = filterSelect.value;
+            if (newFilter === currentFilter) return;
+            
+            currentFilter = newFilter;
+            sessionStorage.setItem('feedFilter', currentFilter);
+            
+            // Reset feed and reload from page 0
+            loadFeed(true);
+        });
+        // ===== END NEW: FILTER DROPDOWN LOGIC =====
+
+        // ============================================================
         //  INIT
         // ============================================================
         async function init() {
             await verifyUser();
+            initFilter(); // ===== NEW: Initialize filter =====
             loadFeed(true);
         }
         init();
