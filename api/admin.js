@@ -446,7 +446,48 @@ export default async function handler(req, res) {
       });
     }
 
-    // --- REMOVE LIKE FROM USER ---
+    // --- BATCH REMOVE LIKES/SAVES/COMMENTS (NEW) ---
+    if (subAction === 'batch-remove-interactions') {
+      const { userId, type, ids } = req.body;
+
+      if (!userId || !type || !ids || !Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ error: 'Invalid request. User ID, type, and array of IDs required.' });
+      }
+
+      let table = '';
+      let idColumn = '';
+
+      if (type === 'likes') {
+        table = 'likes';
+        idColumn = 'prompt_id';
+      } else if (type === 'saves') {
+        table = 'saves';
+        idColumn = 'prompt_id';
+      } else if (type === 'comments') {
+        table = 'comments';
+        idColumn = 'id';
+      } else {
+        return res.status(400).json({ error: 'Invalid type. Must be "likes", "saves", or "comments".' });
+      }
+
+      // ✅ SINGLE BATCH DELETE — Database triggers will handle count subtractions
+      const { error } = await supabaseAdmin
+        .from(table)
+        .delete()
+        .eq('user_id', userId)
+        .in(idColumn, ids);
+
+      if (error) {
+        return res.status(500).json({ error: error.message });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: `Removed ${ids.length} ${type} permanently.`
+      });
+    }
+
+    // --- REMOVE LIKE FROM USER (Legacy, kept for safety) ---
     if (subAction === 'remove-like') {
       const { userId, promptId } = req.body;
 
@@ -454,7 +495,6 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'User ID and Prompt ID required' });
       }
 
-      // ✅ DELETE ONLY — Database trigger will subtract -1 from like_count automatically
       const { error } = await supabaseAdmin
         .from('likes')
         .delete()
@@ -471,7 +511,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // --- REMOVE SAVE FROM USER ---
+    // --- REMOVE SAVE FROM USER (Legacy, kept for safety) ---
     if (subAction === 'remove-save') {
       const { userId, promptId } = req.body;
 
@@ -479,7 +519,6 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'User ID and Prompt ID required' });
       }
 
-      // ✅ DELETE ONLY — Database trigger will subtract -1 from save_count automatically
       const { error } = await supabaseAdmin
         .from('saves')
         .delete()
@@ -496,7 +535,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // --- HIDE COMMENT ---
+    // --- HIDE COMMENT (Legacy, kept for safety) ---
     if (subAction === 'hide-comment') {
       const { commentId } = req.body;
 
@@ -519,7 +558,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // --- DELETE COMMENT (permanent) ---
+    // --- DELETE COMMENT (permanent) (Legacy, kept for safety) ---
     if (subAction === 'delete-comment') {
       const { commentId } = req.body;
 
@@ -527,7 +566,6 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Comment ID required' });
       }
 
-      // First, get the comment to find the prompt_id
       const { data: comment, error: commentError } = await supabaseAdmin
         .from('comments')
         .select('prompt_id')
@@ -538,7 +576,6 @@ export default async function handler(req, res) {
         return res.status(404).json({ error: 'Comment not found' });
       }
 
-      // ✅ DELETE ONLY — Database trigger will subtract -1 from comment_count automatically
       const { error: deleteError } = await supabaseAdmin
         .from('comments')
         .delete()
