@@ -232,6 +232,7 @@
             display: flex;
             gap: 4px;
             font-size: 14px;
+            align-items: center;
         }
         .user-item .follow-btn {
             padding: 6px 16px;
@@ -461,6 +462,84 @@
                 -6px -6px 14px rgba(255,255,255,0.8);
         }
 
+        /* ============================================================ */
+        /* ===== PURE CSS BADGES (Same as Feed & Profile) ===== */
+        /* ============================================================ */
+
+        .badge-container {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            position: relative;
+            flex-shrink: 0;
+            vertical-align: middle;
+        }
+        .badge-premium {
+            background: #1d9bf0;
+            border-radius: 50%;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .badge-premium::after {
+            content: '';
+            display: block;
+            width: 6px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg) translate(-1px, -1px);
+            border-radius: 1px;
+        }
+        .badge-owner {
+            background: #1a1a1a;
+            border-radius: 50%;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            position: relative;
+        }
+        .badge-owner::before {
+            content: '';
+            display: block;
+            width: 12px;
+            height: 10px;
+            background: #f5a623;
+            clip-path: polygon(
+                0% 100%, 
+                15% 100%, 
+                15% 40%, 
+                35% 70%, 
+                50% 20%, 
+                65% 70%, 
+                85% 40%, 
+                85% 100%, 
+                100% 100%, 
+                100% 100%, 
+                0% 100%
+            );
+            position: relative;
+            top: -1px;
+        }
+        .badge-owner::after {
+            content: '';
+            display: block;
+            width: 10px;
+            height: 2px;
+            background: #f5a623;
+            border-radius: 1px;
+            position: absolute;
+            bottom: 5px;
+        }
+
         /* ===== RESPONSIVE ===== */
         @media (max-width: 1024px) {
             .prompt-grid { grid-template-columns: repeat(3, 1fr); }
@@ -630,9 +709,15 @@
                     displayUsers.forEach(u => {
                         const avatarUrl = u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.username) + '&background=4f46e5&color=fff&size=40';
                         const displayName = u.display_name || u.username;
-                        let badges = '';
-                        if (u.is_premium) badges += '⭐';
-                        if (u.is_owner) badges += '👑';
+
+                        // Build proper CSS badges instead of emojis
+                        let badgesHtml = '';
+                        if (u.is_owner) {
+                            badgesHtml = `<span class="badge-container"><span class="badge-owner"></span></span>`;
+                        } else if (u.is_premium) {
+                            badgesHtml = `<span class="badge-container"><span class="badge-premium"></span></span>`;
+                        }
+
                         const item = document.createElement('div');
                         item.className = 'user-item';
                         item.onclick = () => window.location.href = `/@${u.username}`;
@@ -644,8 +729,9 @@
                                 ${!u.avatar_url ? displayName.charAt(0).toUpperCase() : ''}
                             </div>
                             <div class="info">
-                                <div class="username">@${u.username} ${badges}</div>
+                                <div class="username">@${u.username}</div>
                                 <div class="display-name">${displayName}</div>
+                                <div class="badges">${badgesHtml}</div>
                             </div>
                             ${followBtn}
                         `;
@@ -741,9 +827,15 @@
                     remaining.forEach(u => {
                         const avatarUrl = u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.username) + '&background=4f46e5&color=fff&size=40';
                         const displayName = u.display_name || u.username;
-                        let badges = '';
-                        if (u.is_premium) badges += '⭐';
-                        if (u.is_owner) badges += '👑';
+
+                        // Build proper CSS badges for remaining users
+                        let badgesHtml = '';
+                        if (u.is_owner) {
+                            badgesHtml = `<span class="badge-container"><span class="badge-owner"></span></span>`;
+                        } else if (u.is_premium) {
+                            badgesHtml = `<span class="badge-container"><span class="badge-premium"></span></span>`;
+                        }
+
                         const item = document.createElement('div');
                         item.className = 'user-item';
                         item.onclick = () => window.location.href = `/@${u.username}`;
@@ -755,8 +847,9 @@
                                 ${!u.avatar_url ? displayName.charAt(0).toUpperCase() : ''}
                             </div>
                             <div class="info">
-                                <div class="username">@${u.username} ${badges}</div>
+                                <div class="username">@${u.username}</div>
                                 <div class="display-name">${displayName}</div>
+                                <div class="badges">${badgesHtml}</div>
                             </div>
                             ${followBtn}
                         `;
