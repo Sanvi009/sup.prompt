@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes" />
+    <title>About Us – spairogram</title>
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-S5N2WB78T5"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-S5N2WB78T5');
+    </script>
+
+    <link rel="icon" type="image/png" href="/asset/icon.png" />
+    <link rel="shortcut icon" href="/asset/icon.png" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bitcount+Prop+Single&display=swap');
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+
+    <style>
+        /* ===== RESET & BASE ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #f0f2f5;
+            color: #050505;
+            -webkit-font-smoothing: antialiased;
+            padding: 20px 12px 60px;
+        }
+
+        .container {
+            max-width: 680px;
+            margin: 0 auto;
+        }
+
+        /* ===== BRAND HEADER ===== */
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            color: #1a1a1a;
+            text-decoration: none;
+            font-family: 'Bitcount Prop Single', serif;
+            font-size: 24px;
+            font-weight: 400;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: opacity 0.2s;
+        }
+        .brand:hover { opacity: 0.6; }
+        .brand img.icon {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            display: block;
+        }
+        .brand span { color: #4f46e5; }
+
+        /* ===== POST CARD ===== */
+        .post-card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #e4e6eb;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            padding: 28px 24px 32px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        /* ===== TYPOGRAPHY ===== */
+        .post-card h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #050505;
+            letter-spacing: -0.4px;
+            line-height: 1.3;
+            margin-bottom: 4px;
+        }
+        .post-card .subtitle {
+            color: #65676b;
+            font-size: 15px;
+            margin-bottom: 20px;
+        }
+        .post-card h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #050505;
+            margin-top: 28px;
+            margin-bottom: 10px;
+            letter-spacing: -0.3px;
+        }
+        .post-card p {
+            font-size: 15px;
+            line-height: 1.7;
+            color: #1a1a1a;
+            margin-bottom: 14px;
+        }
+        .post-card ul {
+            margin: 10px 0 18px 22px;
+            color: #1a1a1a;
+            font-size: 15px;
+            line-height: 1.7;
+        }
+        .post-card ul li {
+            margin-bottom: 6px;
+        }
+        .post-card a {
+            color: #1877f2;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .post-card a:hover {
+            text-decoration: underline;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 640px) {
+            body { padding: 14px 8px 40px; }
+            .post-card { padding: 20px 16px 24px; }
+            .post-card h1 { font-size: 24px; }
+            .post-card h2 { font-size: 18px; }
+            .post-card p, .post-card ul, .post-card ul li { font-size: 14px; }
+            .brand { font-size: 22px; }
+            .brand img.icon { width: 28px; height: 28px; }
+        }
+        @media (max-width: 400px) {
+            .post-card { padding: 16px 12px 20px; }
+            .post-card h1 { font-size: 22px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- BRAND HEADER -->
+        <a href="/feed/" class="brand">
+            <img src="/asset/icon.png" class="icon" alt="Icon" onerror="this.style.display='none'" />
+            <span>spairogram</span>
+        </a>
+
+        <!-- MAIN CARD -->
+        <div class="post-card">
+            <h1>About spairogram</h1>
+            <div class="subtitle">The AI prompt discovery platform for creators, thinkers, and dreamers.</div>
+
+            <h2>What is spairogram?</h2>
+            <p><strong>spairogram</strong> is a visual discovery platform for AI prompts — a place where creativity meets code. We curate, organize, and surface the best AI prompts from across the web, all in a beautiful, Instagram‑style feed that makes exploring ideas as natural as scrolling.</p>
+
+            <p>Think of it as a gallery for the AI age. Every prompt is a piece of art — carefully crafted, beautifully visualized, and ready to spark your next big idea.</p>
+
+            <h2>What can you do here?</h2>
+            <p>Whether you're a seasoned AI artist, a curious beginner, or someone who just loves beautiful ideas — spairogram is built for you.</p>
+
+            <ul>
+                <li><strong>Discover:</strong> Browse hundreds of prompts across categories like fantasy, cyberpunk, nature, portrait, and more. Our feed is designed to surprise and inspire.</li>
+                <li><strong>Save & Collect:</strong> Bookmark your favorite prompts and build your own personal library of ideas.</li>
+                <li><strong>Like & Engage:</strong> Show appreciation for prompts that resonate with you — and discover what the community loves.</li>
+                <li><strong>Comment & Connect:</strong> Share your thoughts, ask questions, or just say something nice. Every prompt has a comment section where creators and explorers can connect.</li>
+                <li><strong>Follow Creators:</strong> Keep up with the people behind the prompts. Follow your favorite users and see their latest work in your feed.</li>
+                <li><strong>Search & Explore:</strong> Find exactly what you're looking for — whether it's a specific category, a keyword, or a creator you admire.</li>
+                <li><strong>Share with the World:</strong> Every prompt has a beautiful, shareable page. Share your favorite discoveries with friends, on social media, or anywhere you want to spark inspiration.</li>
+            </ul>
+
+            <h2>Why spairogram?</h2>
+            <p>AI is changing how we create — but the tools are often scattered, cluttered, and hard to explore. spairogram was built to change that.</p>
+
+            <p>We believe that great prompts deserve great presentation. That's why every prompt on spairogram is displayed with stunning imagery, clear descriptions, and a clean, distraction‑free interface. We're not just a directory — we're a community of explorers, dreamers, and builders.</p>
+
+            <p>Whether you're looking for inspiration, building a project, or just curious about what AI can do — spairogram is your place.</p>
+
+            <h2>Our Mission</h2>
+            <p>To make AI creativity accessible, beautiful, and human — one prompt at a time.</p>
+
+            <h2>Who is spairogram for?</h2>
+            <ul>
+                <li><strong>AI Artists & Designers:</strong> Find new styles, techniques, and ideas for your next project.</li>
+                <li><strong>Writers & Storytellers:</strong> Discover prompts that spark narratives, characters, and worlds.</li>
+                <li><strong>Developers & Builders:</strong> Find creative use cases and test new tools.</li>
+                <li><strong>Curious Explorers:</strong> Just browse, learn, and enjoy the beauty of what AI can do.</li>
+                <li><strong>Everyone else:</strong> Whether you're here for fun, for work, or for wonder — you're welcome.</li>
+            </ul>
+
+            <h2>Our Promise</h2>
+            <p>We're building spairogram with care, transparency, and respect for our users. We don't sell your data, we don't train AI on your content, and we're committed to keeping this platform safe, beautiful, and human.</p>
+
+            <p>We're just getting started — and we're excited to grow with you.</p>
+
+            <p style="margin-top: 24px; font-weight: 500; color: #65676b;">— The spairogram team</p>
+        </div>
+    </div>
+</body>
+</html>
