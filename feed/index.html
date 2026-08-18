@@ -171,6 +171,55 @@
             object-fit: cover;
         }
 
+        /* ===== NEW: DOWNLOAD ICON (beside profile) ===== */
+        header .controls .download-btn-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e8ecf1;
+            box-shadow: 2px 2px 6px rgba(0,0,0,0.06);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-decoration: none;
+            color: #4f46e5;
+            flex-shrink: 0;
+        }
+        header .controls .download-btn-wrap:hover {
+            transform: scale(1.04);
+        }
+        header .controls .download-btn-wrap svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+        /* Red badge with number "1" */
+        header .controls .download-btn-wrap .badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #dc2626;
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(220,38,38,0.3);
+            font-family: 'Inter', sans-serif;
+        }
+        /* Hide download icon inside the app (WebView / standalone) */
+        .hide-download .controls .download-btn-wrap {
+            display: none !important;
+        }
+        /* ===== END NEW: DOWNLOAD ICON ===== */
+
         /* ===== SKELETON LOADING (Feed) ===== */
         .skeleton {
             background: linear-gradient(90deg, #e4e6eb 25%, #f0f2f5 50%, #e4e6eb 75%);
@@ -883,6 +932,14 @@
             </div>
             <!-- END NEW: Filter Dropdown -->
             <input type="text" id="searchInput" placeholder="Search prompts..." />
+            
+            <!-- NEW: Download Icon (beside profile) -->
+            <a href="/download/" class="download-btn-wrap" aria-label="Download app">
+                <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                <span class="badge">1</span>
+            </a>
+            <!-- END NEW: Download Icon -->
+
             <button class="profile-btn" id="profileBtn">👤</button>
         </div>
     </header>
@@ -928,6 +985,24 @@
     </div>
 
     <script>
+        // ===== HIDE DOWNLOAD ICON INSIDE THE APP =====
+        (function() {
+            const isInApp = (
+                // Android WebView
+                /Android/.test(navigator.userAgent) && /wv/.test(navigator.userAgent) ||
+                // Standalone mode (iOS / PWA)
+                window.navigator.standalone === true ||
+                // Display mode standalone
+                window.matchMedia('(display-mode: standalone)').matches ||
+                // UserAgentData (modern Android WebView detection)
+                (navigator.userAgentData && navigator.userAgentData.brands && navigator.userAgentData.brands.some(b => b.brand === 'Android'))
+            );
+            if (isInApp) {
+                document.querySelector('header').classList.add('hide-download');
+            }
+        })();
+        // ===== END HIDE DOWNLOAD ICON INSIDE THE APP =====
+
         // ============================================================
         //  STATE
         // ============================================================
