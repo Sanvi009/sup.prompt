@@ -64,15 +64,19 @@
         }
         .brand span { color: #4f46e5; }
 
-        /* ===== POST CARD (Skeuomorphic) ===== */
+        /* ===== POST CARD (Premium Skeuomorphic) ===== */
         .post-card {
             background: white;
-            border-radius: 16px;
+            border-radius: 20px;
             border: 1px solid #e4e6eb;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-            padding: 28px 24px 32px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            padding: 32px 28px 36px;
             margin-bottom: 20px;
             overflow: hidden;
+            transition: box-shadow 0.2s;
+        }
+        .post-card:hover {
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
         }
 
         /* ===== TYPOGRAPHY ===== */
@@ -108,58 +112,85 @@
         .app-header {
             display: flex;
             align-items: flex-start;
-            gap: 16px;
-            margin-bottom: 20px;
+            gap: 18px;
+            margin-bottom: 24px;
             flex-wrap: wrap;
         }
         .app-header .app-icon {
-            width: 80px;
-            height: 80px;
-            border-radius: 16px;
+            width: 88px;
+            height: 88px;
+            border-radius: 18px;
             background: #e4e6eb;
             object-fit: contain;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
             flex-shrink: 0;
+            border: 1px solid #f0f2f5;
         }
         .app-header .app-info {
             flex: 1;
             min-width: 160px;
         }
         .app-header .app-info .app-name {
-            font-size: 22px;
+            font-size: 24px;
             font-weight: 700;
             color: #050505;
+            letter-spacing: -0.3px;
         }
-        .app-header .app-info .app-version {
+        .app-header .app-info .app-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 4px;
+            flex-wrap: wrap;
+        }
+        .app-header .app-info .app-meta .version {
             font-size: 14px;
             color: #65676b;
-            margin-top: 2px;
+            background: #f0f2f5;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-weight: 500;
         }
-        .app-header .app-info .app-size {
-            font-size: 13px;
+        .app-header .app-info .app-meta .size {
+            font-size: 14px;
             color: #65676b;
-            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .app-header .app-info .app-meta .size svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
         }
 
         /* ===== DOWNLOAD BUTTON ===== */
+        .download-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
         .download-btn {
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            padding: 14px 32px;
+            padding: 14px 36px;
             background: #1877f2;
             color: white;
             border: none;
-            border-radius: 12px;
+            border-radius: 14px;
             font-weight: 600;
             font-size: 16px;
             cursor: pointer;
             text-decoration: none;
-            transition: background 0.2s, transform 0.1s;
-            margin-top: 8px;
+            transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+            box-shadow: 0 2px 12px rgba(24,119,242,0.25);
         }
         .download-btn:hover {
             background: #166fe5;
+            box-shadow: 0 4px 20px rgba(24,119,242,0.35);
         }
         .download-btn:active {
             transform: scale(0.97);
@@ -169,29 +200,52 @@
             height: 20px;
             fill: currentColor;
         }
+        .download-info {
+            font-size: 13px;
+            color: #65676b;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .download-info svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+        }
 
         /* ===== SCREENSHOT CAROUSEL ===== */
         .screenshot-section {
-            margin-top: 24px;
+            margin-top: 28px;
             border-top: 1px solid #e4e6eb;
-            padding-top: 20px;
+            padding-top: 24px;
         }
-        .screenshot-section h2 {
+        .screenshot-section .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+        .screenshot-section .section-header h2 {
             font-size: 18px;
             font-weight: 600;
             color: #050505;
-            margin-bottom: 12px;
+        }
+        .screenshot-section .section-header .count {
+            font-size: 13px;
+            color: #65676b;
+            font-weight: 500;
         }
         .carousel-wrap {
             position: relative;
             overflow: hidden;
+            border-radius: 12px;
         }
         .carousel-track {
             display: flex;
-            gap: 12px;
+            gap: 14px;
             overflow-x: auto;
             scroll-snap-type: x mandatory;
-            padding-bottom: 12px;
+            padding-bottom: 16px;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: thin;
         }
@@ -207,57 +261,69 @@
         }
         .carousel-track .screenshot {
             flex: 0 0 auto;
-            width: 180px;
-            height: 320px;
-            border-radius: 12px;
+            width: 200px;
+            height: 360px;
+            border-radius: 14px;
             background: #e4e6eb;
             object-fit: cover;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
             cursor: pointer;
             scroll-snap-align: start;
-            transition: transform 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid #f0f2f5;
         }
         .carousel-track .screenshot:hover {
-            transform: scale(1.02);
+            transform: scale(1.03);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.10);
         }
 
-        /* ===== LIGHTBOX ===== */
+        /* ===== LIGHTBOX (Premium) ===== */
         .lightbox-overlay {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(4px);
+            background: rgba(0,0,0,0.88);
+            backdrop-filter: blur(8px);
             z-index: 2000;
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            transition: opacity 0.3s;
         }
         .lightbox-overlay.active {
             display: flex;
         }
         .lightbox-overlay img {
-            max-width: 92%;
-            max-height: 92%;
+            max-width: 94%;
+            max-height: 94%;
             object-fit: contain;
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            animation: fadeIn 0.25s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
         }
 
         /* ===== RESPONSIVE ===== */
         @media (max-width: 640px) {
             body { padding: 14px 8px 40px; }
-            .post-card { padding: 20px 16px 24px; }
-            .app-header .app-icon { width: 64px; height: 64px; }
-            .app-header .app-info .app-name { font-size: 20px; }
+            .post-card { padding: 22px 16px 28px; }
+            .app-header .app-icon { width: 72px; height: 72px; border-radius: 16px; }
+            .app-header .app-info .app-name { font-size: 21px; }
             .download-btn { width: 100%; justify-content: center; }
-            .carousel-track .screenshot { width: 140px; height: 250px; }
+            .download-wrapper { flex-direction: column; align-items: stretch; }
+            .download-info { justify-content: center; }
+            .carousel-track .screenshot { width: 150px; height: 270px; }
             .post-card h1 { font-size: 24px; }
+            .screenshot-section .section-header h2 { font-size: 17px; }
         }
         @media (max-width: 400px) {
-            .post-card { padding: 16px 12px 20px; }
-            .app-header .app-icon { width: 56px; height: 56px; }
-            .carousel-track .screenshot { width: 120px; height: 210px; }
+            .post-card { padding: 18px 12px 24px; }
+            .app-header .app-icon { width: 64px; height: 64px; }
+            .carousel-track .screenshot { width: 130px; height: 230px; }
+            .app-header .app-info .app-name { font-size: 19px; }
         }
     </style>
 </head>
@@ -276,20 +342,32 @@
                 <img src="/asset/icon.png" class="app-icon" alt="Spairogram icon" onerror="this.style.display='none'" />
                 <div class="app-info">
                     <div class="app-name">Spairogram</div>
-                    <div class="app-version">Version 1.0.0.0</div>
-                    <div class="app-size">📦 6.3 MB</div>
+                    <div class="app-meta">
+                        <span class="version">v1.0.0.0</span>
+                        <span class="size">
+                            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 16c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7zm0-12c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5z"/></svg>
+                            6.3 MB
+                        </span>
+                    </div>
+                    <div class="download-wrapper">
+                        <a href="/download/Spairogram-v-1.0.0.0.apk" download class="download-btn">
+                            <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                            Download APK
+                        </a>
+                        <span class="download-info">
+                            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                            Safe &amp; secure
+                        </span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Download Button -->
-            <a href="/download/Spairogram-v-1.0.0.0.apk" download class="download-btn">
-                <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-                Download APK
-            </a>
-
             <!-- Screenshots -->
             <div class="screenshot-section">
-                <h2>Preview</h2>
+                <div class="section-header">
+                    <h2>Preview</h2>
+                    <span class="count">6 screenshots</span>
+                </div>
                 <div class="carousel-wrap">
                     <div class="carousel-track" id="screenshotTrack">
                         <img src="/download/preview/1.png" class="screenshot" alt="Screenshot 1" loading="lazy" />
@@ -303,9 +381,10 @@
             </div>
 
             <!-- About -->
-            <div style="margin-top: 24px; border-top: 1px solid #e4e6eb; padding-top: 20px;">
+            <div style="margin-top: 28px; border-top: 1px solid #e4e6eb; padding-top: 24px;">
                 <h2 style="font-size: 18px; font-weight: 600; color: #050505; margin-bottom: 8px;">About this app</h2>
-                <p>Spairogram is a visual discovery platform for AI prompts. Browse, save, and share beautiful prompts in an Instagram‑style feed. Whether you're an AI artist, a writer, or just curious — spairogram is your creative home.</p>
+                <p>Spairogram is a visual discovery platform for AI prompts. Browse, save, and share beautiful prompts in an elegant, Instagram‑style feed. Whether you're an AI artist, a writer, or just curious — spairogram is your creative home.</p>
+                <p style="margin-bottom: 0;"><strong>Features:</strong> Discover prompts, save favorites, like and comment, follow creators, search &amp; explore, and share with the world.</p>
             </div>
         </div>
     </div>
@@ -332,20 +411,17 @@
             lightbox.classList.remove('active');
         });
 
-        // Close lightbox with Escape key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 lightbox.classList.remove('active');
             }
         });
 
-        // ===== AUTO CENTER CAROUSEL ON LOAD =====
-        // (Optional: scroll to the first screenshot on load)
+        // ===== CAROUSEL AUTO-CENTER =====
         window.addEventListener('load', () => {
             const track = document.getElementById('screenshotTrack');
             if (track && track.children.length > 0) {
-                // Uncomment the line below if you want the carousel to start centered
-                // track.scrollLeft = 0;
+                track.scrollLeft = 0;
             }
         });
     </script>
