@@ -108,14 +108,14 @@
         }
         header .controls input::placeholder { color: #65676b; }
         
-        /* ===== NEW: FILTER DROPDOWN ===== */
+        /* ===== NEW: FILTER DROPDOWN (shrunk) ===== */
         header .controls .filter-wrap {
             position: relative;
             display: flex;
             align-items: center;
         }
         header .controls .filter-wrap select {
-            padding: 8px 32px 8px 14px;
+            padding: 6px 26px 6px 10px;
             border: none;
             border-radius: 20px;
             font-size: 13px;
@@ -128,7 +128,7 @@
             appearance: none;
             -webkit-appearance: none;
             transition: all 0.15s;
-            min-width: 90px;
+            min-width: 70px;
         }
         header .controls .filter-wrap select:focus {
             box-shadow: 0 0 0 2px #1877f2;
@@ -137,10 +137,10 @@
         header .controls .filter-wrap::after {
             content: '▾';
             position: absolute;
-            right: 12px;
+            right: 10px;
             top: 50%;
             transform: translateY(-50%);
-            font-size: 12px;
+            font-size: 10px;
             color: #65676b;
             pointer-events: none;
         }
@@ -171,42 +171,67 @@
             object-fit: cover;
         }
 
-        /* ===== NEW: DOWNLOAD ICON (beside profile) ===== */
+        /* ===== NEW: DOWNLOAD ICON (smaller, circle+arrow) ===== */
         header .controls .download-btn-wrap {
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
-            width: 40px;
-            height: 40px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
-            background: #e8ecf1;
-            box-shadow: 2px 2px 6px rgba(0,0,0,0.06);
+            border: 2px solid #1a1a1a;
+            background: transparent;
             cursor: pointer;
             transition: all 0.15s;
             text-decoration: none;
-            color: #4f46e5;
+            color: #1a1a1a;
             flex-shrink: 0;
+            box-sizing: border-box;
         }
         header .controls .download-btn-wrap:hover {
             transform: scale(1.04);
         }
-        header .controls .download-btn-wrap svg {
-            width: 20px;
-            height: 20px;
-            fill: currentColor;
+        /* Thick arrow inside the circle (CSS-only) */
+        header .controls .download-btn-wrap .arrow {
+            position: relative;
+            width: 12px;
+            height: 12px;
         }
-        /* Red badge with number "1" */
+        header .controls .download-btn-wrap .arrow::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 3px;
+            height: 100%;
+            background: currentColor;
+            border-radius: 1px;
+        }
+        header .controls .download-btn-wrap .arrow::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%) rotate(45deg);
+            width: 8px;
+            height: 8px;
+            border-right: 3px solid currentColor;
+            border-bottom: 3px solid currentColor;
+            border-radius: 1px;
+        }
+        /* Red badge with number "1" (scaled down) */
         header .controls .download-btn-wrap .badge {
             position: absolute;
             top: -4px;
             right: -4px;
             background: #dc2626;
             color: white;
-            font-size: 10px;
+            font-size: 9px;
             font-weight: 700;
-            width: 18px;
-            height: 18px;
+            width: 15px;
+            height: 15px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -918,7 +943,7 @@
             <span>spairogram</span>
         </a>
         <div class="controls">
-            <!-- NEW: Filter Dropdown -->
+            <!-- Filter Dropdown (shrunk) -->
             <div class="filter-wrap">
                 <select id="filterSelect">
                     <option value="all">All</option>
@@ -930,15 +955,15 @@
                     <option value="most_commented">Most Commented</option>
                 </select>
             </div>
-            <!-- END NEW: Filter Dropdown -->
+            <!-- END Filter Dropdown -->
             <input type="text" id="searchInput" placeholder="Search prompts..." />
             
-            <!-- NEW: Download Icon (beside profile) -->
+            <!-- Download Icon (smaller, circle+arrow) -->
             <a href="/download/" class="download-btn-wrap" aria-label="Download app">
-                <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                <span class="arrow"></span>
                 <span class="badge">1</span>
             </a>
-            <!-- END NEW: Download Icon -->
+            <!-- END Download Icon -->
 
             <button class="profile-btn" id="profileBtn">👤</button>
         </div>
