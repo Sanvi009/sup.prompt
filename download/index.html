@@ -1,1 +1,353 @@
-hello
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes" />
+    <title>Download – spairogram</title>
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-S5N2WB78T5"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-S5N2WB78T5');
+    </script>
+
+    <link rel="icon" type="image/png" href="/asset/icon.png" />
+    <link rel="shortcut icon" href="/asset/icon.png" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bitcount+Prop+Single&display=swap');
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+
+    <style>
+        /* ===== RESET & BASE ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #f0f2f5;
+            color: #050505;
+            -webkit-font-smoothing: antialiased;
+            padding: 20px 12px 60px;
+        }
+
+        .container {
+            max-width: 680px;
+            margin: 0 auto;
+        }
+
+        /* ===== BRAND HEADER ===== */
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            color: #1a1a1a;
+            text-decoration: none;
+            font-family: 'Bitcount Prop Single', serif;
+            font-size: 24px;
+            font-weight: 400;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: opacity 0.2s;
+        }
+        .brand:hover { opacity: 0.6; }
+        .brand img.icon {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            display: block;
+        }
+        .brand span { color: #4f46e5; }
+
+        /* ===== POST CARD (Skeuomorphic) ===== */
+        .post-card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #e4e6eb;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            padding: 28px 24px 32px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        /* ===== TYPOGRAPHY ===== */
+        .post-card h1 {
+            font-size: 26px;
+            font-weight: 700;
+            color: #050505;
+            letter-spacing: -0.4px;
+            line-height: 1.3;
+            margin-bottom: 4px;
+        }
+        .post-card .subtitle {
+            color: #65676b;
+            font-size: 15px;
+            margin-bottom: 20px;
+        }
+        .post-card p {
+            font-size: 15px;
+            line-height: 1.7;
+            color: #1a1a1a;
+            margin-bottom: 14px;
+        }
+        .post-card a {
+            color: #1877f2;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .post-card a:hover {
+            text-decoration: underline;
+        }
+
+        /* ===== APP HEADER ===== */
+        .app-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .app-header .app-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 16px;
+            background: #e4e6eb;
+            object-fit: contain;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            flex-shrink: 0;
+        }
+        .app-header .app-info {
+            flex: 1;
+            min-width: 160px;
+        }
+        .app-header .app-info .app-name {
+            font-size: 22px;
+            font-weight: 700;
+            color: #050505;
+        }
+        .app-header .app-info .app-version {
+            font-size: 14px;
+            color: #65676b;
+            margin-top: 2px;
+        }
+        .app-header .app-info .app-size {
+            font-size: 13px;
+            color: #65676b;
+            margin-top: 4px;
+        }
+
+        /* ===== DOWNLOAD BUTTON ===== */
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 32px;
+            background: #1877f2;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.2s, transform 0.1s;
+            margin-top: 8px;
+        }
+        .download-btn:hover {
+            background: #166fe5;
+        }
+        .download-btn:active {
+            transform: scale(0.97);
+        }
+        .download-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        /* ===== SCREENSHOT CAROUSEL ===== */
+        .screenshot-section {
+            margin-top: 24px;
+            border-top: 1px solid #e4e6eb;
+            padding-top: 20px;
+        }
+        .screenshot-section h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #050505;
+            margin-bottom: 12px;
+        }
+        .carousel-wrap {
+            position: relative;
+            overflow: hidden;
+        }
+        .carousel-track {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            padding-bottom: 12px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+        }
+        .carousel-track::-webkit-scrollbar {
+            height: 4px;
+        }
+        .carousel-track::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 4px;
+        }
+        .carousel-track::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .carousel-track .screenshot {
+            flex: 0 0 auto;
+            width: 180px;
+            height: 320px;
+            border-radius: 12px;
+            background: #e4e6eb;
+            object-fit: cover;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            cursor: pointer;
+            scroll-snap-align: start;
+            transition: transform 0.2s;
+        }
+        .carousel-track .screenshot:hover {
+            transform: scale(1.02);
+        }
+
+        /* ===== LIGHTBOX ===== */
+        .lightbox-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .lightbox-overlay.active {
+            display: flex;
+        }
+        .lightbox-overlay img {
+            max-width: 92%;
+            max-height: 92%;
+            object-fit: contain;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 640px) {
+            body { padding: 14px 8px 40px; }
+            .post-card { padding: 20px 16px 24px; }
+            .app-header .app-icon { width: 64px; height: 64px; }
+            .app-header .app-info .app-name { font-size: 20px; }
+            .download-btn { width: 100%; justify-content: center; }
+            .carousel-track .screenshot { width: 140px; height: 250px; }
+            .post-card h1 { font-size: 24px; }
+        }
+        @media (max-width: 400px) {
+            .post-card { padding: 16px 12px 20px; }
+            .app-header .app-icon { width: 56px; height: 56px; }
+            .carousel-track .screenshot { width: 120px; height: 210px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- BRAND HEADER -->
+        <a href="/feed/" class="brand">
+            <img src="/asset/icon.png" class="icon" alt="Icon" onerror="this.style.display='none'" />
+            <span>spairogram</span>
+        </a>
+
+        <!-- MAIN CARD -->
+        <div class="post-card">
+            <!-- App Header -->
+            <div class="app-header">
+                <img src="/asset/icon.png" class="app-icon" alt="Spairogram icon" onerror="this.style.display='none'" />
+                <div class="app-info">
+                    <div class="app-name">Spairogram</div>
+                    <div class="app-version">Version 1.0.0.0</div>
+                    <div class="app-size">📦 6.3 MB</div>
+                </div>
+            </div>
+
+            <!-- Download Button -->
+            <a href="/download/Spairogram-v-1.0.0.0.apk" download class="download-btn">
+                <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                Download APK
+            </a>
+
+            <!-- Screenshots -->
+            <div class="screenshot-section">
+                <h2>Preview</h2>
+                <div class="carousel-wrap">
+                    <div class="carousel-track" id="screenshotTrack">
+                        <img src="/download/preview/1.png" class="screenshot" alt="Screenshot 1" loading="lazy" />
+                        <img src="/download/preview/2.png" class="screenshot" alt="Screenshot 2" loading="lazy" />
+                        <img src="/download/preview/3.png" class="screenshot" alt="Screenshot 3" loading="lazy" />
+                        <img src="/download/preview/4.png" class="screenshot" alt="Screenshot 4" loading="lazy" />
+                        <img src="/download/preview/5.png" class="screenshot" alt="Screenshot 5" loading="lazy" />
+                        <img src="/download/preview/6.png" class="screenshot" alt="Screenshot 6" loading="lazy" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- About -->
+            <div style="margin-top: 24px; border-top: 1px solid #e4e6eb; padding-top: 20px;">
+                <h2 style="font-size: 18px; font-weight: 600; color: #050505; margin-bottom: 8px;">About this app</h2>
+                <p>Spairogram is a visual discovery platform for AI prompts. Browse, save, and share beautiful prompts in an Instagram‑style feed. Whether you're an AI artist, a writer, or just curious — spairogram is your creative home.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- LIGHTBOX -->
+    <div class="lightbox-overlay" id="lightbox">
+        <img id="lightboxImg" src="" alt="Screenshot" />
+    </div>
+
+    <script>
+        // ===== LIGHTBOX =====
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightboxImg');
+        const screenshots = document.querySelectorAll('.screenshot');
+
+        screenshots.forEach(img => {
+            img.addEventListener('click', () => {
+                lightboxImg.src = img.src;
+                lightbox.classList.add('active');
+            });
+        });
+
+        lightbox.addEventListener('click', () => {
+            lightbox.classList.remove('active');
+        });
+
+        // Close lightbox with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                lightbox.classList.remove('active');
+            }
+        });
+
+        // ===== AUTO CENTER CAROUSEL ON LOAD =====
+        // (Optional: scroll to the first screenshot on load)
+        window.addEventListener('load', () => {
+            const track = document.getElementById('screenshotTrack');
+            if (track && track.children.length > 0) {
+                // Uncomment the line below if you want the carousel to start centered
+                // track.scrollLeft = 0;
+            }
+        });
+    </script>
+</body>
+</html>
