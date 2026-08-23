@@ -16,6 +16,7 @@
     { "source": "/feed/(.*)", "destination": "/feed/index.html" },
     { "source": "/search/(.*)", "destination": "/search/index.html" },
     { "source": "/settings/(.*)", "destination": "/settings/index.html" },
+    { "source": "/grid/(.*)", "destination": "/grid/index.html" },
 
     { "source": "/", "destination": "/index.html" }
   ]
