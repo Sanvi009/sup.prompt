@@ -18,6 +18,19 @@
     
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes" />
+    
+    <!-- Social Media Preview (Updated dynamically by JS) -->
+    <meta property="og:title" content="Spairogram" />
+    <meta property="og:description" content="" />
+    <meta property="og:image" content="/asset/icon.png" />
+    <meta property="og:url" content="" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Spairogram" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Spairogram" />
+    <meta name="twitter:description" content="" />
+    <meta name="twitter:image" content="/asset/icon.png" />
+    
     <title>Prompt Detail</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -823,6 +836,39 @@
 
     <script>
         // ============================================================
+        //  DYNAMIC SOCIAL MEDIA PREVIEW
+        // ============================================================
+        function updateSocialMetaTags(prompt) {
+            const fullUrl = window.location.href;
+            
+            // Helper to create or update meta tags
+            function setMetaTag(attribute, name, content) {
+                let tag = document.querySelector(`meta[${attribute}="${name}"]`);
+                if (!tag) {
+                    tag = document.createElement('meta');
+                    tag.setAttribute(attribute, name);
+                    document.head.appendChild(tag);
+                }
+                tag.setAttribute('content', content);
+            }
+            
+            // Update OG tags
+            setMetaTag('property', 'og:title', prompt.title);
+            setMetaTag('property', 'og:description', '');
+            setMetaTag('property', 'og:image', prompt.image_main);
+            setMetaTag('property', 'og:url', fullUrl);
+            
+            // Update Twitter tags
+            setMetaTag('name', 'twitter:title', prompt.title);
+            setMetaTag('name', 'twitter:description', '');
+            setMetaTag('name', 'twitter:image', prompt.image_main);
+            
+            // Update page title
+            document.title = `${prompt.title} — Spairogram`;
+        }
+        // ============================================================
+
+        // ============================================================
         //  STATE
         // ============================================================
         const token = localStorage.getItem('user_token');
@@ -967,6 +1013,9 @@
                 promptId = p.id;
                 likeCount = p.like_count || 0;
                 saveCount = p.save_count || 0;
+
+                // ✅ UPDATE SOCIAL MEDIA META TAGS
+                updateSocialMetaTags(p);
 
                 if (user) {
                     const statusRes = await fetch(`/api/interactions?action=status&promptId=${promptId}`, {
