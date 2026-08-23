@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QZZ0BD97LG"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-QZZ0BD97LG');
+    </script>
+
+    <link rel="icon" type="image/png" href="/asset/icon.png" />
+    <link rel="shortcut icon" href="/asset/icon.png" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Grid — spairogram</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bitcount+Prop+Single&display=swap');
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+    <style>
+        /* ===== RESET & BASE ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #f0f2f5;
+            color: #050505;
+            -webkit-font-smoothing: antialiased;
+            padding-bottom: 60px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 12px 20px;
+        }
+
+        /* ===== HEADER ===== */
+        header {
+            background: #e8ecf1;
+            border-bottom: none;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            flex-wrap: wrap;
+            gap: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.6);
+            backdrop-filter: blur(6px);
+        }
+        header .brand {
+            font-family: 'Bitcount Prop Single', serif;
+            font-size: 24px;
+            font-weight: 400;
+            color: #111827;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        header .brand img.icon {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            display: block;
+        }
+        header .brand span { color: #4f46e5; }
+        header .controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        header .controls .profile-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e8ecf1;
+            box-shadow: 2px 2px 6px rgba(0,0,0,0.06);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            color: #4f46e5;
+            transition: all 0.15s;
+            flex-shrink: 0;
+            text-decoration: none;
+            border: none;
+        }
+        header .controls .profile-btn:hover { transform: scale(1.04); }
+        header .controls .profile-btn img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* ===== VIEW TOGGLE ===== */
+        .view-toggle {
+            display: flex;
+            gap: 4px;
+            background: #e8ecf1;
+            border-radius: 20px;
+            padding: 4px;
+            box-shadow: inset 2px 2px 4px rgba(0,0,0,0.04), inset -2px -2px 4px rgba(255,255,255,0.6);
+        }
+        .view-toggle a {
+            padding: 8px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #65676b;
+            text-decoration: none;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .view-toggle a.active {
+            background: white;
+            color: #111827;
+            box-shadow: 2px 2px 6px rgba(0,0,0,0.06);
+        }
+        .view-toggle a:hover {
+            color: #111827;
+        }
+        .view-toggle svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        /* ===== GRID LAYOUT ===== */
+        .prompt-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 4px;
+            margin-top: 16px;
+        }
+
+        .grid-card {
+            position: relative;
+            width: 100%;
+            padding-bottom: 125%; /* 4:5 ratio (4/5 = 0.8, so padding = 1/0.8 = 1.25 = 125%) */
+            border-radius: 4px;
+            overflow: hidden;
+            cursor: pointer;
+            background: #e8ecf1;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .grid-card:hover {
+            transform: scale(1.01);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 2;
+        }
+        .grid-card img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        
+        /* Overlay on hover (desktop only) */
+        .grid-card .overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 12px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.4));
+            opacity: 0;
+            transition: opacity 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .grid-card:hover .overlay {
+            opacity: 1;
+        }
+        .grid-card .overlay span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .grid-card .overlay svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        /* ===== SKELETON LOADING ===== */
+        .skeleton {
+            background: linear-gradient(90deg, #e4e6eb 25%, #f0f2f5 50%, #e4e6eb 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .skeleton-card {
+            position: relative;
+            width: 100%;
+            padding-bottom: 125%;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #e4e6eb 25%, #f0f2f5 50%, #e4e6eb 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        /* ===== LOADER & INFINITE SCROLL ===== */
+        .loader {
+            text-align: center;
+            padding: 20px 0 40px;
+            color: #65676b;
+            font-size: 15px;
+            grid-column: 1 / -1;
+        }
+        .loader .spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid #e4e6eb;
+            border-top-color: #1877f2;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .empty {
+            text-align: center;
+            padding: 80px 24px;
+            color: #65676b;
+            grid-column: 1 / -1;
+        }
+        .empty .icon { font-size: 56px; margin-bottom: 16px; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1200px) {
+            .prompt-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+        @media (max-width: 992px) {
+            .prompt-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .prompt-grid { grid-template-columns: repeat(2, 1fr); gap: 3px; }
+            header { padding: 10px 14px; }
+            .view-toggle a { padding: 6px 12px; font-size: 12px; }
+            .view-toggle svg { width: 14px; height: 14px; }
+            .grid-card .overlay { opacity: 1; background: rgba(0,0,0,0.2); padding: 8px; }
+            .grid-card .overlay span { font-size: 12px; }
+            .grid-card .overlay svg { width: 14px; height: 14px; }
+        }
+        @media (max-width: 400px) {
+            .prompt-grid { gap: 2px; }
+            .grid-card { border-radius: 2px; }
+            .view-toggle { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="/grid/" class="brand">
+            <img src="/asset/icon.png" class="icon" alt="Icon" onerror="this.style.display='none'" />
+            <span>spairogram</span>
+        </a>
+        <div class="controls">
+            <!-- View Toggle -->
+            <div class="view-toggle">
+                <a href="/feed/" class="">
+                    <svg viewBox="0 0 24 24"><path d="M3 5h18v14H3z" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2"/><line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="2"/></svg>
+                    Feed
+                </a>
+                <a href="/grid/" class="active">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                    Grid
+                </a>
+            </div>
+            <!-- END View Toggle -->
+            
+            <button class="profile-btn" id="profileBtn">👤</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="prompt-grid" id="promptGrid">
+            <!-- Skeleton cards will be injected here -->
+        </div>
+        <div class="loader" id="loader">
+            <span class="spinner"></span> Loading more...
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        //  STATE
+        // ============================================================
+        const token = localStorage.getItem('user_token');
+        let user = null;
+        let page = 0;
+        const pageSize = 30;
+        let loading = false;
+        let hasMore = true;
+
+        // ============================================================
+        //  DOM
+        // ============================================================
+        const promptGrid = document.getElementById('promptGrid');
+        const loader = document.getElementById('loader');
+        const profileBtn = document.getElementById('profileBtn');
+
+        // ============================================================
+        //  VERIFY USER
+        // ============================================================
+        async function verifyUser() {
+            if (!token) return null;
+            try {
+                const res = await fetch('/api/auth?action=verify', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    user = data.user;
+                    if (user.avatar_url) {
+                        profileBtn.innerHTML = `<img src="${user.avatar_url}" />`;
+                    } else {
+                        profileBtn.textContent = user.username.charAt(0).toUpperCase();
+                    }
+                    return user;
+                } else {
+                    localStorage.removeItem('user_token');
+                    return null;
+                }
+            } catch {
+                localStorage.removeItem('user_token');
+                return null;
+            }
+        }
+
+        // ============================================================
+        //  RENDER SKELETONS
+        // ============================================================
+        function renderSkeletons(count = 12) {
+            let html = '';
+            for (let i = 0; i < count; i++) {
+                html += `<div class="skeleton-card"></div>`;
+            }
+            promptGrid.innerHTML = html;
+        }
+
+        // ============================================================
+        //  LOAD PROMPTS (Infinite Scroll)
+        // ============================================================
+        async function loadPrompts(reset = false) {
+            if (loading || (!hasMore && !reset)) return;
+            loading = true;
+            if (reset) {
+                page = 0;
+                hasMore = true;
+                renderSkeletons();
+                loader.style.display = 'block';
+            }
+
+            try {
+                const url = `/api/feed?action=explore&limit=${pageSize}&offset=${page * pageSize}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                const prompts = data.prompts || [];
+
+                if (reset) promptGrid.innerHTML = '';
+
+                if (prompts.length === 0 && page === 0) {
+                    promptGrid.innerHTML = `<div class="empty"><div class="icon">📭</div>No prompts found.</div>`;
+                    loader.style.display = 'none';
+                    loading = false;
+                    return;
+                }
+
+                // SVG Icons for overlay
+                const heartIcon = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+                const bookmarkIcon = `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>`;
+                const viewIcon = `<svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5 5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3 1.34 3 3-1.34-3-3-3z"/></svg>`;
+
+                prompts.forEach(p => {
+                    const card = document.createElement('div');
+                    card.className = 'grid-card';
+                    card.onclick = () => window.location.href = `/prompt/${p.slug}`;
+
+                    // Optimized image URL
+                    const screenWidth = window.innerWidth;
+                    let width = 400;
+                    if (screenWidth >= 1200) width = 600;
+                    const optimizedImage = p.image_main ? 
+                        `${p.image_main}?width=${width}&format=webp` : 
+                        p.image_main;
+
+                    card.innerHTML = `
+                        <img src="${optimizedImage}" 
+                             loading="lazy"
+                             decoding="async"
+                             onerror="this.src='https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=${width}&h=${width}&fit=crop&auto=format'" 
+                             alt="${p.title}" />
+                        <div class="overlay">
+                            <span>${heartIcon} ${p.like_count || 0}</span>
+                            <span>${bookmarkIcon} ${p.save_count || 0}</span>
+                            <span>${viewIcon} ${p.view_count || 0}</span>
+                        </div>
+                    `;
+
+                    promptGrid.appendChild(card);
+                });
+
+                hasMore = data.hasMore;
+                page++;
+                loader.style.display = hasMore ? 'block' : 'none';
+
+            } catch (err) {
+                console.error('Grid error:', err);
+                if (page === 0) {
+                    promptGrid.innerHTML = `<div class="empty"><div class="icon">⚠️</div>Error loading prompts.</div>`;
+                }
+            }
+            loading = false;
+        }
+
+        // ============================================================
+        //  INFINITE SCROLL
+        // ============================================================
+        let scrollTimeout;
+        window.addEventListener('scroll', () => {
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                const scrollY = window.scrollY;
+                const windowHeight = window.innerHeight;
+                const docHeight = document.documentElement.scrollHeight;
+                if (scrollY + windowHeight >= docHeight - 400) {
+                    loadPrompts();
+                }
+            }, 100);
+        });
+
+        // ============================================================
+        //  PROFILE BUTTON
+        // ============================================================
+        profileBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (user) {
+                window.location.href = `/@${user.username}`;
+            } else {
+                window.location.href = '/';
+            }
+        });
+
+        // ============================================================
+        //  INIT
+        // ============================================================
+        async function init() {
+            await verifyUser();
+            loadPrompts(true);
+        }
+        init();
+    </script>
+</body>
+</html>
