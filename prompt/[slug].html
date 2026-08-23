@@ -1,0 +1,1642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-QZZ0BD97LG"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-QZZ0BD97LG');
+</script>
+
+    <link rel="icon" type="image/png" href="/asset/icon.png" />
+    <link rel="shortcut icon" href="/asset/icon.png" />
+
+    
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes" />
+    <title>Prompt Detail</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bitcount+Prop+Single&display=swap');
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* ===== RESET & BASE ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, system-ui, sans-serif;
+            background: #f0f2f5;
+            color: #1a1a1a;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 16px 12px 80px;
+        }
+
+        /* ===== BRANDED HEADER (Matches Feed Page) ===== */
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            color: #1a1a1a;
+            text-decoration: none;
+            font-family: 'Bitcount Prop Single', serif;
+            font-size: 24px;
+            font-weight: 400;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: opacity 0.2s;
+        }
+        .brand:hover { opacity: 0.6; }
+        .brand img.icon {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            display: block;
+        }
+        .brand span { color: #4f46e5; }
+
+        /* ===== SKELETON LOADING ===== */
+        .skeleton {
+            background: linear-gradient(90deg, #e4e6eb 25%, #f0f2f5 50%, #e4e6eb 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .skeleton-avatar { width: 44px; height: 44px; border-radius: 50%; }
+        .skeleton-text { height: 14px; border-radius: 6px; }
+        .skeleton-text.short { width: 120px; }
+        .skeleton-text.long { width: 220px; }
+        .skeleton-image { width: 100%; height: 300px; border-radius: 0; }
+        .skeleton-title { height: 28px; width: 80%; border-radius: 6px; margin: 12px 0 8px; }
+        .skeleton-action { width: 60px; height: 32px; border-radius: 20px; }
+        .skeleton-prompt { height: 60px; border-radius: 8px; }
+
+        .skeleton-post-card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #e4e6eb;
+            padding: 16px 18px;
+            margin-bottom: 20px;
+        }
+        .skeleton-post-card .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .skeleton-post-card .header .info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .skeleton-post-card .actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        /* ===== LOADING STATE ===== */
+        .loading {
+            text-align: center;
+            padding: 80px 20px;
+            color: #65676b;
+        }
+        .loading .spinner {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            border: 3px solid #e4e6eb;
+            border-top-color: #1877f2;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ===== POST CARD ===== */
+        .post-card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #e4e6eb;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        /* ===== POST HEADER ===== */
+        .post-header {
+            padding: 16px 18px 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .post-header .avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #e4e6eb;
+            object-fit: cover;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #1877f2;
+            font-size: 18px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        }
+        .post-header .avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .post-header .user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+        .post-header .user-info .name {
+            font-weight: 600;
+            font-size: 15px;
+            color: #050505;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+        .post-header .user-info .name:hover { text-decoration: underline; }
+        .post-header .user-info .meta {
+            font-size: 13px;
+            color: #65676b;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* ===== TITLE & DESCRIPTION ===== */
+        .post-title {
+            padding: 0 18px 4px;
+        }
+        .post-title h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #050505;
+            letter-spacing: -0.4px;
+            line-height: 1.3;
+            margin-bottom: 4px;
+        }
+        .post-title h2 {
+            font-size: 16px;
+            font-weight: 400;
+            color: #65676b;
+            line-height: 1.5;
+        }
+
+        /* ===== DESCRIPTION "SEE MORE" ===== */
+        .description-wrap {
+            padding: 0 18px 10px;
+        }
+        .description-text {
+            font-size: 15px;
+            color: #1a1a1a;
+            line-height: 1.6;
+            word-wrap: break-word;
+        }
+        .description-text.collapsed {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .see-more-btn {
+            background: none;
+            border: none;
+            color: #1877f2;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            font-family: inherit;
+            padding: 4px 0;
+            margin-top: 2px;
+            transition: color 0.2s;
+        }
+        .see-more-btn:hover { color: #166fe5; }
+
+        /* ===== POST IMAGE ===== */
+        .post-image-wrap {
+            width: 100%;
+            background: #f0f2f5;
+            position: relative;
+        }
+        .post-image-wrap img {
+            width: 100%;
+            height: auto;
+            max-height: 500px;
+            object-fit: cover;
+            display: block;
+        }
+        .post-image-wrap .view-count {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(0,0,0,0.55);
+            color: white;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            backdrop-filter: blur(4px);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+        .post-image-wrap .view-count svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        /* ===== ACTION BAR ===== */
+        .action-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 18px 14px;
+            border-bottom: 1px solid #e4e6eb;
+            flex-wrap: wrap;
+            gap: 4px;
+            background: #fafbfc;
+        }
+        .action-bar .left {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .action-bar button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #65676b;
+            font-size: 14px;
+            font-weight: 500;
+            font-family: inherit;
+            transition: all 0.15s ease;
+            padding: 6px 8px;
+            border-radius: 8px;
+        }
+        .action-bar button:hover { background: #e4e6eb; }
+        .action-bar button.liked { color: #e74c3c; }
+        .action-bar button.liked svg { fill: #e74c3c; }
+        .action-bar button.saved { color: #050505; }
+        .action-bar button.saved svg { fill: #050505; }
+        /* Larger icons for main actions */
+        .action-bar .left button svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+            transition: fill 0.15s;
+        }
+        /* Report stays smaller */
+        .action-bar .right button svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+        .action-bar .count {
+            font-size: 14px;
+            color: #65676b;
+            font-weight: 500;
+        }
+        .action-bar .right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #65676b;
+        }
+
+        /* ===== COMMENTS SECTION ===== */
+        .comments-section {
+            padding: 14px 18px 20px;
+            border-bottom: 1px solid #e4e6eb;
+            background: white;
+        }
+        .comments-section .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+        .comments-section .header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #050505;
+        }
+        .comments-section .header .count {
+            font-size: 14px;
+            color: #65676b;
+            font-weight: 500;
+        }
+
+        /* ===== COMMENT ITEMS ===== */
+        .comments-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .comment-item {
+            display: flex;
+            gap: 10px;
+        }
+        .comment-item .avatar-small {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #e4e6eb;
+            flex-shrink: 0;
+            object-fit: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #1877f2;
+            font-size: 14px;
+        }
+        .comment-item .avatar-small img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .comment-item .body { flex: 1; }
+        .comment-item .body .row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .comment-item .body .row .name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #050505;
+            cursor: pointer;
+        }
+        .comment-item .body .row .name:hover { text-decoration: underline; }
+        .comment-item .body .row .time {
+            font-size: 12px;
+            color: #65676b;
+        }
+        .comment-item .body .content {
+            font-size: 15px;
+            color: #1a1a1a;
+            line-height: 1.6;
+            margin-top: 2px;
+        }
+        .comment-item .body .actions {
+            display: flex;
+            gap: 14px;
+            margin-top: 5px;
+            font-size: 13px;
+            color: #65676b;
+        }
+        .comment-item .body .actions button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            color: #65676b;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: color 0.15s, background 0.15s;
+            padding: 3px 6px;
+            border-radius: 6px;
+        }
+        .comment-item .body .actions button:hover {
+            background: #f0f2f5;
+            color: #1877f2;
+        }
+        .comment-item .body .actions button.liked { color: #e74c3c; }
+        .comment-item .body .actions button.liked svg { fill: #e74c3c; }
+        .comment-item .body .actions svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+        }
+
+        .comment-item .replies {
+            margin-top: 8px;
+            margin-left: 42px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .load-more-comments {
+            margin-bottom: 14px;
+            text-align: center;
+        }
+        .load-more-comments button {
+            background: none;
+            border: none;
+            color: #1877f2;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            font-family: inherit;
+            padding: 8px 20px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+        .load-more-comments button:hover { background: #e7f3ff; }
+
+        /* ===== COMMENT INPUT (MOVED TO BOTTOM) ===== */
+        .comment-input-wrap {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+        .comment-input-wrap .avatar-small {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #e4e6eb;
+            flex-shrink: 0;
+            object-fit: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #1877f2;
+            font-size: 14px;
+        }
+        .comment-input-wrap input {
+            flex: 1;
+            min-width: 160px;
+            padding: 10px 16px;
+            border: 1px solid #e4e6eb;
+            border-radius: 24px;
+            font-size: 14px;
+            font-family: inherit;
+            background: #f0f2f5;
+            transition: border 0.2s, background 0.2s, box-shadow 0.2s;
+        }
+        .comment-input-wrap input:focus {
+            outline: none;
+            border-color: #1877f2;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(24,119,242,0.1);
+        }
+        .comment-input-wrap .btn-submit {
+            padding: 8px 20px;
+            background: #1877f2;
+            color: white;
+            border: none;
+            border-radius: 24px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            flex-shrink: 0;
+        }
+        .comment-input-wrap .btn-submit:hover { background: #166fe5; }
+        .comment-input-wrap .btn-submit:active { transform: scale(0.96); }
+        .comment-input-wrap .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* ===== PROMPT TEXT & COPY ===== */
+        .prompt-text-wrap {
+            padding: 16px 18px 20px;
+            border-bottom: 1px solid #e4e6eb;
+            background: white;
+        }
+        .prompt-text-wrap .label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #65676b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        .prompt-text-wrap .text {
+            font-family: 'JetBrains Mono', 'SF Mono', monospace;
+            font-size: 15px;
+            line-height: 1.8;
+            color: #1a1a1a;
+            white-space: pre-wrap;
+            background: #f8f9fa;
+            padding: 14px 16px;
+            border-radius: 10px;
+            border: 1px solid #eef0f2;
+        }
+        .copy-wrap {
+            padding: 14px 18px 20px;
+            background: white;
+        }
+        .copy-btn {
+            width: 100%;
+            padding: 12px;
+            background: #1877f2;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .copy-btn:hover {
+            background: #166fe5;
+            transform: scale(1.01);
+        }
+        .copy-btn:active { transform: scale(0.98); }
+        .copy-btn.copied { background: #10b981; }
+
+        /* ===== RELATED PROMPTS ===== */
+        .related-section {
+            margin-top: 20px;
+        }
+        .related-section h3 {
+            font-size: 17px;
+            font-weight: 600;
+            color: #050505;
+            margin-bottom: 14px;
+        }
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+        }
+        .related-card {
+            border-radius: 14px;
+            overflow: hidden;
+            cursor: pointer;
+            background: white;
+            border: 1px solid #e4e6eb;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            padding-bottom: 100%;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+        }
+        .related-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+        }
+        .related-card img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .related-card .title {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 14px 16px;
+            background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.4;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        /* ===== POPUP ===== */
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .popup-overlay.active { display: flex; }
+        .popup {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 44px;
+            max-width: 420px;
+            width: 92%;
+            text-align: center;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.2);
+        }
+        .popup h2 { font-size: 22px; font-weight: 700; color: #050505; }
+        .popup p { color: #65676b; font-size: 16px; margin: 10px 0 28px; line-height: 1.5; }
+        .popup .btn-primary {
+            padding: 12px 32px;
+            background: #1877f2;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .popup .btn-primary:hover { background: #166fe5; }
+        .popup .btn-primary:active { transform: scale(0.96); }
+        .popup .btn-secondary {
+            padding: 12px 32px;
+            background: #e4e6eb;
+            border: none;
+            border-radius: 12px;
+            font-weight: 500;
+            font-size: 16px;
+            cursor: pointer;
+            margin-left: 12px;
+            transition: background 0.2s;
+        }
+        .popup .btn-secondary:hover { background: #d8dadf; }
+
+        /* ============================================================ */
+        /* ===== PURE CSS BADGES (Copied from profile page) ===== */
+        /* ============================================================ */
+
+        /* --- Base badge container (inline with text) --- */
+        .badge-container {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            position: relative;
+            flex-shrink: 0;
+            vertical-align: middle;
+        }
+
+        /* --- PREMIUM BADGE (Blue Verification Tick) --- */
+        .badge-premium {
+            background: #1d9bf0;
+            border-radius: 50%;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .badge-premium::after {
+            content: '';
+            display: block;
+            width: 6px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg) translate(-1px, -1px);
+            border-radius: 1px;
+        }
+
+        /* --- OWNER BADGE (Black Circle + Gold Crown) --- */
+        .badge-owner {
+            background: #1a1a1a;
+            border-radius: 50%;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            position: relative;
+        }
+        /* The crown shape inside the black circle */
+        .badge-owner::before {
+            content: '';
+            display: block;
+            width: 12px;
+            height: 10px;
+            background: #f5a623;
+            clip-path: polygon(
+                0% 100%, 
+                15% 100%, 
+                15% 40%, 
+                35% 70%, 
+                50% 20%, 
+                65% 70%, 
+                85% 40%, 
+                85% 100%, 
+                100% 100%, 
+                100% 100%, 
+                0% 100%
+            );
+            position: relative;
+            top: -1px;
+        }
+        /* The crown's bottom base line */
+        .badge-owner::after {
+            content: '';
+            display: block;
+            width: 10px;
+            height: 2px;
+            background: #f5a623;
+            border-radius: 1px;
+            position: absolute;
+            bottom: 5px;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 640px) {
+            .container { padding: 12px 8px 60px; }
+            .post-header { padding: 14px 14px 8px; gap: 10px; }
+            .post-header .avatar { width: 38px; height: 38px; font-size: 16px; }
+            .post-title { padding: 0 14px 4px; }
+            .post-title h1 { font-size: 20px; }
+            .post-title h2 { font-size: 14px; }
+            .action-bar { padding: 12px 14px; gap: 4px; }
+            .action-bar .left { gap: 12px; }
+            .action-bar button { font-size: 13px; padding: 4px 6px; }
+            .action-bar .left button svg { width: 22px; height: 22px; }
+            .action-bar .right button svg { width: 18px; height: 18px; }
+            .prompt-text-wrap { padding: 12px 14px 16px; }
+            .prompt-text-wrap .text { font-size: 14px; padding: 12px 14px; }
+            .comments-section { padding: 10px 14px 16px; }
+            .copy-wrap { padding: 12px 14px 16px; }
+            .related-grid { grid-template-columns: 1fr; gap: 12px; }
+            .post-image-wrap .view-count { font-size: 12px; padding: 4px 12px; top: 8px; right: 8px; }
+            .post-image-wrap .view-count svg { width: 16px; height: 16px; }
+            .popup { padding: 32px 24px; }
+            .popup h2 { font-size: 20px; }
+            .comment-item .replies { margin-left: 28px; }
+            .comment-input-wrap { gap: 6px; }
+            .comment-input-wrap input { min-width: 120px; padding: 8px 14px; }
+            .comment-input-wrap .btn-submit { padding: 8px 16px; font-size: 13px; }
+        }
+        @media (max-width: 400px) {
+            .action-bar .left { gap: 6px; }
+            .action-bar button { font-size: 12px; padding: 4px; }
+            .action-bar .left button svg { width: 20px; height: 20px; }
+            .comment-input-wrap { flex-direction: column; }
+            .comment-input-wrap input { width: 100%; }
+            .comment-input-wrap .btn-submit { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- BRANDED HEADER -->
+        <a href="/feed/" class="brand">
+            <img src="/asset/icon.png" class="icon" alt="Icon" onerror="this.style.display='none'" />
+            <span>spairogram</span>
+        </a>
+        
+        <div id="content">
+            <!-- Skeleton will be rendered by JavaScript -->
+        </div>
+    </div>
+
+    <!-- POPUP -->
+    <div class="popup-overlay" id="popup">
+        <div class="popup">
+            <h2>Sign in to interact</h2>
+            <p>You need to log in or create an account to like, save, or comment.</p>
+            <button class="btn-primary" id="popupLoginBtn">Log In / Sign Up</button>
+            <button class="btn-secondary" id="popupCloseBtn">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        //  STATE
+        // ============================================================
+        const token = localStorage.getItem('user_token');
+        let user = null;
+        let promptId = null;
+        let liked = false;
+        let saved = false;
+        let likeCount = 0;
+        let saveCount = 0;
+        let currentSlug = '';
+        let commentOffset = 0;
+        const commentLimit = 10;
+        let hasMoreComments = true;
+        let loadingComments = false;
+        let pendingLike = false;
+        let pendingSave = false;
+        let replyToCommentId = null;
+        let replyToUsername = null;
+
+        // ============================================================
+        //  DOM
+        // ============================================================
+        const container = document.getElementById('content');
+        const popup = document.getElementById('popup');
+
+        // ============================================================
+        //  HELPER: Relative Time
+        // ============================================================
+        function timeAgo(dateStr) {
+            const now = new Date();
+            const past = new Date(dateStr);
+            const diffMs = now - past;
+            const diffSec = Math.floor(diffMs / 1000);
+            const diffMin = Math.floor(diffSec / 60);
+            const diffHour = Math.floor(diffMin / 60);
+            const diffDay = Math.floor(diffHour / 24);
+            const diffWeek = Math.floor(diffDay / 7);
+            const diffMonth = Math.floor(diffDay / 30);
+            const diffYear = Math.floor(diffDay / 365);
+
+            if (diffSec < 60) return 'just now';
+            if (diffMin < 60) return diffMin + ' minute' + (diffMin > 1 ? 's' : '') + ' ago';
+            if (diffHour < 24) return diffHour + ' hour' + (diffHour > 1 ? 's' : '') + ' ago';
+            if (diffDay === 1) return 'yesterday';
+            if (diffDay < 7) return diffDay + ' days ago';
+            if (diffWeek < 4) return diffWeek + ' week' + (diffWeek > 1 ? 's' : '') + ' ago';
+            if (diffMonth < 12) return diffMonth + ' month' + (diffMonth > 1 ? 's' : '') + ' ago';
+            return diffYear + ' year' + (diffYear > 1 ? 's' : '') + ' ago';
+        }
+
+        // ============================================================
+        //  VERIFY USER
+        // ============================================================
+        async function verifyUser() {
+            if (!token) return null;
+            try {
+                const res = await fetch('/api/auth?action=verify', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    user = data.user;
+                    return user;
+                } else {
+                    localStorage.removeItem('user_token');
+                    return null;
+                }
+            } catch {
+                localStorage.removeItem('user_token');
+                return null;
+            }
+        }
+
+        // ============================================================
+        //  RENDER SKELETON
+        // ============================================================
+        function renderSkeleton() {
+            container.innerHTML = `
+                <div class="skeleton-post-card">
+                    <div class="header">
+                        <div class="skeleton skeleton-avatar"></div>
+                        <div class="info">
+                            <div class="skeleton skeleton-text short"></div>
+                            <div class="skeleton skeleton-text long"></div>
+                        </div>
+                    </div>
+                    <div class="skeleton skeleton-title"></div>
+                    <div class="skeleton skeleton-image"></div>
+                    <div class="actions">
+                        <div class="skeleton skeleton-action"></div>
+                        <div class="skeleton skeleton-action"></div>
+                        <div class="skeleton skeleton-action"></div>
+                        <div class="skeleton skeleton-action"></div>
+                    </div>
+                    <div style="margin-top:16px;">
+                        <div class="skeleton skeleton-prompt"></div>
+                    </div>
+                </div>
+                <div style="margin-top:16px;">
+                    <div class="skeleton skeleton-text" style="width:60%;height:20px;margin-bottom:12px;"></div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                        <div class="skeleton" style="padding-bottom:100%;border-radius:14px;"></div>
+                        <div class="skeleton" style="padding-bottom:100%;border-radius:14px;"></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ============================================================
+        //  ===== NEW: FORMAT COUNT HELPER (matches feed) =====
+        // ============================================================
+        function formatCount(count) {
+            if (count < 1000) return count.toString();
+            const thousands = count / 1000;
+            if (thousands < 10) {
+                return thousands.toFixed(1) + 'k';
+            }
+            return Math.round(thousands) + 'k';
+        }
+        // ============================================================
+
+        // ============================================================
+        //  LOAD PROMPT
+        // ============================================================
+        async function loadPrompt() {
+            const slug = window.location.pathname.split('/').pop();
+            currentSlug = slug;
+
+            renderSkeleton();
+
+            try {
+                const url = `/api/prompts?action=by-slug&slug=${slug}`;
+                const res = await fetch(url);
+                const data = await res.json();
+
+                if (!data.prompt) {
+                    container.innerHTML = `<div class="loading">❌ Prompt not found</div>`;
+                    return;
+                }
+
+                const p = data.prompt;
+                promptId = p.id;
+                likeCount = p.like_count || 0;
+                saveCount = p.save_count || 0;
+
+                if (user) {
+                    const statusRes = await fetch(`/api/interactions?action=status&promptId=${promptId}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const statusData = await statusRes.json();
+                    liked = statusData.liked || false;
+                    saved = statusData.saved || false;
+                }
+
+                renderPrompt(p);
+                loadComments(true);
+                loadRelated();
+
+            } catch (err) {
+                container.innerHTML = `<div class="loading">❌ Error loading prompt</div>`;
+                console.error(err);
+            }
+        }
+
+        // ============================================================
+        //  RENDER PROMPT
+        // ============================================================
+        function getOptimizedImageUrl(url) {
+            if (!url) return '';
+            const screenWidth = window.innerWidth;
+            let width = 800;
+            if (screenWidth < 640) width = 400;
+            else if (screenWidth < 1024) width = 600;
+            return `${url}?width=${width}&format=webp`;
+        }
+
+        function renderPrompt(p) {
+            const date = new Date(p.created_at).toLocaleDateString('en-US', {
+                month: 'short', day: 'numeric', year: 'numeric'
+            });
+
+            // SVG icons
+            const likeIcon = liked
+                ? `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`
+                : `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+            const saveIcon = saved
+                ? `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>`
+                : `<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>`;
+            const likeClass = liked ? 'liked' : '';
+            const saveClass = saved ? 'saved' : '';
+            const viewIcon = `<svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5 5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3 1.34 3 3-1.34-3-3-3z"/></svg>`;
+            // NEW COMMENT ICON - circle with tail (pure outline)
+            const commentIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 16 16 12 12 8"/></svg>`;
+            const shareIcon = `<svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>`;
+            const reportIcon = `<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>`;
+
+            // Description "See more" logic
+            let descHTML = '';
+            if (p.description) {
+                const isLong = p.description.length > 120;
+                descHTML = `
+                    <div class="description-wrap">
+                        <div class="description-text ${isLong ? 'collapsed' : ''}" id="descText">${p.description}</div>
+                        ${isLong ? `<button class="see-more-btn" id="seeMoreBtn">See more</button>` : ''}
+                    </div>
+                `;
+            }
+
+            // Optimized image URLs
+            const optimizedMain = getOptimizedImageUrl(p.image_main);
+            const optimizedOptional = getOptimizedImageUrl(p.image_optional);
+
+            // ===== NEW: Format counts using formatCount() =====
+            const formattedViews = formatCount(p.view_count || 0);
+            const formattedLikes = formatCount(likeCount);
+            const formattedSaves = formatCount(saveCount);
+            const formattedComments = formatCount(p.comment_count || 0);
+            // ===== END NEW =====
+
+            container.innerHTML = `
+                <div class="post-card">
+                    <!-- Header -->
+                    <div class="post-header">
+                        <div class="avatar">
+                            <img src="/asset/logo.png" onerror="this.src='https://ui-avatars.com/api/?name=R&background=4f46e5&color=fff'" alt="spairogram" />
+                        </div>
+                        <div class="user-info">
+                            <div class="name" onclick="window.location.href='/@spairogram'">
+                                SPAIROGRAM
+                                <span class="badge-container"><span class="badge-premium"></span></span>
+                            </div>
+                            <div class="meta">${date} · ${formattedViews} views</div>
+                        </div>
+                    </div>
+
+                    <!-- Title & Description (with see more) -->
+                    <div class="post-title">
+                        <h1>${p.title}</h1>
+                    </div>
+                    ${descHTML}
+
+                    <!-- Image + View Count -->
+                    <div class="post-image-wrap">
+                        <img src="${optimizedMain}" 
+                             width="600" height="400"
+                             loading="lazy"
+                             decoding="async"
+                             onerror="this.src='https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=800&h=450&fit=crop&auto=format'" 
+                             alt="${p.title}" />
+                        ${p.image_optional ? `<img src="${optimizedOptional}" 
+                             width="600" height="400"
+                             loading="lazy"
+                             decoding="async"
+                             style="display:block;width:100%;max-height:400px;object-fit:cover;" />` : ''}
+                        <div class="view-count">
+                            ${viewIcon} ${formattedViews}
+                        </div>
+                    </div>
+
+                    <!-- Action Bar (Larger icons, new comment icon) -->
+                    <div class="action-bar">
+                        <div class="left">
+                            <button class="like-btn ${likeClass}" id="likeBtn">
+                                ${likeIcon} <span class="count">${formattedLikes}</span>
+                            </button>
+                            <button class="save-btn ${saveClass}" id="saveBtn">
+                                ${saveIcon} <span class="count">${formattedSaves}</span>
+                            </button>
+                            <button class="comment-btn" id="commentBtn">
+                                ${commentIcon} <span class="count">${formattedComments}</span>
+                            </button>
+                            <button class="share-btn" id="shareBtn">
+                                ${shareIcon}
+                            </button>
+                        </div>
+                        <div class="right">
+                            <button class="report-btn" id="reportBtn" title="Report">
+                                ${reportIcon}
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Comments Section -->
+                    <div class="comments-section" id="commentsSection">
+                        <div class="header">
+                            <h3>Comments</h3>
+                            <span class="count" id="commentCount">${formattedComments}</span>
+                        </div>
+                        <div class="comments-list" id="commentsList"></div>
+                        <div class="load-more-comments" id="loadMoreWrap" style="display:none;">
+                            <button id="loadMoreBtn">Load more comments</button>
+                        </div>
+                        <!-- Comment Input moved to bottom -->
+                        <div class="comment-input-wrap">
+                            <div class="avatar-small">${user ? user.username.charAt(0).toUpperCase() : '?'}</div>
+                            <input type="text" id="commentInput" placeholder="Write a comment..." />
+                            <button class="btn-submit comment-submit">Post</button>
+                        </div>
+                    </div>
+
+                    <!-- Prompt Text & Copy Button -->
+                    <div class="prompt-text-wrap">
+                        <div class="label">Prompt</div>
+                        <div class="text" id="promptText">${p.prompt_text}</div>
+                    </div>
+                    <div class="copy-wrap">
+                        <button class="copy-btn" id="copyBtn">Copy Prompt</button>
+                    </div>
+                </div>
+
+                <!-- Related Prompts -->
+                <div class="related-section" id="relatedSection">
+                    <h3>Prompts you might like</h3>
+                    <div class="related-grid"></div>
+                </div>
+            `;
+
+            // --- "See more" toggle ---
+            const seeMoreBtn = document.getElementById('seeMoreBtn');
+            if (seeMoreBtn) {
+                seeMoreBtn.addEventListener('click', () => {
+                    const descText = document.getElementById('descText');
+                    const isCollapsed = descText.classList.contains('collapsed');
+                    descText.classList.toggle('collapsed');
+                    seeMoreBtn.textContent = isCollapsed ? 'See less' : 'See more';
+                });
+            }
+
+            // --- Interactions ---
+            document.getElementById('copyBtn').addEventListener('click', () => {
+                const text = document.getElementById('promptText').textContent;
+                navigator.clipboard.writeText(text).then(() => {
+                    const btn = document.getElementById('copyBtn');
+                    btn.textContent = 'Copied!';
+                    btn.classList.add('copied');
+                    setTimeout(() => {
+                        btn.textContent = 'Copy Prompt';
+                        btn.classList.remove('copied');
+                    }, 2000);
+                });
+            });
+
+            document.getElementById('likeBtn').addEventListener('click', () => handleLike());
+            document.getElementById('saveBtn').addEventListener('click', () => handleSave());
+            document.getElementById('shareBtn').addEventListener('click', () => handleShare());
+            document.getElementById('reportBtn').addEventListener('click', () => handleReport());
+
+            document.getElementById('commentBtn').addEventListener('click', () => {
+                document.getElementById('commentsSection').scrollIntoView({ behavior: 'smooth' });
+            });
+
+            document.getElementById('loadMoreBtn').addEventListener('click', () => {
+                loadComments(false);
+            });
+        }
+
+        // ============================================================
+        //  INTERACTIONS (Instant UI + silent revert)
+        // ============================================================
+        function updateInteractions() {
+            const likeBtn = document.getElementById('likeBtn');
+            const saveBtn = document.getElementById('saveBtn');
+            const formattedLikes = formatCount(likeCount);
+            const formattedSaves = formatCount(saveCount);
+            likeBtn.innerHTML = `${liked ? '<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>' : '<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>'} <span class="count">${formattedLikes}</span>`;
+            saveBtn.innerHTML = `${saved ? '<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>' : '<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>'} <span class="count">${formattedSaves}</span>`;
+            likeBtn.className = `like-btn ${liked ? 'liked' : ''}`;
+            saveBtn.className = `save-btn ${saved ? 'saved' : ''}`;
+        }
+
+        async function handleLike() {
+            if (!user) { popup.classList.add('active'); return; }
+            if (pendingLike) return;
+            pendingLike = true;
+
+            // Optimistic update
+            const action = liked ? 'unlike' : 'like';
+            liked = !liked;
+            likeCount += liked ? 1 : -1;
+            updateInteractions();
+
+            try {
+                const method = liked ? 'POST' : 'DELETE';
+                const res = await fetch(`/api/interactions?action=${action}`, {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ promptId })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    // Server confirmed; use server count to be accurate
+                    likeCount = data.like_count;
+                    updateInteractions();
+                } else {
+                    // Revert silently
+                    liked = !liked;
+                    likeCount += liked ? 1 : -1;
+                    updateInteractions();
+                    console.warn('Like action failed on server, reverted UI');
+                }
+            } catch (err) {
+                // Revert silently on network error
+                liked = !liked;
+                likeCount += liked ? 1 : -1;
+                updateInteractions();
+                console.error(err);
+            }
+            pendingLike = false;
+        }
+
+        async function handleSave() {
+            if (!user) { popup.classList.add('active'); return; }
+            if (pendingSave) return;
+            pendingSave = true;
+
+            // Optimistic update
+            const action = saved ? 'unsave' : 'save';
+            saved = !saved;
+            saveCount += saved ? 1 : -1;
+            updateInteractions();
+
+            try {
+                const method = saved ? 'POST' : 'DELETE';
+                const res = await fetch(`/api/interactions?action=${action}`, {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ promptId })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    saveCount = data.save_count;
+                    updateInteractions();
+                } else {
+                    saved = !saved;
+                    saveCount += saved ? 1 : -1;
+                    updateInteractions();
+                    console.warn('Save action failed on server, reverted UI');
+                }
+            } catch (err) {
+                saved = !saved;
+                saveCount += saved ? 1 : -1;
+                updateInteractions();
+                console.error(err);
+            }
+            pendingSave = false;
+        }
+
+        function handleShare() {
+            navigator.clipboard.writeText(window.location.href);
+            alert('Link copied to clipboard!');
+        }
+
+        function handleReport() {
+            if (!user) { popup.classList.add('active'); return; }
+            const reason = prompt('Why are you reporting this prompt?');
+            if (reason && reason.trim()) {
+                fetch('/api/reports?action=submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ targetPromptId: promptId, reason: reason.trim() })
+                }).then(() => alert('Report submitted. Thank you!'));
+            }
+        }
+
+        // ============================================================
+        //  COMMENTS - FIXED: Replies appear nested instantly
+        // ============================================================
+        let commentLikeTimers = {};
+
+        async function loadComments(reset = false) {
+            if (loadingComments) return;
+            if (!reset && !hasMoreComments) return;
+            loadingComments = true;
+            if (reset) { commentOffset = 0; hasMoreComments = true; }
+            try {
+                const url = `/api/comments?action=list&promptId=${promptId}&limit=${commentLimit}&offset=${commentOffset}`;
+                const res = await fetch(url, {
+                    headers: user ? { 'Authorization': `Bearer ${token}` } : {}
+                });
+                const data = await res.json();
+                if (reset) { document.getElementById('commentsList').innerHTML = ''; }
+                renderComments(data.comments || [], reset);
+                commentOffset += data.comments.length;
+                hasMoreComments = data.hasMore;
+                document.getElementById('loadMoreWrap').style.display = hasMoreComments ? 'block' : 'none';
+                document.getElementById('commentCount').textContent = formatCount(data.total || 0);
+            } catch (err) { console.error(err); }
+            loadingComments = false;
+        }
+
+        function renderComments(comments, reset) {
+            const list = document.getElementById('commentsList');
+            if (reset) list.innerHTML = '';
+            if (comments.length === 0 && reset) {
+                list.innerHTML = `<div style="text-align:center;color:#65676b;padding:16px 0;">No comments yet. Be the first!</div>`;
+                return;
+            }
+            comments.forEach(c => {
+                list.insertAdjacentHTML('beforeend', renderComment(c));
+            });
+        }
+
+        function renderComment(c, isReply = false) {
+            const avatar = c.profiles?.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(c.profiles?.username || '?') + '&background=e4e6eb&color=1877f2&size=28';
+            const displayName = c.profiles?.display_name || c.profiles?.username || 'Anonymous';
+            const username = c.profiles?.username || 'anonymous';
+            const time = timeAgo(c.created_at);
+            const likeIcon = c.liked ? `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>` : `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+            const likeClass = c.liked ? 'liked' : '';
+
+            // Build badge HTML
+            let badgeHtml = '';
+            if (c.profiles?.is_owner) {
+                badgeHtml = `<span class="badge-container"><span class="badge-owner"></span></span>`;
+            } else if (c.profiles?.is_premium) {
+                badgeHtml = `<span class="badge-container"><span class="badge-premium"></span></span>`;
+            }
+
+            let html = `
+                <div class="comment-item">
+                    <div class="avatar-small" style="background-image:url(${avatar});background-size:cover;background-position:center;">
+                        ${!c.profiles?.avatar_url ? displayName.charAt(0).toUpperCase() : ''}
+                    </div>
+                    <div class="body">
+                        <div class="row">
+                            <span class="name" onclick="window.location.href='/@${username}'">${displayName} ${badgeHtml}</span>
+                            <span class="time">${time}</span>
+                        </div>
+                        <div class="content">${c.content}</div>
+                        <div class="actions">
+                            <button class="comment-like-btn ${likeClass}" data-id="${c.id}" data-count="${c.likes_count || 0}">
+                                ${likeIcon} ${c.likes_count || 0}
+                            </button>
+                            <span style="color:#d1d5db;">·</span>
+                            ${!isReply ? `<button class="reply-toggle" data-id="${c.id}" data-username="${username}">Reply</button>` : ''}
+                        </div>
+            `;
+            if (!isReply && c.replies && c.replies.length > 0) {
+                html += `<div class="replies">${c.replies.map(r => renderComment(r, true)).join('')}</div>`;
+            }
+            html += `</div></div>`;
+            return html;
+        }
+
+        // ============================================================
+        //  COMMENT EVENTS - FIXED: Replies appear nested instantly
+        // ============================================================
+        document.addEventListener('click', async (e) => {
+            const submitBtn = e.target.closest('.comment-submit');
+            if (submitBtn) {
+                e.preventDefault();
+                if (!user) { popup.classList.add('active'); return; }
+                let content = document.getElementById('commentInput').value.trim();
+                if (!content) return;
+                
+                let parentId = null;
+                if (replyToCommentId && replyToUsername) {
+                    const mention = `@${replyToUsername}`;
+                    if (content.startsWith(mention)) {
+                        parentId = replyToCommentId;
+                        content = content.substring(mention.length).trim();
+                        if (!content) {
+                            document.getElementById('commentInput').value = `@${replyToUsername} `;
+                            document.getElementById('commentInput').focus();
+                            return;
+                        }
+                    } else {
+                        replyToCommentId = null;
+                        replyToUsername = null;
+                    }
+                }
+
+                submitBtn.disabled = true;
+
+                // OPTIMISTIC: Create temp comment
+                const tempId = 'temp_' + Date.now();
+                const tempComment = {
+                    id: tempId,
+                    user_id: user.id,
+                    content: content,
+                    likes_count: 0,
+                    created_at: new Date().toISOString(),
+                    profiles: {
+                        id: user.id,
+                        username: user.username,
+                        display_name: user.display_name || user.username,
+                        avatar_url: user.avatar_url,
+                        is_premium: user.is_premium || false,
+                        is_owner: user.is_owner || false
+                    },
+                    liked: false,
+                    replies: [],
+                    parent_id: parentId
+                };
+
+                // Add temp comment to UI
+                const list = document.getElementById('commentsList');
+                const noCommentsMsg = list.querySelector('div[style*="No comments yet"]');
+                if (noCommentsMsg) list.innerHTML = '';
+
+                if (parentId) {
+                    // ✅ REPLY: Find parent and nest under it
+                    const parentEl = list.querySelector(`.comment-item[data-id="${parentId}"]`);
+                    if (parentEl) {
+                        let repliesContainer = parentEl.querySelector('.replies');
+                        if (!repliesContainer) {
+                            repliesContainer = document.createElement('div');
+                            repliesContainer.className = 'replies';
+                            const body = parentEl.querySelector('.body');
+                            body.appendChild(repliesContainer);
+                        }
+                        repliesContainer.insertAdjacentHTML('beforeend', renderComment(tempComment, true));
+                        // Scroll to reply
+                        const newReply = repliesContainer.lastElementChild;
+                        if (newReply) {
+                            setTimeout(() => {
+                                newReply.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }, 50);
+                        }
+                    } else {
+                        // Parent not found — fallback to top-level
+                        list.insertAdjacentHTML('afterbegin', renderComment(tempComment));
+                    }
+                } else {
+                    // ✅ TOP-LEVEL: Insert at top of list
+                    list.insertAdjacentHTML('afterbegin', renderComment(tempComment));
+                }
+
+                // Clear input
+                document.getElementById('commentInput').value = '';
+                document.getElementById('commentInput').placeholder = 'Write a comment...';
+                replyToCommentId = null;
+                replyToUsername = null;
+
+                // Send API request
+                try {
+                    const res = await fetch('/api/comments?action=add', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ promptId, content, parentId })
+                    });
+                    if (res.ok) {
+                        // Success: refetch to get real data
+                        const fetchRes = await fetch(`/api/comments?action=list&promptId=${promptId}&limit=${commentLimit}&offset=0`, {
+                            headers: user ? { 'Authorization': `Bearer ${token}` } : {}
+                        });
+                        const data = await fetchRes.json();
+                        renderComments(data.comments || [], true);
+                        commentOffset = data.comments.length;
+                        hasMoreComments = data.hasMore;
+                        document.getElementById('loadMoreWrap').style.display = hasMoreComments ? 'block' : 'none';
+                        document.getElementById('commentCount').textContent = formatCount(data.total || 0);
+                    } else {
+                        // Failed: remove temp comments
+                        const tempEls = list.querySelectorAll('[data-id^="temp_"]');
+                        tempEls.forEach(el => el.remove());
+                        document.querySelectorAll('.replies:empty').forEach(el => el.remove());
+                        alert('Failed to post comment. Please try again.');
+                    }
+                } catch (err) {
+                    // Failed: remove temp comments
+                    const tempEls = list.querySelectorAll('[data-id^="temp_"]');
+                    tempEls.forEach(el => el.remove());
+                    document.querySelectorAll('.replies:empty').forEach(el => el.remove());
+                    alert('Failed to post comment. Please try again.');
+                }
+
+                submitBtn.disabled = false;
+            }
+
+            const replyToggle = e.target.closest('.reply-toggle');
+            if (replyToggle) {
+                e.preventDefault();
+                const username = replyToggle.dataset.username;
+                const id = replyToggle.dataset.id;
+                replyToCommentId = id;
+                replyToUsername = username;
+                const input = document.getElementById('commentInput');
+                input.value = `@${username} `;
+                input.placeholder = `Reply to @${username}...`;
+                input.focus();
+            }
+
+            const likeBtn = e.target.closest('.comment-like-btn');
+            if (likeBtn) {
+                if (!user) { popup.classList.add('active'); return; }
+                const commentId = likeBtn.dataset.id;
+                const currentCount = parseInt(likeBtn.dataset.count) || 0;
+                const isLiked = likeBtn.classList.contains('liked');
+                const newLiked = !isLiked;
+                const newCount = newLiked ? currentCount + 1 : currentCount - 1;
+                likeBtn.dataset.count = newCount;
+
+                // Optimistic UI update
+                const likeIcon = newLiked ? `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>` : `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+                if (newLiked) {
+                    likeBtn.classList.add('liked');
+                    likeBtn.innerHTML = `${likeIcon} ${newCount}`;
+                } else {
+                    likeBtn.classList.remove('liked');
+                    likeBtn.innerHTML = `${likeIcon} ${newCount}`;
+                }
+
+                if (commentLikeTimers[commentId]) {
+                    clearTimeout(commentLikeTimers[commentId]);
+                }
+
+                commentLikeTimers[commentId] = setTimeout(async () => {
+                    const finalLiked = likeBtn.classList.contains('liked');
+                    const action = finalLiked ? 'like-comment' : 'unlike-comment';
+                    const method = finalLiked ? 'POST' : 'DELETE';
+
+                    try {
+                        const res = await fetch(`/api/comments?action=${action}`, {
+                            method,
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({ commentId })
+                        });
+                        if (!res.ok) {
+                            // Revert silently
+                            const revertLiked = !finalLiked;
+                            const revertCount = revertLiked ? parseInt(likeBtn.dataset.count) + 1 : parseInt(likeBtn.dataset.count) - 1;
+                            likeBtn.dataset.count = revertCount;
+                            const revertIcon = revertLiked ? `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>` : `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+                            if (revertLiked) {
+                                likeBtn.classList.add('liked');
+                                likeBtn.innerHTML = `${revertIcon} ${revertCount}`;
+                            } else {
+                                likeBtn.classList.remove('liked');
+                                likeBtn.innerHTML = `${revertIcon} ${revertCount}`;
+                            }
+                        }
+                    } catch (err) {
+                        // Revert silently
+                        const revertLiked = !finalLiked;
+                        const revertCount = revertLiked ? parseInt(likeBtn.dataset.count) + 1 : parseInt(likeBtn.dataset.count) - 1;
+                        likeBtn.dataset.count = revertCount;
+                        const revertIcon = revertLiked ? `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>` : `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+                        if (revertLiked) {
+                            likeBtn.classList.add('liked');
+                            likeBtn.innerHTML = `${revertIcon} ${revertCount}`;
+                        } else {
+                            likeBtn.classList.remove('liked');
+                            likeBtn.innerHTML = `${revertIcon} ${revertCount}`;
+                        }
+                    }
+                    delete commentLikeTimers[commentId];
+                }, 800);
+            }
+        });
+
+        // ============================================================
+        //  RELATED
+        // ============================================================
+        async function loadRelated() {
+            try {
+                const res = await fetch(`/api/prompts?action=related&promptId=${promptId}&limit=6`);
+                const data = await res.json();
+                const prompts = data.prompts || [];
+                const grid = document.querySelector('.related-grid');
+                if (!grid) return;
+                if (prompts.length === 0) {
+                    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:#65676b;padding:16px 0;">No related prompts found.</div>`;
+                    return;
+                }
+                grid.innerHTML = prompts.map(p => `
+                    <div class="related-card" onclick="window.location.href='/prompt/${p.slug}'">
+                        <img src="${p.image_main}" 
+                             loading="lazy"
+                             decoding="async"
+                             onerror="this.src='https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=400&h=400&fit=crop&auto=format'" 
+                             alt="${p.title}" />
+                        <div class="title">${p.title}</div>
+                    </div>
+                `).join('');
+            } catch (err) { console.error(err); }
+        }
+
+        // ============================================================
+        //  POPUP
+        // ============================================================
+        document.getElementById('popupLoginBtn').addEventListener('click', () => {
+            window.location.href = '/';
+        });
+        document.getElementById('popupCloseBtn').addEventListener('click', () => {
+            popup.classList.remove('active');
+        });
+        popup.addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) popup.classList.remove('active');
+        });
+
+        // ============================================================
+        //  INIT
+        // ============================================================
+        async function init() {
+            await verifyUser();
+            loadPrompt();
+        }
+        init();
+    </script>
+</body>
+</html>
