@@ -146,15 +146,19 @@
             margin-top: 16px;
         }
 
+        /* ===== GRID CARD (Now an <a> tag) ===== */
         .grid-card {
+            display: block;
             position: relative;
             width: 100%;
-            padding-bottom: 125%; /* 4:5 ratio (4/5 = 0.8, so padding = 1/0.8 = 1.25 = 125%) */
+            padding-bottom: 125%; /* 4:5 ratio */
             border-radius: 4px;
             overflow: hidden;
             cursor: pointer;
             background: #e8ecf1;
             transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            color: inherit;
         }
         .grid-card:hover {
             transform: scale(1.01);
@@ -399,9 +403,13 @@
                 const viewIcon = `<svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5 5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3 1.34 3 3-1.34-3-3-3z"/></svg>`;
 
                 prompts.forEach(p => {
-                    const card = document.createElement('div');
+                    // ============================================================
+                    //  ✅ CHANGED: Create <a> tag instead of <div>
+                    // ============================================================
+                    const card = document.createElement('a');
                     card.className = 'grid-card';
-                    card.onclick = () => window.location.href = `/prompt/${p.slug}`;
+                    card.href = `/prompt/${p.slug}`;
+                    // ============================================================
 
                     // Optimized image URL
                     const screenWidth = window.innerWidth;
