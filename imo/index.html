@@ -1,163 +1,280 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IMO Profile Card</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>IMO Profile Clone</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
 
-    body {
-      background: #000000;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      padding: 16px;
-    }
+        body {
+            background: #000;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
 
-    /* Static card - no floating, no animation */
-    .profile-card {
-      background: #ffffff;
-      border-radius: 16px;
-      width: 100%;
-      max-width: 480px;
-      aspect-ratio: 6 / 2; /* 6:2 ratio */
-      display: flex;
-      align-items: center;
-      padding: 12px 20px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      transition: transform 0.15s ease;
-    }
+        /* Main card container - exactly like the image */
+        .imo-card {
+            background: #ffffff;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 380px;
+            padding: 24px 20px 24px 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
 
-    /* subtle hover just to feel interactive, but no float */
-    .profile-card:hover {
-      transform: scale(1.01);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
-    }
+        /* Top navigation (back arrow + settings) */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
 
-    /* Left: profile picture */
-    .profile-pic-wrapper {
-      flex-shrink: 0;
-      margin-right: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+        }
 
-    .profile-pic {
-      width: 72px;
-      height: 72px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 2px solid #e0e0e0;
-      background: #f0f0f0;
-    }
+        .nav-icon svg {
+            width: 100%;
+            height: 100%;
+            fill: #444;
+        }
 
-    /* Right: info section */
-    .profile-info {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 4px;
-    }
+        /* Profile picture */
+        .profile-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 5px;
+        }
 
-    .profile-name {
-      font-size: 1.6rem;
-      font-weight: 700;
-      color: #111;
-      line-height: 1.2;
-      letter-spacing: -0.2px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+        .profile-pic {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #eee;
+            background: #f5f5f5;
+        }
 
-    .profile-meta {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.8rem;
-      color: #888;
-    }
+        .profile-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #111;
+            margin-top: 10px;
+            text-align: center;
+            letter-spacing: -0.3px;
+        }
 
-    .imo-tag {
-      background: #f0f4ff;
-      color: #2f6fdb;
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-weight: 600;
-      font-size: 0.7rem;
-      letter-spacing: 0.2px;
-    }
+        /* Menu list section (matches the exact items) */
+        .menu-list {
+            margin-top: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 0px;
+            width: 100%;
+        }
 
-    /* add button (optional, but makes it feel like a shareable add card) */
-    .add-btn {
-      background: #2f6fdb;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s;
-      white-space: nowrap;
-      margin-left: 10px;
-    }
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 6px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+        }
 
-    .add-btn:hover {
-      background: #1e5bc0;
-    }
+        .menu-item:last-child {
+            border-bottom: none;
+        }
 
-    /* Responsive */
-    @media (max-width: 400px) {
-      .profile-card {
-        padding: 10px 14px;
-      }
-      .profile-pic {
-        width: 60px;
-        height: 60px;
-      }
-      .profile-name {
-        font-size: 1.3rem;
-      }
-      .add-btn {
-        padding: 6px 12px;
-        font-size: 0.7rem;
-      }
-    }
-  </style>
+        .menu-icon {
+            width: 22px;
+            height: 22px;
+            margin-right: 14px;
+            fill: #333;
+        }
+
+        .menu-icon svg {
+            width: 100%;
+            height: 100%;
+            fill: #555;
+        }
+
+        .menu-text {
+            font-size: 1rem;
+            color: #222;
+            font-weight: 500;
+        }
+
+        .menu-sub {
+            font-size: 0.8rem;
+            color: #999;
+            margin-left: 4px;
+            font-weight: 400;
+        }
+
+        /* Share and Edit buttons (exact match) */
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .action-btn {
+            flex: 1;
+            background: #f2f4f6;
+            border: none;
+            border-radius: 14px;
+            padding: 14px 0;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #222;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #e6e9ec;
+        }
+
+        .action-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: #222;
+        }
+
+        /* THE SINGLE + ADD BUTTON (below Share & Edit) */
+        .add-btn {
+            margin-top: 16px;
+            background: #2f6fdb;
+            border: none;
+            border-radius: 14px;
+            padding: 15px 0;
+            width: 100%;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background 0.2s;
+            box-shadow: 0 2px 8px rgba(47, 111, 219, 0.3);
+        }
+
+        .add-btn:hover {
+            background: #1e5bc0;
+        }
+
+        .add-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: white;
+        }
+
+        /* Responsive tweaks */
+        @media (max-width: 360px) {
+            .imo-card {
+                padding: 16px 14px;
+            }
+            .profile-pic {
+                width: 90px;
+                height: 90px;
+            }
+            .profile-name {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
 </head>
 <body>
 
-  <!-- Static profile ID card (like a social media share card) -->
-  <div class="profile-card">
-    <!-- Left: round profile -->
-    <div class="profile-pic-wrapper">
-      <img src="/imo/image/profile.png" alt="Profile" class="profile-pic" 
-           onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2248%22 fill=%22%23f0f0f0%22/><circle cx=%2250%22 cy=%2240%22 r=%2212%22 fill=%22%23aaa%22/><path d=%22M30 75 Q50 60,70 75 L70 82 L30 82 Z%22 fill=%22%23aaa%22/></svg>';">
-    </div>
+    <!-- Complete IMO profile card clone -->
+    <div class="imo-card">
+        
+        <!-- Top navigation -->
+        <div class="top-nav">
+            <div class="nav-icon">
+                <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+            </div>
+            <div class="nav-icon">
+                <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+            </div>
+        </div>
 
-    <!-- Right: name + meta -->
-    <div class="profile-info">
-      <div class="profile-name">খাদিজা আক্তার</div>
-      <div class="profile-meta">
-        <span class="imo-tag">IMO ID</span>
-        <span>•</span>
-        <span>Available</span>
-      </div>
-    </div>
+        <!-- Profile pic & name -->
+        <div class="profile-container">
+            <img src="/imo/image/profile.png" alt="Profile" class="profile-pic" 
+                 onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2248%22 fill=%22%23eee%22/><circle cx=%2250%22 cy=%2240%22 r=%2214%22 fill=%22%23aaa%22/><path d=%22M25 75 Q50 55,75 75 L75 85 L25 85 Z%22 fill=%22%23aaa%22/></svg>';">
+            <div class="profile-name">খাদিজা আক্তার</div>
+        </div>
 
-    <!-- Add button (makes it feel like you can add this user) -->
-    <button class="add-btn" onclick="alert('Friend request sent to খাদিজা আক্তার ✅')">+ Add</button>
-  </div>
+        <!-- Menu items (exact order) -->
+        <div class="menu-list">
+            <!-- IMO ID -->
+            <div class="menu-item">
+                <div class="menu-icon">
+                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-5h2v2h-2v-2zm0-8h2v6h-2V7z"/></svg>
+                </div>
+                <div class="menu-text">IMO ID: <span class="menu-sub">khadija.aktar</span></div>
+            </div>
+
+            <!-- Voice Club -->
+            <div class="menu-item">
+                <div class="menu-icon">
+                    <svg viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9zm0 16c-3.86 0-7-3.14-7-7s3.14-7 7-7 7 3.14 7 7-3.14 7-7 7zm-2-9.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v2c0 .83-.67 1.5-1.5 1.5s-1.5-.67-1.5-1.5v-2zm5-1c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v4c0 .83-.67 1.5-1.5 1.5s-1.5-.67-1.5-1.5v-4zm-8 0c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v4c0 .83-.67 1.5-1.5 1.5s-1.5-.67-1.5-1.5v-4z"/></svg>
+                </div>
+                <div class="menu-text">Voice Club</div>
+            </div>
+
+            <!-- Story Album -->
+            <div class="menu-item">
+                <div class="menu-icon">
+                    <svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+                </div>
+                <div class="menu-text">Story Album</div>
+            </div>
+        </div>
+
+        <!-- Share and Edit -->
+        <div class="action-buttons">
+            <button class="action-btn">
+                <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
+                Share
+            </button>
+            <button class="action-btn">
+                <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                Edit
+            </button>
+        </div>
+
+        <!-- Single + ADD button (below Share/Edit) -->
+        <button class="add-btn" onclick="alert('Friend request sent to খাদিজা আক্তার ✅')">
+            <svg viewBox="0 0 24 24"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            + Add
+        </button>
+
+    </div>
 
 </body>
 </html>
