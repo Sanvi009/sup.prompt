@@ -2,10 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-  <title>IMO profile — floating card</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IMO Profile Card</title>
   <style>
-    /* minimal, smooth, pure IMO vibe – no heavy decoration */
     * {
       margin: 0;
       padding: 0;
@@ -16,158 +15,149 @@
       background: #000000;
       min-height: 100vh;
       display: flex;
-      flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-      padding: 24px 16px;
-    }
-
-    /* top area – floating card wrapper */
-    .top-section {
-      width: 100%;
-      max-width: 720px;
-      margin-top: 12px;
-      margin-bottom: 32px;
-      display: flex;
       justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      padding: 16px;
     }
 
-    /* floating white card – exactly 6:2 ratio (width:height = 3:1) */
-    .floating-card {
-      background: white;
-      border-radius: 30px;
-      box-shadow: 0 20px 35px -8px rgba(0, 0, 0, 0.6), 0 4px 10px rgba(255, 255, 255, 0.05);
+    /* Static card - no floating, no animation */
+    .profile-card {
+      background: #ffffff;
+      border-radius: 16px;
       width: 100%;
-      max-width: 600px;
-      aspect-ratio: 6 / 2;           /* 6:2 = 3:1 */
+      max-width: 480px;
+      aspect-ratio: 6 / 2; /* 6:2 ratio */
       display: flex;
       align-items: center;
-      padding: 6px 16px;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      will-change: transform;
+      padding: 12px 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      transition: transform 0.15s ease;
     }
 
-    /* subtle float animation (pure, smooth) */
-    .floating-card {
-      animation: floatCard 5s ease-in-out infinite;
+    /* subtle hover just to feel interactive, but no float */
+    .profile-card:hover {
+      transform: scale(1.01);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
     }
 
-    @keyframes floatCard {
-      0% {
-        transform: translateY(0px);
-        box-shadow: 0 20px 35px -10px rgba(0,0,0,0.7);
-      }
-      50% {
-        transform: translateY(-6px);
-        box-shadow: 0 28px 40px -12px rgba(0,0,0,0.8);
-      }
-      100% {
-        transform: translateY(0px);
-        box-shadow: 0 20px 35px -10px rgba(0,0,0,0.7);
-      }
-    }
-
-    /* left side: round profile picture */
+    /* Left: profile picture */
     .profile-pic-wrapper {
-      flex: 0 0 auto;
+      flex-shrink: 0;
+      margin-right: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-right: 20px;
     }
 
     .profile-pic {
-      width: 80px;
-      height: 80px;
+      width: 72px;
+      height: 72px;
       border-radius: 50%;
       object-fit: cover;
-      background: #d0d0d0;  /* fallback if image missing */
-      border: 3px solid #ffffff;   /* clean white ring */
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      border: 2px solid #e0e0e0;
+      background: #f0f0f0;
     }
 
-    /* right side: name */
+    /* Right: info section */
     .profile-info {
       flex: 1;
       display: flex;
       flex-direction: column;
       justify-content: center;
+      gap: 4px;
     }
 
     .profile-name {
-      font-size: 2rem;
-      font-weight: 650;
-      letter-spacing: -0.3px;
+      font-size: 1.6rem;
+      font-weight: 700;
       color: #111;
       line-height: 1.2;
+      letter-spacing: -0.2px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      /* crisp, minimal */
     }
 
-    /* optional small IMO-like hint (not heavy) */
-    .imo-badge {
-      font-size: 0.75rem;
+    .profile-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      color: #888;
+    }
+
+    .imo-tag {
+      background: #f0f4ff;
       color: #2f6fdb;
-      font-weight: 500;
-      margin-top: 2px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.7rem;
       letter-spacing: 0.2px;
-      opacity: 0.9;
     }
 
-    /* for very small screens, adjust profile pic and name */
-    @media (max-width: 480px) {
-      .floating-card {
-        padding: 8px 12px;
-        border-radius: 24px;
+    /* add button (optional, but makes it feel like a shareable add card) */
+    .add-btn {
+      background: #2f6fdb;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+      margin-left: 10px;
+    }
+
+    .add-btn:hover {
+      background: #1e5bc0;
+    }
+
+    /* Responsive */
+    @media (max-width: 400px) {
+      .profile-card {
+        padding: 10px 14px;
       }
       .profile-pic {
-        width: 65px;
-        height: 65px;
+        width: 60px;
+        height: 60px;
       }
       .profile-name {
-        font-size: 1.5rem;
-        white-space: nowrap;
+        font-size: 1.3rem;
       }
-      .profile-pic-wrapper {
-        margin-right: 14px;
+      .add-btn {
+        padding: 6px 12px;
+        font-size: 0.7rem;
       }
-    }
-
-    /* extra smooth touch: disable tap highlight */
-    .floating-card, .profile-pic {
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    /* simple extra whitespace to show responsive floating */
-    .bottom-spacer {
-      height: 20px;
     }
   </style>
 </head>
 <body>
 
-  <!-- top floating card (pure IMO style) -->
-  <div class="top-section">
-    <div class="floating-card">
-      <!-- left: round profile picture (path /imo/image/profile.png) -->
-      <div class="profile-pic-wrapper">
-        <img src="/imo/image/profile.png" alt="profile" class="profile-pic" 
-             onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2248%22 fill=%22%23eeeeee%22/><circle cx=%2250%22 cy=%2240%22 r=%2212%22 fill=%22%23999999%22/><path d=%22M30 75 Q50 60,70 75 L70 82 L30 82 Z%22 fill=%22%23999999%22/></svg>';">
-      </div>
-      
-      <!-- right: name -->
-      <div class="profile-info">
-        <div class="profile-name">খাদিজা আক্তার</div>
-        <div class="imo-badge">· IMO ·</div>
+  <!-- Static profile ID card (like a social media share card) -->
+  <div class="profile-card">
+    <!-- Left: round profile -->
+    <div class="profile-pic-wrapper">
+      <img src="/imo/image/profile.png" alt="Profile" class="profile-pic" 
+           onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2248%22 fill=%22%23f0f0f0%22/><circle cx=%2250%22 cy=%2240%22 r=%2212%22 fill=%22%23aaa%22/><path d=%22M30 75 Q50 60,70 75 L70 82 L30 82 Z%22 fill=%22%23aaa%22/></svg>';">
+    </div>
+
+    <!-- Right: name + meta -->
+    <div class="profile-info">
+      <div class="profile-name">খাদিজা আক্তার</div>
+      <div class="profile-meta">
+        <span class="imo-tag">IMO ID</span>
+        <span>•</span>
+        <span>Available</span>
       </div>
     </div>
-  </div>
 
-  <!-- subtle optional bottom element to show background dark, but nothing heavy -->
-  <div class="bottom-spacer"></div>
+    <!-- Add button (makes it feel like you can add this user) -->
+    <button class="add-btn" onclick="alert('Friend request sent to খাদিজা আক্তার ✅')">+ Add</button>
+  </div>
 
 </body>
 </html>
