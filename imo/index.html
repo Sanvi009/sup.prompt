@@ -11,17 +11,18 @@
             box-sizing: border-box;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         body {
-            background: #ffffff;
+            background: #f8f9fb;
             min-height: 100vh;
             width: 100%;
             display: flex;
             flex-direction: column;
         }
 
-        /* Full screen app container */
+        /* Full screen app container with subtle gradient */
         .app-screen {
             width: 100%;
             max-width: 480px;
@@ -29,172 +30,228 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            background: #ffffff;
+            background: linear-gradient(180deg, #ffffff 0%, #f5f7fa 100%);
             position: relative;
-            padding-bottom: 90px; /* space for fixed button */
+            padding-bottom: 100px;
         }
 
-        /* Top navigation bar */
+        /* Top navigation bar with blur */
         .top-nav {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 16px 20px;
-            background: #ffffff;
-            border-bottom: 1px solid #f0f0f0;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
             position: sticky;
             top: 0;
             z-index: 10;
         }
 
         .nav-icon {
-            width: 28px;
-            height: 28px;
+            width: 40px;
+            height: 40px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.03);
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .nav-icon:hover {
+            background: rgba(0, 0, 0, 0.06);
+        }
+
+        .nav-icon:active {
+            transform: scale(0.92);
         }
 
         .nav-icon svg {
-            width: 24px;
-            height: 24px;
-            fill: #222;
+            width: 22px;
+            height: 22px;
+            fill: #333;
         }
 
-        /* Profile section */
+        /* Profile section with elegant spacing */
         .profile-section {
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 30px 20px 10px;
+            padding: 40px 20px 20px;
+        }
+
+        /* Profile pic with beautiful ring effect */
+        .profile-pic-wrapper {
+            position: relative;
+            margin-bottom: 16px;
         }
 
         .profile-pic {
-            width: 130px;
-            height: 130px;
+            width: 140px;
+            height: 140px;
             border-radius: 50%;
             object-fit: cover;
-            border: 3px solid #f0f0f0;
-            background: #f5f5f5;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            border: 4px solid #ffffff;
+            background: #f0f0f0;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+            transition: transform 0.3s ease;
+        }
+
+        /* Online indicator (subtle touch, doesn't change layout) */
+        .profile-pic-wrapper::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            width: 18px;
+            height: 18px;
+            background: #4CAF50;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
         }
 
         .profile-name {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #111;
-            margin-top: 14px;
+            font-size: 2rem;
+            font-weight: 800;
+            color: #0a0a0a;
             text-align: center;
-            letter-spacing: -0.5px;
+            letter-spacing: -1px;
+            line-height: 1.2;
+            background: linear-gradient(135deg, #1a1a1a, #333333);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        /* Menu list */
+        /* Menu list with premium styling */
         .menu-list {
             width: 100%;
-            padding: 15px 20px 0;
+            padding: 20px 20px 0;
             display: flex;
             flex-direction: column;
+            gap: 8px;
         }
 
         .menu-item {
             display: flex;
             align-items: center;
-            padding: 18px 0;
-            border-bottom: 1px solid #f0f0f0;
+            padding: 18px 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 16px;
+            border: 1px solid rgba(0, 0, 0, 0.04);
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+        }
+
+        .menu-item:hover {
+            background: #ffffff;
+            border-color: rgba(47, 111, 219, 0.1);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            transform: translateY(-1px);
         }
 
         .menu-item:active {
-            background: #fafafa;
-        }
-
-        .menu-item:last-child {
-            border-bottom: none;
+            transform: scale(0.98);
+            background: #fafbfc;
         }
 
         .menu-icon {
-            width: 26px;
-            height: 26px;
-            margin-right: 18px;
+            width: 44px;
+            height: 44px;
+            margin-right: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #f0f4ff, #e8edf8);
+            flex-shrink: 0;
         }
 
         .menu-icon svg {
             width: 24px;
             height: 24px;
-            fill: #444;
+            fill: #2f6fdb;
         }
 
         .menu-content {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             flex: 1;
         }
 
         .menu-text {
             font-size: 1.1rem;
-            color: #222;
-            font-weight: 500;
+            color: #1a1a1a;
+            font-weight: 600;
+            letter-spacing: -0.2px;
         }
 
         .menu-sub {
             font-size: 0.85rem;
             color: #888;
             font-weight: 400;
+            background: rgba(0, 0, 0, 0.03);
+            padding: 2px 8px;
+            border-radius: 6px;
         }
 
-        /* Fixed Add button at bottom */
+        /* Fixed Add button with premium gradient */
         .add-btn-container {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            background: #ffffff;
-            padding: 16px 20px;
-            padding-bottom: calc(16px + env(safe-area-inset-bottom));
-            box-shadow: 0 -4px 15px rgba(0,0,0,0.05);
-            border-top: 1px solid #f0f0f0;
+            background: linear-gradient(180deg, transparent 0%, rgba(248, 249, 251, 0.9) 20%, #f8f9fb 100%);
+            padding: 20px 20px;
+            padding-bottom: calc(20px + env(safe-area-inset-bottom));
             z-index: 100;
             display: flex;
             justify-content: center;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
         }
 
         .add-btn {
-            background: #2f6fdb;
+            background: linear-gradient(135deg, #2f6fdb 0%, #1e5bc0 100%);
             border: none;
-            border-radius: 16px;
-            padding: 16px 0;
+            border-radius: 20px;
+            padding: 18px 0;
             width: 100%;
             max-width: 440px;
-            font-size: 1.2rem;
-            font-weight: 700;
+            font-size: 1.25rem;
+            font-weight: 800;
             color: white;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
-            transition: background 0.2s, transform 0.1s;
-            box-shadow: 0 4px 12px rgba(47, 111, 219, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 24px rgba(47, 111, 219, 0.35), 0 2px 8px rgba(47, 111, 219, 0.25);
+            letter-spacing: 0.5px;
         }
 
         .add-btn:hover {
-            background: #1e5bc0;
+            background: linear-gradient(135deg, #3a7de0 0%, #2464cc 100%);
+            box-shadow: 0 12px 32px rgba(47, 111, 219, 0.45), 0 4px 12px rgba(47, 111, 219, 0.3);
+            transform: translateY(-2px);
         }
 
         .add-btn:active {
-            transform: scale(0.98);
-            background: #1a4fa8;
+            transform: scale(0.97) translateY(0);
+            box-shadow: 0 4px 12px rgba(47, 111, 219, 0.3);
         }
 
         .add-btn svg {
-            width: 22px;
-            height: 22px;
+            width: 24px;
+            height: 24px;
             fill: white;
             flex-shrink: 0;
         }
@@ -202,31 +259,37 @@
         /* Responsive tweaks */
         @media (max-width: 360px) {
             .profile-pic {
-                width: 100px;
-                height: 100px;
+                width: 110px;
+                height: 110px;
             }
             .profile-name {
-                font-size: 1.4rem;
+                font-size: 1.6rem;
             }
             .menu-text {
                 font-size: 1rem;
             }
             .menu-icon {
+                width: 38px;
+                height: 38px;
                 margin-right: 12px;
             }
             .top-nav {
                 padding: 12px 16px;
             }
             .profile-section {
-                padding-top: 20px;
+                padding-top: 30px;
+            }
+            .menu-list {
+                padding: 15px 15px 0;
             }
         }
 
         /* Larger screens: keep centered */
         @media (min-width: 480px) {
             .app-screen {
-                border-left: 1px solid #eaeaea;
-                border-right: 1px solid #eaeaea;
+                border-left: 1px solid rgba(0, 0, 0, 0.05);
+                border-right: 1px solid rgba(0, 0, 0, 0.05);
+                box-shadow: 0 0 30px rgba(0, 0, 0, 0.03);
             }
         }
     </style>
@@ -247,12 +310,14 @@
 
         <!-- Profile picture + Name -->
         <div class="profile-section">
-            <img src="/imo/image/profile.png" alt="Profile" class="profile-pic" 
-                 onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2248%22 fill=%22%23eee%22/><circle cx=%2250%22 cy=%2240%22 r=%2214%22 fill=%22%23aaa%22/><path d=%22M25 75 Q50 55,75 75 L75 85 L25 85 Z%22 fill=%22%23aaa%22/></svg>';">
+            <div class="profile-pic-wrapper">
+                <img src="/imo/image/profile.png" alt="Profile" class="profile-pic" 
+                     onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2248%22 fill=%22%23eee%22/><circle cx=%2250%22 cy=%2240%22 r=%2214%22 fill=%22%23aaa%22/><path d=%22M25 75 Q50 55,75 75 L75 85 L25 85 Z%22 fill=%22%23aaa%22/></svg>';">
+            </div>
             <div class="profile-name">খাদিজা আক্তার</div>
         </div>
 
-        <!-- Menu items (no Share/Edit) -->
+        <!-- Menu items -->
         <div class="menu-list">
             <!-- IMO ID -->
             <div class="menu-item">
