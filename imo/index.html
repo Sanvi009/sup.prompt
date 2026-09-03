@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>IMO App Profile</title>
+    <title>IMO Profile – Add Friend</title>
     <style>
         * {
             margin: 0;
@@ -21,7 +21,7 @@
             flex-direction: column;
         }
 
-        /* Full page app container */
+        /* Full screen app container */
         .app-screen {
             width: 100%;
             max-width: 480px;
@@ -31,6 +31,7 @@
             flex-direction: column;
             background: #ffffff;
             position: relative;
+            padding-bottom: 90px; /* space for fixed button */
         }
 
         /* Top navigation bar */
@@ -66,7 +67,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px 20px 10px;
+            padding: 30px 20px 10px;
         }
 
         .profile-pic {
@@ -83,7 +84,7 @@
             font-size: 1.8rem;
             font-weight: 700;
             color: #111;
-            margin-top: 12px;
+            margin-top: 14px;
             text-align: center;
             letter-spacing: -0.5px;
         }
@@ -91,7 +92,7 @@
         /* Menu list */
         .menu-list {
             width: 100%;
-            padding: 10px 20px 0;
+            padding: 15px 20px 0;
             display: flex;
             flex-direction: column;
         }
@@ -99,13 +100,13 @@
         .menu-item {
             display: flex;
             align-items: center;
-            padding: 16px 0;
-            border-bottom: 1px solid #f5f5f5;
+            padding: 18px 0;
+            border-bottom: 1px solid #f0f0f0;
             cursor: pointer;
             transition: background 0.2s;
         }
 
-        .menu-item:hover {
+        .menu-item:active {
             background: #fafafa;
         }
 
@@ -114,17 +115,17 @@
         }
 
         .menu-icon {
-            width: 24px;
-            height: 24px;
-            margin-right: 16px;
+            width: 26px;
+            height: 26px;
+            margin-right: 18px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
         .menu-icon svg {
-            width: 22px;
-            height: 22px;
+            width: 24px;
+            height: 24px;
             fill: #444;
         }
 
@@ -147,49 +148,30 @@
             font-weight: 400;
         }
 
-        /* Share & Edit buttons */
-        .action-buttons {
+        /* Fixed Add button at bottom */
+        .add-btn-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            padding: 16px 20px;
+            padding-bottom: calc(16px + env(safe-area-inset-bottom));
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.05);
+            border-top: 1px solid #f0f0f0;
+            z-index: 100;
             display: flex;
-            gap: 12px;
-            padding: 20px;
-        }
-
-        .action-btn {
-            flex: 1;
-            background: #f2f4f6;
-            border: none;
-            border-radius: 16px;
-            padding: 16px 0;
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #222;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
             justify-content: center;
-            gap: 8px;
-            transition: background 0.2s;
         }
 
-        .action-btn:hover {
-            background: #e6e9ec;
-        }
-
-        .action-btn svg {
-            width: 20px;
-            height: 20px;
-            fill: #222;
-        }
-
-        /* + Add button */
         .add-btn {
-            margin: 0 20px 20px;
             background: #2f6fdb;
             border: none;
             border-radius: 16px;
             padding: 16px 0;
-            width: calc(100% - 40px);
-            font-size: 1.15rem;
+            width: 100%;
+            max-width: 440px;
+            font-size: 1.2rem;
             font-weight: 700;
             color: white;
             cursor: pointer;
@@ -197,7 +179,7 @@
             align-items: center;
             justify-content: center;
             gap: 10px;
-            transition: background 0.2s;
+            transition: background 0.2s, transform 0.1s;
             box-shadow: 0 4px 12px rgba(47, 111, 219, 0.3);
         }
 
@@ -205,31 +187,46 @@
             background: #1e5bc0;
         }
 
+        .add-btn:active {
+            transform: scale(0.98);
+            background: #1a4fa8;
+        }
+
         .add-btn svg {
             width: 22px;
             height: 22px;
             fill: white;
+            flex-shrink: 0;
         }
 
-        /* Responsive for larger screens */
-        @media (min-width: 480px) {
-            .app-screen {
-                border-left: 1px solid #f0f0f0;
-                border-right: 1px solid #f0f0f0;
-            }
-        }
-
-        /* Mobile friendly */
+        /* Responsive tweaks */
         @media (max-width: 360px) {
             .profile-pic {
                 width: 100px;
                 height: 100px;
             }
             .profile-name {
-                font-size: 1.5rem;
+                font-size: 1.4rem;
             }
             .menu-text {
                 font-size: 1rem;
+            }
+            .menu-icon {
+                margin-right: 12px;
+            }
+            .top-nav {
+                padding: 12px 16px;
+            }
+            .profile-section {
+                padding-top: 20px;
+            }
+        }
+
+        /* Larger screens: keep centered */
+        @media (min-width: 480px) {
+            .app-screen {
+                border-left: 1px solid #eaeaea;
+                border-right: 1px solid #eaeaea;
             }
         }
     </style>
@@ -238,7 +235,7 @@
 
     <div class="app-screen">
         
-        <!-- Top navigation (sticky) -->
+        <!-- Top navigation -->
         <div class="top-nav">
             <div class="nav-icon">
                 <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
@@ -255,7 +252,7 @@
             <div class="profile-name">খাদিজা আক্তার</div>
         </div>
 
-        <!-- Menu items -->
+        <!-- Menu items (no Share/Edit) -->
         <div class="menu-list">
             <!-- IMO ID -->
             <div class="menu-item">
@@ -288,24 +285,14 @@
             </div>
         </div>
 
-        <!-- Share & Edit -->
-        <div class="action-buttons">
-            <button class="action-btn">
-                <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
-                Share
-            </button>
-            <button class="action-btn">
-                <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-                Edit
-            </button>
-        </div>
+    </div>
 
-        <!-- + Add button -->
+    <!-- Fixed Add button at bottom -->
+    <div class="add-btn-container">
         <button class="add-btn" onclick="alert('Friend request sent to খাদিজা আক্তার ✅')">
             <svg viewBox="0 0 24 24"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
             + Add
         </button>
-
     </div>
 
 </body>
