@@ -35,53 +35,13 @@
             padding-bottom: 100px;
         }
 
-        /* Top navigation bar with blur */
-        .top-nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px 20px;
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .nav-icon {
-            width: 40px;
-            height: 40px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 12px;
-            background: rgba(0, 0, 0, 0.03);
-            transition: background 0.2s, transform 0.1s;
-        }
-
-        .nav-icon:hover {
-            background: rgba(0, 0, 0, 0.06);
-        }
-
-        .nav-icon:active {
-            transform: scale(0.92);
-        }
-
-        .nav-icon svg {
-            width: 22px;
-            height: 22px;
-            fill: #333;
-        }
-
         /* Profile section with elegant spacing */
         .profile-section {
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 40px 20px 20px;
+            padding-top: 60px; /* Extra top padding since nav is removed */
         }
 
         /* Profile pic with beautiful ring effect */
@@ -273,11 +233,8 @@
                 height: 38px;
                 margin-right: 12px;
             }
-            .top-nav {
-                padding: 12px 16px;
-            }
             .profile-section {
-                padding-top: 30px;
+                padding-top: 40px;
             }
             .menu-list {
                 padding: 15px 15px 0;
@@ -298,17 +255,7 @@
 
     <div class="app-screen">
         
-        <!-- Top navigation -->
-        <div class="top-nav">
-            <div class="nav-icon">
-                <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-            </div>
-            <div class="nav-icon">
-                <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
-            </div>
-        </div>
-
-        <!-- Profile picture + Name -->
+        <!-- Profile picture + Name (no top nav) -->
         <div class="profile-section">
             <div class="profile-pic-wrapper">
                 <img src="/imo/image/profile.png" alt="Profile" class="profile-pic" 
