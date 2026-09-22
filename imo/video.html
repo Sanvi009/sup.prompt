@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>porn tube</title>
+    <title>pron tube</title>
     <style>
         * {
             margin: 0;
@@ -107,14 +107,15 @@
     </style>
 </head>
 <body>
-    <div class="site-name">PORN<span>Tube</span></div>
+    <div class="site-name">porn<span>Tube</span></div>
     <div class="video-grid" id="videoGrid"></div>
 
     <script>
         // ---- CONFIG ----
-        const TOTAL_UNIQUE_IMAGES = 10;       // ← change to 50 later, no other edits needed
+        const TOTAL_UNIQUE_IMAGES = 61;       // ← change to 50 later
         const REDIRECT_URL = 'https://google.com';
         const IMAGE_BASE_PATH = '/imo/video';
+        const IMAGE_EXTENSION = 'jpg';        // ← extension here (jpg, jpeg, png, webp)
 
         const grid = document.getElementById('videoGrid');
         const fragment = document.createDocumentFragment();
@@ -136,7 +137,7 @@
             card.rel = 'noopener noreferrer';
 
             const img = document.createElement('img');
-            img.dataset.src = `${IMAGE_BASE_PATH}/${i}.jpeg`;
+            img.dataset.src = `${IMAGE_BASE_PATH}/${i}.${IMAGE_EXTENSION}`;
             img.alt = `Video ${i}`;
             img.loading = 'lazy';
             img.decoding = 'async';
