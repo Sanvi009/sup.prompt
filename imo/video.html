@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CubeTube · endless video grid</title>
+    <title>CubeTube</title>
     <style>
         * {
             margin: 0;
@@ -12,309 +12,161 @@
         }
 
         body {
-            background-color: #0f0f0f;
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            padding: 1.5rem 1.5rem 0;
-        }
-
-        .site-header {
-            width: 100%;
-            max-width: 1400px;
-            margin-bottom: 2rem;
-            padding-left: 0.25rem;
+            background: #0f0f0f;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            padding: 1.5rem;
         }
 
         .site-name {
             font-size: 2.8rem;
             font-weight: 900;
             letter-spacing: -0.03em;
-            color: #ffffff;
-            line-height: 1.2;
-            display: inline-block;
+            color: #fff;
+            margin-bottom: 1.5rem;
         }
 
         .site-name span {
             color: #ff2c2c;
-            font-weight: 900;
-        }
-
-        .grid-container {
-            width: 100%;
-            max-width: 1400px;
-            flex: 1;
-            display: flex;
-            justify-content: center;
         }
 
         .video-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-            gap: 1.5rem 1rem;
-            width: 100%;
-            padding-bottom: 2rem;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 1rem;
+            max-width: 1400px;
+            margin: 0 auto;
         }
 
-        /* ------ card ------ */
         .video-card {
             display: block;
-            text-decoration: none;
-            color: inherit;
-            border-radius: 18px;
-            overflow: hidden;
-            background-color: #1e1e1e;
-            transition: transform 0.15s ease, box-shadow 0.2s ease;
-            aspect-ratio: 4 / 3;
             position: relative;
-            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
-            will-change: transform;
+            aspect-ratio: 4 / 3;
+            overflow: hidden;
+            background: #1e1e1e;
+            text-decoration: none;
         }
 
-        .video-card:hover {
-            transform: scale(1.02);
-            box-shadow: 0 12px 22px rgba(0, 0, 0, 0.8);
-            z-index: 2;
-        }
-
-        /* image – fade in once loaded for smoother feel */
         .video-card img {
             width: 100%;
             height: 100%;
             object-fit: cover;
             display: block;
             opacity: 0;
-            transition: opacity 0.4s ease, filter 0.2s;
-            background-color: #1e1e1e;
+            transition: opacity 0.3s;
         }
 
         .video-card img.loaded {
             opacity: 1;
         }
 
-        /* play button overlay */
-        .play-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            pointer-events: none;
-            background: rgba(0, 0, 0, 0.12);
-            transition: background 0.2s;
-        }
-
-        .video-card:hover .play-overlay {
-            background: rgba(0, 0, 0, 0.28);
-        }
-
+        /* play button – centered */
         .play-icon {
-            width: 58px;
-            height: 58px;
-            background: rgba(255, 255, 255, 0.92);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.9);
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
-            transition: transform 0.15s, background 0.2s;
-            backdrop-filter: blur(2px);
-        }
-
-        .video-card:hover .play-icon {
-            transform: scale(1.08);
-            background: #ffffff;
+            pointer-events: none;
         }
 
         .play-icon::after {
             content: "";
-            display: block;
-            width: 0;
-            height: 0;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-40%, -50%);
             border-style: solid;
-            border-width: 12px 0 12px 22px;
+            border-width: 10px 0 10px 18px;
             border-color: transparent transparent transparent #0f0f0f;
-            margin-left: 5px;
-            transition: border-color 0.2s;
         }
 
-        /* ------ duration badge (bottom-right) ------ */
+        /* duration badge – bottom right */
         .duration-badge {
             position: absolute;
-            bottom: 8px;
-            right: 8px;
-            background: rgba(0, 0, 0, 0.82);
-            color: #ffffff;
+            bottom: 6px;
+            right: 6px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
             font-size: 0.75rem;
             font-weight: 600;
-            padding: 3px 6px;
-            border-radius: 5px;
-            letter-spacing: 0.02em;
-            line-height: 1.2;
-            pointer-events: none;   /* let the <a> handle clicks */
-            z-index: 3;
-            font-variant-numeric: tabular-nums;
-            transition: background 0.2s;
+            padding: 2px 5px;
+            border-radius: 4px;
+            pointer-events: none;
         }
 
-        .video-card:hover .duration-badge {
-            background: rgba(0, 0, 0, 0.95);
-        }
-
-        /* small screens */
         @media (max-width: 600px) {
-            body {
-                padding: 1rem 1rem 0;
-            }
-            .site-name {
-                font-size: 2.2rem;
-            }
-            .video-grid {
-                gap: 1rem 0.75rem;
-                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            }
-            .play-icon {
-                width: 44px;
-                height: 44px;
-            }
-            .play-icon::after {
-                border-width: 9px 0 9px 17px;
-                margin-left: 4px;
-            }
-            .duration-badge {
-                font-size: 0.65rem;
-                padding: 2px 5px;
-                bottom: 6px;
-                right: 6px;
-            }
+            .site-name { font-size: 2.2rem; }
+            .video-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+            .play-icon { width: 40px; height: 40px; }
+            .play-icon::after { border-width: 8px 0 8px 14px; }
+            .duration-badge { font-size: 0.65rem; }
         }
     </style>
 </head>
 <body>
-    <header class="site-header">
-        <div class="site-name">Cube<span>Tube</span></div>
-    </header>
-
-    <main class="grid-container">
-        <div class="video-grid" id="videoGrid"></div>
-    </main>
+    <div class="site-name">Cube<span>Tube</span></div>
+    <div class="video-grid" id="videoGrid"></div>
 
     <script>
-        (function() {
-            // ----- CONFIG -----
-            const TOTAL_UNIQUE_IMAGES = 10;
-            const REPEAT_COUNT = 30;                              // 10 × 30 = 300 cards
-            const REDIRECT_URL = 'https://google.com';
-            const IMAGE_BASE_PATH = '/imo/video';                 // <-- updated path
-            const MIN_DURATION_SEC = 2 * 60;                      // 120s  (2:00)
-            const MAX_DURATION_SEC = 5 * 60;                      // 300s  (5:00)
+        // ---- CONFIG ----
+        const TOTAL_UNIQUE_IMAGES = 10;       // ← change to 50 later, no other edits needed
+        const REDIRECT_URL = 'https://google.com';
+        const IMAGE_BASE_PATH = '/imo/video';
 
-            const grid = document.getElementById('videoGrid');
+        const grid = document.getElementById('videoGrid');
+        const fragment = document.createDocumentFragment();
 
-            // --- helper: random duration between 2:00 and 5:00, formatted M:SS ---
-            function randomDuration() {
-                const totalSeconds =
-                    Math.floor(Math.random() * (MAX_DURATION_SEC - MIN_DURATION_SEC + 1)) +
-                    MIN_DURATION_SEC;
-                const minutes = Math.floor(totalSeconds / 60);
-                const seconds = totalSeconds % 60;
-                return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-            }
+        // random duration between 2:00 and 5:00
+        function randomDuration() {
+            const total = Math.floor(Math.random() * 181) + 120; // 120–300s
+            const m = Math.floor(total / 60);
+            const s = total % 60;
+            return `${m}:${s.toString().padStart(2, '0')}`;
+        }
 
-            // --- build the sequence of image indices ---
-            const imageIndices = [];
-            for (let r = 0; r < REPEAT_COUNT; r++) {
-                for (let i = 1; i <= TOTAL_UNIQUE_IMAGES; i++) {
-                    imageIndices.push(i);
-                }
-            }
+        // build cards – one per image, no loop
+        for (let i = 1; i <= TOTAL_UNIQUE_IMAGES; i++) {
+            const card = document.createElement('a');
+            card.className = 'video-card';
+            card.href = REDIRECT_URL;
+            card.target = '_blank';
+            card.rel = 'noopener noreferrer';
 
-            // --- create all cards ---
-            const fragment = document.createDocumentFragment();
+            const img = document.createElement('img');
+            img.dataset.src = `${IMAGE_BASE_PATH}/${i}.jpeg`;
+            img.alt = `Video ${i}`;
+            img.loading = 'lazy';
+            img.decoding = 'async';
 
-            imageIndices.forEach((imgNumber) => {
-                const card = document.createElement('a');
-                card.className = 'video-card';
-                card.href = REDIRECT_URL;
-                card.target = '_blank';
-                card.rel = 'noopener noreferrer';
+            const play = document.createElement('div');
+            play.className = 'play-icon';
 
-                // image (no src yet — lazy loaded by observer)
-                const img = document.createElement('img');
-                img.dataset.src = `${IMAGE_BASE_PATH}/${imgNumber}.jpeg`;
-                img.alt = `Video thumbnail ${imgNumber}`;
-                img.loading = 'lazy';   // native fallback
-                img.decoding = 'async';
+            const dur = document.createElement('div');
+            dur.className = 'duration-badge';
+            dur.textContent = randomDuration();
 
-                // play overlay
-                const overlay = document.createElement('div');
-                overlay.className = 'play-overlay';
-                const playIcon = document.createElement('div');
-                playIcon.className = 'play-icon';
-                overlay.appendChild(playIcon);
+            card.append(img, play, dur);
+            fragment.appendChild(card);
+        }
+        grid.appendChild(fragment);
 
-                // duration badge
-                const duration = document.createElement('div');
-                duration.className = 'duration-badge';
-                duration.textContent = randomDuration();
-
-                // assemble
-                card.appendChild(img);
-                card.appendChild(overlay);
-                card.appendChild(duration);
-                fragment.appendChild(card);
+        // lazy load
+        const observer = new IntersectionObserver((entries, obs) => {
+            entries.forEach(entry => {
+                if (!entry.isIntersecting) return;
+                const img = entry.target;
+                img.src = img.dataset.src;
+                img.removeAttribute('data-src');
+                img.addEventListener('load', () => img.classList.add('loaded'), { once: true });
+                img.addEventListener('error', () => img.classList.add('loaded'), { once: true });
+                obs.unobserve(img);
             });
+        }, { rootMargin: '300px' });
 
-            grid.appendChild(fragment);
-
-            // --- lazy load images using IntersectionObserver ---
-            const lazyImages = grid.querySelectorAll('img[data-src]');
-
-            // Preload a tiny bit ahead so it feels smooth
-            const observer = new IntersectionObserver(
-                (entries, obs) => {
-                    entries.forEach((entry) => {
-                        if (!entry.isIntersecting) return;
-
-                        const img = entry.target;
-                        const src = img.dataset.src;
-
-                        if (src) {
-                            img.src = src;
-                            img.removeAttribute('data-src');
-
-                            // fade in when decoded
-                            if (img.complete) {
-                                img.classList.add('loaded');
-                            } else {
-                                img.addEventListener('load', () => {
-                                    img.classList.add('loaded');
-                                }, { once: true });
-                                img.addEventListener('error', () => {
-                                    // still fade in so layout isn't stuck invisible
-                                    img.classList.add('loaded');
-                                }, { once: true });
-                            }
-                        }
-
-                        obs.unobserve(img);
-                    });
-                },
-                {
-                    root: null,
-                    // Start loading ~300px before the image enters the viewport
-                    rootMargin: '300px 0px',
-                    threshold: 0.01,
-                }
-            );
-
-            lazyImages.forEach((img) => observer.observe(img));
-        })();
+        grid.querySelectorAll('img[data-src]').forEach(img => observer.observe(img));
     </script>
 </body>
 </html>
