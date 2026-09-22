@@ -1,1 +1,269 @@
-hello
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CubeTube · endless video grid</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #0f0f0f; /* dark like youtube dark theme */
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1.5rem 1.5rem 0;
+        }
+
+        /* ------ site name: bold, big, youtube-like ------ */
+        .site-header {
+            width: 100%;
+            max-width: 1400px;
+            margin-bottom: 2rem;
+            padding-left: 0.25rem;
+        }
+
+        .site-name {
+            font-size: 2.8rem;
+            font-weight: 900;           /* extra bold */
+            letter-spacing: -0.03em;
+            color: #ffffff;
+            line-height: 1.2;
+            display: inline-block;
+            text-decoration: none;
+            /* subtle youtube-ish red accent on the dot? no, just clean bold */
+        }
+
+        .site-name span {
+            color: #ff2c2c;            /* a tiny red hint like the yt logo, but keep bold */
+            font-weight: 900;
+        }
+
+        /* ------ main grid container: endless scroll illusion ------ */
+        .grid-container {
+            width: 100%;
+            max-width: 1400px;
+            flex: 1;
+            display: flex;
+            justify-content: center;
+        }
+
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+            gap: 1.5rem 1rem;
+            width: 100%;
+            padding-bottom: 2rem;
+            /* no fixed height -> endless loop effect */
+        }
+
+        /* ------ card – 4:5 ratio, clickable, contains image + play overlay ------ */
+        .video-card {
+            display: block;            /* makes <a> fill grid cell */
+            text-decoration: none;
+            color: inherit;
+            border-radius: 18px;
+            overflow: hidden;
+            background-color: #1e1e1e;
+            transition: transform 0.15s ease, box-shadow 0.2s ease;
+            aspect-ratio: 4 / 5;       /* important: 4:5 portrait */
+            position: relative;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
+            /* smooth hover */
+            will-change: transform;
+        }
+
+        .video-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 12px 22px rgba(0, 0, 0, 0.8);
+            z-index: 2;
+        }
+
+        /* image fills the card */
+        .video-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;          /* cover to preserve 4:5, no stretch */
+            display: block;
+            transition: filter 0.2s;
+        }
+
+        /* play button – centered overlay */
+        .play-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;       /* let the <a> handle click */
+            background: rgba(0, 0, 0, 0.12);
+            transition: background 0.2s;
+        }
+
+        .video-card:hover .play-overlay {
+            background: rgba(0, 0, 0, 0.28);
+        }
+
+        /* actual play button (circle + triangle) */
+        .play-icon {
+            width: 58px;
+            height: 58px;
+            background: rgba(255, 255, 255, 0.92);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+            transition: transform 0.15s, background 0.2s;
+            backdrop-filter: blur(2px);
+        }
+
+        .video-card:hover .play-icon {
+            transform: scale(1.08);
+            background: #ffffff;
+        }
+
+        /* triangle using border trick */
+        .play-icon::after {
+            content: "";
+            display: block;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 12px 0 12px 22px;
+            border-color: transparent transparent transparent #0f0f0f;
+            margin-left: 5px;           /* optical centering */
+            transition: border-color 0.2s;
+        }
+
+        /* optional subtle dark gradient at bottom — but not needed */
+
+        /* small screens: adjust gap and font */
+        @media (max-width: 600px) {
+            body {
+                padding: 1rem 1rem 0;
+            }
+            .site-name {
+                font-size: 2.2rem;
+            }
+            .video-grid {
+                gap: 1rem 0.75rem;
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+            .play-icon {
+                width: 44px;
+                height: 44px;
+            }
+            .play-icon::after {
+                border-width: 9px 0 9px 17px;
+                margin-left: 4px;
+            }
+        }
+
+        /* extra: hide any scrollbar jank? keep native */
+        /* just to reinforce endless feeling, the grid is large because js repeats items */
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <!-- "Cubetube" bold, exactly like a streaming brand -->
+        <div class="site-name">Cube<span>Tube</span></div>
+    </header>
+
+    <main class="grid-container">
+        <div class="video-grid" id="videoGrid">
+            <!-- Javascript will populate endless loop -->
+        </div>
+    </main>
+
+    <script>
+        (function() {
+            // ----- CONFIG -----
+            const TOTAL_UNIQUE_IMAGES = 10;         // /video/1.jpeg ... /video/10.jpeg
+            const REPEAT_COUNT = 30;                // how many times we repeat the set to create "endless" feel
+            const REDIRECT_URL = 'https://google.com';  // every card goes here (for now)
+
+            const grid = document.getElementById('videoGrid');
+
+            // Build the sequence of image indices: 1..10 repeated REPEAT_COUNT times
+            // This creates a huge grid. Real infinite scroll isn't necessary – just looks endless.
+            // (We could implement true infinite scroll with IntersectionObserver, but the requirement says
+            // "endless like loop" — a large repeated grid works and keeps everything simple.)
+            let imageIndices = [];
+            for (let r = 0; r < REPEAT_COUNT; r++) {
+                for (let i = 1; i <= TOTAL_UNIQUE_IMAGES; i++) {
+                    imageIndices.push(i);
+                }
+            }
+
+            // Shuffle? Not required, but repeating 1..10 gives a varied look.
+            // We'll keep them in order for predictability, but could randomize slightly.
+            // Actually let's keep ordered per cycle, looks fine and predictable.
+
+            // Create card elements
+            const fragment = document.createDocumentFragment();
+
+            imageIndices.forEach((imgNumber) => {
+                // Create anchor card
+                const card = document.createElement('a');
+                card.className = 'video-card';
+                card.href = REDIRECT_URL;
+                // Optional: add target="_blank" to open in new tab? Not specified.
+                // Use target="_blank" to keep cubetube open – more like streaming sites? 
+                // I'll set target="_blank" so you don't lose the page (common for video sites).
+                // But spec says "take to a specific link". It's fine.
+                // Add rel for security if target blank
+                card.target = '_blank';
+                card.rel = 'noopener noreferrer';
+
+                // Image element
+                const img = document.createElement('img');
+                img.src = `/video/${imgNumber}.jpeg`;
+                img.alt = `Video thumbnail ${imgNumber}`;
+                img.loading = 'lazy';   // good practice for many images
+                // Fallback if image missing? not needed, but could add onerror
+                // But spec says use /video/1.jpeg to 10.jpeg – assume they exist.
+                
+                // Play overlay container
+                const overlay = document.createElement('div');
+                overlay.className = 'play-overlay';
+                
+                const playIcon = document.createElement('div');
+                playIcon.className = 'play-icon';
+                
+                overlay.appendChild(playIcon);
+                
+                // Assemble card
+                card.appendChild(img);
+                card.appendChild(overlay);
+                
+                fragment.appendChild(card);
+            });
+
+            // Append all at once for performance
+            grid.appendChild(fragment);
+
+            // [optional tiny extra] to strengthen "endless" perception, 
+            // you could add a second batch of cards on scroll, but this satisfies the loop.
+            // The grid already contains 300 cards (10*30), which looks quite endless.
+            // Let's confirm: 10 images * 30 = 300 cards — plenty.
+            // If you want it even more endless, just bump REPEAT_COUNT.
+            // No further action needed.
+
+            // (no errors, just ready)
+        })();
+    </script>
+
+    <!-- tiny note: if any image doesn't exist, the card still shows the play button & background -->
+    <!-- but we rely on /video/1.jpeg etc as per instruction -->
+</body>
+</html>
